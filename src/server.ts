@@ -2,6 +2,7 @@ import helmet from "helmet";
 import express, { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import compression from "compression";
+import { authMiddleware } from "./middlewares/auth.middleware";
 import f1Router from "./routes/f1.routes";
 import authRouter from "./routes/auth.routes";
 import { logger } from "./utils/log";
@@ -16,8 +17,8 @@ app.use(helmet());
 app.use(compression());
 app.use(express.json());
 
-app.use("/api/f1", f1Router);
-app.use("/api/auth", authRouter);
+app.use("/api/f1",authMiddleware, f1Router);
+app.use("/api/auth",authMiddleware, authRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Not found" });

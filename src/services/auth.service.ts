@@ -1,4 +1,3 @@
-// src/services/auth.service.ts
 import bcrypt from "bcryptjs";
 import * as jwt from "jsonwebtoken";
 import { prisma } from "../prisma";
