@@ -1,43 +1,82 @@
-node_modules/
+# === BACKEND ===
+backend/node_modules/
+backend/dist/
+backend/build/
+backend/out/
+backend/tmp/
+backend/temp/
+backend/*.tmp
+backend/*.tsbuildinfo
 
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# Prisma
+backend/.prisma/
+backend/prisma/dev.db
+backend/prisma/migrations/
+!backend/prisma/schema.prisma  # оставляем только схему
 
+# Logs
+backend/logs/
+backend/combined.log
+backend/error.log
+backend/*.log
+
+# Env files
+backend/.env
+backend/.env.local
+backend/.env.development.local
+backend/.env.test.local
+backend/.env.production.local
+
+# Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-logs/
-*.log
 
-dist/
-build/
-out/
 
-*.tsbuildinfo
+# === FRONTEND (Next.js) ===
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+frontend/.cache/
+frontend/.vercel/
 
-.prisma/
-prisma/dev.db
-prisma/migrations/
-!prisma/schema.prisma  # оставляем схему
+# Static export
+frontend/export/
 
+# Env files (frontend)
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.production.local
+
+# Next.js telemetry
+.next/
+.vercel/
+.next/cache/
+.next/static/
+
+# === COMMON SYSTEM FILES ===
 .DS_Store
 Thumbs.db
+*.swp
+*.tmp
+*.log
 
+# === EDITOR SETTINGS ===
 .vscode/
 .idea/
-*.swp
+*.code-workspace
 
-tmp/
-temp/
-*.tmp
-
+# === TESTS & COVERAGE ===
 coverage/
 *.lcov
 
-.cache/
+# === ESLint / Prettier cache ===
 .eslintcache
-.next/
+.prettierignore
+
+# === OTHER ===
+.cache/
