@@ -1,3 +1,4 @@
+import "dotenv/config";
 import bcrypt from "bcryptjs";
 import * as jwt from "jsonwebtoken";
 import { prisma } from "../prisma";
@@ -40,7 +41,7 @@ export class AuthService {
     if (!isValid) throw { status: 401, message: "Invalid credentials" };
 
     const payload = { userId: user.id, username: user.username };
-    const token = jwt.sign(payload, JWT_SECRET as jwt.Secret, { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions);
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
     return { token, user: { id: user.id, username: user.username, email: user.email } };
   }

@@ -1,3 +1,5 @@
+import { logger } from "@/utils/log";
+import "dotenv/config";
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
@@ -11,10 +13,11 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
 
   const token = parts[1];
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as any;
-    (req as any).user = { id: payload.userId, username: payload.username };
+    const payload = jwt.verify(token, JWT_SECRET);
+    (req as any).user = { id: (payload as any).userId, username: (payload as any).username };
     next();
-  } catch {
+  } catch (error) {
+    logger.error("Token verification failed:", error);
     return res.status(401).json({ message: "Invalid token" });
   }
 }
