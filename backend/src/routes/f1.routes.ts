@@ -1,42 +1,14 @@
-import { Router, Request, Response } from "express";
-import axios from "axios";
-import { logger } from "../utils/log";
+import { Router } from "express";
+import { getDrivers, getDriverById, createDriver, getTeams, getTeamById, createTeam } from "../controllers/f1.controller";
 
 const router = Router();
-const API_BASE = "https://f1api.dev/api/";
 
-const axiosClient = axios.create({
-  baseURL: API_BASE,
-  timeout: 5000,
-});
+router.get("/drivers", getDrivers);
+router.get("/drivers/:driverId", getDriverById);
+router.post("/drivers", createDriver);
 
-async function fetchFromF1Api(
-  path: string,
-  res: Response,
-  cacheName?: string
-) {
-  try {
-    const { data } = await axiosClient.get(path);
-
-    return res.json(data);
-  } catch (error: any) {
-    logger.error(` [F1 API] ${path} — ${error.message}`);
-    return res
-      .status(502)
-      .json({ message: "Error fetching data from external F1 API" });
-  }
-}
-
-router.get("/drivers", (req: Request, res: Response) =>
-  fetchFromF1Api("drivers", res, "drivers")
-);
-
-router.get("/standings/drivers", (req: Request, res: Response) =>
-  fetchFromF1Api("current/drivers-championship", res, "drivers-standings")
-);
-
-router.get("/standings/teams", (req: Request, res: Response) =>
-  fetchFromF1Api("current/constructors-championship", res, "teams-standings")
-);
+router.get("/teams", getTeams);
+router.get("/teams/:teamId", getTeamById);
+router.post("/teams", createTeam);
 
 export default router;

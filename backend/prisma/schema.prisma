@@ -8,10 +8,27 @@ datasource db {
 }
 
 model User {
-  id             Int      @id @default(autoincrement())
-  email          String   @unique
-  username       String   @unique
-  password       String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Driver {
+  id        Int      @id @default(autoincrement())
+  driverId  String   @unique
+  imgUrl    String   
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Team {
+  id          Int      @id @default(autoincrement())
+  teamId      String   @unique
+  teamImgUrl  String   
+  bolidImgUrl String   
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
