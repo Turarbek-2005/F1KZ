@@ -26,7 +26,7 @@ app.use(compression());
 app.use(express.json());
 
 app.use("/api/f1api", authMiddleware, f1apiRouter);
-app.use("/api/f1",  f1Router);
+app.use("/api/f1", authMiddleware, f1Router);
 app.use("/api/auth", authRouter);
 app.use("/api/user", authMiddleware, userRouter);
 
