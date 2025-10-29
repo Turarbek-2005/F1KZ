@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { cn } from "@/shared/lib/utils";
 import { Header } from "@/widget/Header";
 import { Providers } from "@/app/providers/Providers";
+import { StoreProvider } from "@/app/providers/StoreProvider";
 import "./globals.css";
 
 const inter = Inter({
