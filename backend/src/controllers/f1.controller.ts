@@ -20,10 +20,10 @@ export async function getTeams(req: Request, res: Response) {
 }
 
 export async function createDriver(req: Request, res: Response) {
-  const { driverId, imgUrl } = req.body;
+  const { driverId,teamId, imgUrl } = req.body;
   try {
     const newDriver = await prisma.driver.create({
-      data: { driverId, imgUrl },
+      data: { driverId,teamId, imgUrl },
     });
     res.status(201).json(newDriver);
   } catch (error) {

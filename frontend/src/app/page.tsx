@@ -1,61 +1,58 @@
 "use client";
-
-import { useEffect, useState } from "react";
-
-interface Team {
-  id: number;
-  teamId: string;
-  teamImgUrl: string;
-  bolidImgUrl: string;
-}
+import { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
+import { fetchTeams, selectAllTeams } from "@/entities/f1/model/teamsSlice";
+import {
+  fetchDrivers,
+  selectAllDrivers,
+} from "@/entities/f1/model/driversSlice";
 
 export default function Home() {
-  const [teams, setTeams] = useState<Team[] | null>(null);
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInVzZXJuYW1lIjoiZG9uayIsImlhdCI6MTc2MTQxMDY1OCwiZXhwIjoxNzYyMDE1NDU4fQ.PNwnPnuohCvETnYq-GBIozlitBUnu-A74JUP6NViwos";
+  const dispatch = useAppDispatch();
+  const teams = useAppSelector(selectAllTeams);
+  const drivers = useAppSelector(selectAllDrivers);
+
   useEffect(() => {
-    async function fetchTeams() {
-      try {
-        const res = await fetch("http://localhost:4200/api/f1/teams", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await res.json();
-        console.log("Загруженный пилот:", data);
-        setTeams(data);
-      } catch (err) {
-        console.error("Ошибка загрузки пилота:", err);
-      }
-    }
-
-    fetchTeams();
-  }, []);
-
-  if (!teams)
-    return <div className="container mx-auto text-center">Loading...</div>;
+    dispatch(fetchTeams());
+    dispatch(fetchDrivers());
+  }, [dispatch]);
 
   return (
-    <div className="container mx-auto text-center mt-10">
-      <h1 className="text-3xl font-bold mb-4">Welcome to F1KZ!</h1>
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        {teams.map((team) => (
-          <div key={team.id}>
-            <h2 className="text-xl font-semibold">{team.teamId}</h2>
-            <img
-              src={team.teamImgUrl}
-              alt={team.teamImgUrl}
-              className="mx-auto w-10 h-10 "
-            />
-            <img
-              src={team.bolidImgUrl}
-              alt={team.bolidImgUrl}
-              className="mx-auto w-96 h-auto "
-            />
-          </div>
-        ))}
+    <div className="w-full">
+      <div className="container  mx-auto">
+        <h2>Teams ({teams.length})</h2>
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          {teams.map((team) => (
+            <div key={team.id} className="flex flex-col items-center">
+              <h2 className="text-xl font-semibold">{team.teamId}</h2>
+              <img
+                src={team.teamImgUrl}
+                alt={team.teamImgUrl}
+                className="w-10 h-10 "
+              />
+              <img
+                src={team.bolidImgUrl}
+                alt={team.bolidImgUrl}
+                className="w-96 h-auto "
+              />
+            </div>
+          ))}
+        </div>
+
+        <h2>Drivers ({drivers.length})</h2>
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          {drivers.map((driver) => (
+            <div key={driver.id} className="flex flex-col items-center">
+              <h2 className="text-xl font-semibold">{driver.driverId}</h2>
+              <h2 className="text-xl font-semibold">{driver.teamId}</h2>
+              <img
+                src={driver.imgUrl}
+                alt={driver.imgUrl}
+                className="w-96 h-auto "
+              />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
