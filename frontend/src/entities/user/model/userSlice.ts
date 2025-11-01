@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "@/entities/user/types/user.types";
 
 const initialState: User = {
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInVzZXJuYW1lIjoiZG9uayIsImlhdCI6MTc2MTQxMDY1OCwiZXhwIjoxNzYyMDE1NDU4fQ.PNwnPnuohCvETnYq-GBIozlitBUnu-A74JUP6NViwos",
+    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsInVzZXJuYW1lIjoibTBuZXN5IiwiaWF0IjoxNzYyMDIyMjM3LCJleHAiOjE3NjI2MjcwMzd9.F4MzxnAwhEcEMmxKo1Ieov-7bYfjwyGV4SfiWc-VXqc",
     user: {
         id: 0,
         username: "",
