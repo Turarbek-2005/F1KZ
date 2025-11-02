@@ -86,6 +86,16 @@
   --sidebar-accent-foreground: oklch(0.21 0.034 264.665);
   --sidebar-border: oklch(0.928 0.006 264.531);
   --sidebar-ring: oklch(0.707 0.022 261.325);
+  --team-mercedes: linear-gradient(135deg, #00d2bdc2, #00d2bd5e, #00d2bdbb, #00d2bd5e, #00d2bdbb);
+  --team-williams: linear-gradient(135deg, #1e41ffc2, #1e41ff5e, #1e41ffbb, #1e41ff5e, #1e41ffbb);
+  --team-ferrari: linear-gradient(135deg, #dc0000c2, #dc00005e, #dc0000bb, #dc00005e, #dc0000bb);
+  --team-mclaren: linear-gradient(135deg, #ff8700c2, #ff88007a, #ff8700bb, #ff88007a, #ff8700bb);
+  --team-aston_martin: linear-gradient(135deg, #006f62c2, #006f625e, #006f62bb, #006f625e, #006f62bb);
+  --team-alpine: linear-gradient(135deg, #0090ffc2, #0090ff5e, #0090ffbb, #0090ff5e, #0090ffbb);
+  --team-red_bull: linear-gradient(135deg, #005affc2, #005aff5e, #005affbb, #005aff5e, #005affbb);
+  --team-haas: linear-gradient(135deg, #ffffffc2, #ffffff5e, #ffffffbb, #ffffff5e, #ffffffbb);
+  --team-rb: linear-gradient(135deg, #6692ffc2, #6692ff5e, #6692ffbb, #6692ff5e, #6692ffbb);
+  --team-sauber: linear-gradient(135deg, #52e252c2, #52e2525e, #52e252bb, #52e2525e, #52e252bb);
 }
 
 .dark {

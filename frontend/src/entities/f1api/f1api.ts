@@ -1,7 +1,7 @@
 // src/entities/f1/api/f1Api.ts
 import { createApi } from '@reduxjs/toolkit/query/react';
 import type { AxiosRequestConfig } from 'axios';
-import { axiosClient } from '@/shared/api/axios'; // <- поправь путь к файлу axiosClient
+import { axiosClient } from '@/shared/api/axios'; 
 import type { RootState } from "@/shared/store/index";
 
 type AxiosBaseQueryArgs = {
@@ -18,17 +18,14 @@ const axiosBaseQuery =
     { getState }: { getState: () => unknown }
   ) => {
     try {
-      // берём токен из user-slice (state.user.token)
       const state = getState() as RootState;
       const token = state.user?.token;
 
       const headers: Record<string, string> = {};
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      // Если axiosClient.baseURL уже настроен (например, NEXT_PUBLIC_API_URL),
-      // то передаём относительный путь, например "/api/f1api/drivers"
       const res = await axiosClient.request({
-        url, // ожидаем что url содержит полный путь, например '/api/f1api/drivers'
+        url, 
         method,
         data,
         params,
@@ -37,7 +34,6 @@ const axiosBaseQuery =
 
       return { data: res.data };
     } catch (axiosError: any) {
-      // Приводим ошибку к формату RTK Query
       const err = axiosError;
       return {
         error: {
@@ -82,7 +78,7 @@ export const f1Api = createApi({
       query: (q) => ({ url: `/f1api/teams/search?q=${encodeURIComponent(q)}`, method: 'get' }),
     }),
 
-    // Last / Results
+    // Results
     getLastFp1: build.query<any, void>({ query: () => ({ url: '/f1api/last/fp1', method: 'get' }), providesTags: ['Results'] }),
     getLastFp2: build.query<any, void>({ query: () => ({ url: '/f1api/last/fp2', method: 'get' }), providesTags: ['Results'] }),
     getLastFp3: build.query<any, void>({ query: () => ({ url: '/f1api/last/fp3', method: 'get' }), providesTags: ['Results'] }),
@@ -102,7 +98,6 @@ export const f1Api = createApi({
   }),
 });
 
-// Export hooks
 export const {
   useGetDriversQuery,
   useGetDriverByIdQuery,

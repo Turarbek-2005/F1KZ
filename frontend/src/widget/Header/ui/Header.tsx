@@ -16,7 +16,7 @@ export function Header() {
   const { theme, setTheme } = useTheme();
   return (
     <header className="w-full">
-      <div className="container h-14 mx-auto flex items-center justify-between">
+      <div className="container h-16 mx-auto flex items-center justify-between">
         <Link href="/">
         <Image
           src="/F1KZ logo.png"

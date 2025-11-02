@@ -13,22 +13,33 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
+import { useGetDriversQuery } from "@/entities/f1api/f1api";
 
-export default function Home() {
+export default function DriversDropdownMenu() {
+  const {
+    data: driversApi = [],
+    isLoading,
+    error,
+  } = useGetDriversQuery(undefined, {
+    refetchOnMountOrArgChange: false,
+  });
   const dispatch = useAppDispatch();
   const drivers = useAppSelector(selectAllDrivers);
+  const sortedDrivers = [...drivers].sort((a, b) => a.id - b.id);
+
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     dispatch(fetchDrivers());
   }, [dispatch]);
 
+  useEffect(() => {
+    console.log("Drivers from API:", driversApi);
+  }, [driversApi]);
+
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger
-        asChild
-        onMouseEnter={() => setOpen(true)}
-      >
+      <DropdownMenuTrigger asChild onMouseEnter={() => setOpen(true)}>
         <Link href="/drivers" className="cursor-pointer">
           Drivers
         </Link>
@@ -36,29 +47,49 @@ export default function Home() {
 
       <DropdownMenuContent
         align="center"
-        className="grid grid-cols-5 p-3 mt-3"
+        className="grid grid-cols-4 p-3 mt-3 gap-x-5"
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
       >
-        {drivers.map((driver) => (
-          <DropdownMenuItem key={driver.id} asChild className="hover:scale-110 transition-transform">
-            <Link
-              href={`/drivers/${driver.driverId}`}
-              className="flex flex-col items-center gap-1"
+        {sortedDrivers.map((driver) => {
+          const matchedDriver = driversApi?.drivers?.find(
+            (driverApi: any) => driverApi.driverId === driver.driverId
+          );
+          return (
+            <DropdownMenuItem
+              key={driver.id}
+              asChild
+              className="hover:scale-105 transition-transform"
             >
-              <div className="w-24 h-24 overflow-hidden rounded-full border ">
-                <Image
-                  src={driver.imgUrl}
-                  alt={driver.driverId}
-                  width={100}
-                  height={100}
-                  className="object-cover object-top w-full h-full"
-                />
-              </div>
-              <span className="text-xs">{driver.driverId}</span>
-            </Link>
-          </DropdownMenuItem>
-        ))}
+              <Link
+                href={`/drivers/${driver.driverId}`}
+                className="flex  items-center gap-2 "
+              >
+                <div
+                  className="w-12 h-12 overflow-hidden rounded-full  "
+                  style={{
+                    background: `var(--team-${driver?.teamId
+                      ?.toLowerCase()
+                      .replace(" ", "_")})`,
+                  }}
+                >
+                  <Image
+                    src={driver.imgUrl}
+                    alt={driver.driverId}
+                    width={48}
+                    height={48}
+                    className="object-cover object-top w-full h-full"
+                  />
+                </div>
+                <span className="text-sm">
+                  {matchedDriver
+                    ? matchedDriver.name + " " + matchedDriver.surname
+                    : driver.teamId}
+                </span>
+              </Link>
+            </DropdownMenuItem>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );

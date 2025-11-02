@@ -7,7 +7,7 @@ import React from "react";
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <StoreProvider>
-      <ThemeProvider attribute="class" enableSystem defaultTheme="system">
+      <ThemeProvider attribute="class" enableSystem defaultTheme="dark">
         {children}
       </ThemeProvider>
     </StoreProvider>
