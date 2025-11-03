@@ -21,6 +21,7 @@ export default function Drivers() {
   const sortedDrivers = [...drivers].sort((a, b) => a.id - b.id);
   useEffect(() => {
     dispatch(fetchDrivers());
+    console.log("Fetched drivers from Redux store:", drivers);
   }, [dispatch]);
 
   useEffect(() => {
@@ -32,7 +33,7 @@ export default function Drivers() {
     <div className="container mx-auto pb-6">
       <h2 className="text-4xl mt-3 mb-8">F1 Drivers 2025</h2>
 
-      <div className=" grid grid-cols-2 gap-5 ">
+      <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-5 ">
         {sortedDrivers.map((driver) => {
           const matchedDriver = driversApi?.drivers?.find(
             (driverApi: any) => driverApi.driverId === driver.driverId
@@ -50,26 +51,35 @@ export default function Drivers() {
                   .replace(" ", "_")})`,
               }}
             >
-              <div >
-                {matchedDriver && matchedTeam ? (
-                  <>
-                    <span className="text-2xl font-bold">
-                      {matchedDriver.name} {matchedDriver.surname}
-                    </span>{" "}
-                    <br />
-                    {/* {matchedDriver.nationality} <br /> */}
-                    <span className="text-sm">{matchedTeam.teamName}</span>
-                    <br />
-                    <span className="text-4xl font-medium font mt-4">
-                      {matchedDriver.number}
-                    </span>
-                  </>
-                ) : (
-                  driver.teamId
-                )}
+              <div className="flex flex-col justify-between h-full">
+                <div className="flex flex-col">
+                  {matchedDriver && matchedTeam ? (
+                    <>
+                      <span className="text-2xl font-bold">
+                        {matchedDriver.name} {matchedDriver.surname}
+                      </span>{" "}
+                      {/* {matchedDriver.nationality} <br /> */}
+                      <span className="text-sm">{matchedTeam.teamName}</span>
+                      <span className="text-4xl font-medium font mt-2">
+                        {matchedDriver.number}
+                      </span>
+                    </>
+                  ) : (
+                    driver.teamId
+                  )}
+                </div>
+                <div className="w-8 h-8 rounded-full border-2  border-white">
+                  <Image
+                    src={driver.nationalityImgUrl}
+                    alt={driver.nationality}
+                    width={32}
+                    height={32}
+                    className="object-cover object-top w-full h-full rounded-full"
+                  />
+                </div>
               </div>
 
-              <div className="w-50 h-60 overflow-hidden absolute bottom-0 right-1/5">
+              <div className="w-50 h-60 overflow-hidden absolute bottom-0 right-1/5 md:right-[10%] lg:right-1/5 2xl:right-[10%] ">
                 <Image
                   src={driver.imgUrl}
                   alt={driver.driverId}

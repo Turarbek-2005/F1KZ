@@ -20,10 +20,10 @@ export async function getTeams(req: Request, res: Response) {
 }
 
 export async function createDriver(req: Request, res: Response) {
-  const { driverId,teamId, imgUrl } = req.body;
+  const { driverId, teamId, imgUrl, nationality, nationalityImgUrl } = req.body;
   try {
     const newDriver = await prisma.driver.create({
-      data: { driverId,teamId, imgUrl },
+      data: { driverId, teamId, imgUrl, nationality, nationalityImgUrl },
     });
     res.status(201).json(newDriver);
   } catch (error) {
@@ -64,5 +64,3 @@ export async function getTeamById(req: Request, res: Response) {
     res.status(500).json({ message: "Error fetching team" });
   }
 }
-
-

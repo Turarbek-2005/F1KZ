@@ -3,6 +3,8 @@ export interface Driver {
   driverId: string;
   imgUrl: string;
   teamId: string;
+  nationality: string;
+  nationalityImgUrl: string;
   createdAt: string;
   updatedAt: string;
 }
