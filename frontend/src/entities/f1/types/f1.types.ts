@@ -17,3 +17,17 @@ export interface Team {
   createdAt: string;
   updatedAt: string;
 }
+
+export type DriversState = {
+  items: Driver[];
+  byId: Record<number, Driver>;
+  status: "idle" | "loading" | "succeeded" | "failed";
+  error?: string | null;
+};
+
+export type TeamsState = {
+  items: Team[];
+  byId: Record<number, Team>;
+  status: "idle" | "loading" | "succeeded" | "failed";
+  error?: string | null;
+};

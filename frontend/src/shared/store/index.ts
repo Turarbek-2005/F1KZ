@@ -1,14 +1,14 @@
 import { configureStore } from "@reduxjs/toolkit";
-import userReducer from "@/entities/user/model/userSlice";
 import driversReducer from "@/entities/f1/model/driversSlice";
 import teamsReducer from "@/entities/f1/model/teamsSlice";
+import authReducer from '@/entities/auth/model/authSlice';
 import { f1Api } from '@/entities/f1api/f1api';
 
 export const store = configureStore({
   reducer: {
-    user: userReducer,
     drivers: driversReducer,
     teams: teamsReducer,
+    auth: authReducer,
     [f1Api.reducerPath]: f1Api.reducer,
   },
   middleware: (getDefaultMiddleware) =>

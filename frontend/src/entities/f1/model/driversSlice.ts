@@ -1,14 +1,9 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { axiosClient } from "@/shared/api/axios";
-import { Driver } from "../types/f1.types";
+import { Driver,DriversState } from "../types/f1.types";
 import type { RootState } from "@/shared/store/index";
 
-type DriversState = {
-  items: Driver[];
-  byId: Record<number, Driver>;
-  status: "idle" | "loading" | "succeeded" | "failed";
-  error?: string | null;
-};
+
 
 const initialState: DriversState = {
   items: [],
@@ -20,15 +15,11 @@ const initialState: DriversState = {
 export const fetchDrivers = createAsyncThunk<
   Driver[],
   void,
-  { state: RootState; rejectValue: { message: string; status?: number } }
->("drivers/fetch", async (_, { rejectWithValue, getState }) => {
+  { rejectValue: { message: string; status?: number } }
+>("drivers/fetch", async (_, { rejectWithValue }) => {
   try {
-    const token = (getState() as RootState).user.token;
-
-    const res = await axiosClient.get<Driver[]>("/f1/drivers", {
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    });
-
+    // token больше не нужен — просто делаем GET запрос
+    const res = await axiosClient.get<Driver[]>("/f1/drivers");
     return res.data;
   } catch (err: any) {
     if (err.response) {
@@ -85,6 +76,6 @@ const driversSlice = createSlice({
 export const { setDrivers, clearDrivers } = driversSlice.actions;
 export default driversSlice.reducer;
 
-export const selectAllDrivers = (state: any) => state.drivers.items as Driver[];
-export const selectDriverById = (state: any, id: number) =>
-  state.drivers.byId[id] as Driver | undefined;
+export const selectAllDrivers = (state: RootState) => state.drivers.items;
+export const selectDriverById = (state: RootState, id: number) =>
+  state.drivers.byId[id];

@@ -1,8 +1,7 @@
 // src/entities/f1/api/f1Api.ts
 import { createApi } from '@reduxjs/toolkit/query/react';
 import type { AxiosRequestConfig } from 'axios';
-import { axiosClient } from '@/shared/api/axios'; 
-import type { RootState } from "@/shared/store/index";
+import { axiosClient } from '@/shared/api/axios';
 
 type AxiosBaseQueryArgs = {
   url: string;
@@ -13,23 +12,13 @@ type AxiosBaseQueryArgs = {
 
 const axiosBaseQuery =
   () =>
-  async (
-    { url, method = 'get', data, params }: AxiosBaseQueryArgs,
-    { getState }: { getState: () => unknown }
-  ) => {
+  async ({ url, method = 'get', data, params }: AxiosBaseQueryArgs) => {
     try {
-      const state = getState() as RootState;
-      const token = state.user?.token;
-
-      const headers: Record<string, string> = {};
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-
       const res = await axiosClient.request({
-        url, 
+        url,
         method,
         data,
         params,
-        headers,
       });
 
       return { data: res.data };

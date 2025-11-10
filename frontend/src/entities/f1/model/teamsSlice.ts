@@ -1,15 +1,9 @@
-
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { axiosClient } from "@/shared/api/axios";
-import { Team } from "../types/f1.types";
+import { Team, TeamsState } from "../types/f1.types";
 import type { RootState } from "@/shared/store/index";
 
-type TeamsState = {
-  items: Team[];
-  byId: Record<number, Team>;
-  status: "idle" | "loading" | "succeeded" | "failed";
-  error?: string | null;
-};
+
 
 const initialState: TeamsState = {
   items: [],
@@ -21,15 +15,11 @@ const initialState: TeamsState = {
 export const fetchTeams = createAsyncThunk<
   Team[],
   void,
-  { state: RootState; rejectValue: { message: string; status?: number } }
->("teams/fetch", async (_, { rejectWithValue, getState }) => {
+  { rejectValue: { message: string; status?: number } }
+>("teams/fetch", async (_, { rejectWithValue }) => {
   try {
-    const token = (getState() as RootState).user.token;
-
-    const res = await axiosClient.get<Team[]>("/f1/teams", {
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    });
-
+    // токен больше не нужен — просто делаем запрос
+    const res = await axiosClient.get<Team[]>("/f1/teams");
     return res.data;
   } catch (err: any) {
     if (err.response) {
@@ -86,6 +76,6 @@ const teamsSlice = createSlice({
 export const { setTeams, clearTeams } = teamsSlice.actions;
 export default teamsSlice.reducer;
 
-export const selectAllTeams = (state: any) => state.teams.items as Team[];
-export const selectTeamById = (state: any, id: number) =>
-  state.teams.byId[id] as Team | undefined;
+export const selectAllTeams = (state: RootState) => state.teams.items;
+export const selectTeamById = (state: RootState, id: number) =>
+  state.teams.byId[id];
