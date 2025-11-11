@@ -18,7 +18,6 @@ export const fetchTeams = createAsyncThunk<
   { rejectValue: { message: string; status?: number } }
 >("teams/fetch", async (_, { rejectWithValue }) => {
   try {
-    // токен больше не нужен — просто делаем запрос
     const res = await axiosClient.get<Team[]>("/f1/teams");
     return res.data;
   } catch (err: any) {

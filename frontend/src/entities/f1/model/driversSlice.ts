@@ -3,8 +3,6 @@ import { axiosClient } from "@/shared/api/axios";
 import { Driver,DriversState } from "../types/f1.types";
 import type { RootState } from "@/shared/store/index";
 
-
-
 const initialState: DriversState = {
   items: [],
   byId: {},
@@ -18,7 +16,6 @@ export const fetchDrivers = createAsyncThunk<
   { rejectValue: { message: string; status?: number } }
 >("drivers/fetch", async (_, { rejectWithValue }) => {
   try {
-    // token больше не нужен — просто делаем GET запрос
     const res = await axiosClient.get<Driver[]>("/f1/drivers");
     return res.data;
   } catch (err: any) {
