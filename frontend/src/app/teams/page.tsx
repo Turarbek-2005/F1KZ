@@ -9,6 +9,7 @@ import {
 } from "@/entities/f1/model/driversSlice";
 import { fetchTeams, selectAllTeams } from "@/entities/f1/model/teamsSlice";
 import { useGetDriversQuery, useGetTeamsQuery } from "@/entities/f1api/f1api";
+import { motion } from "framer-motion";
 
 export default function Teams() {
   // безопасные дефолты: ожидаем объект с массивом teams/drivers
@@ -24,8 +25,8 @@ export default function Teams() {
   const teams = useAppSelector(selectAllTeams);
 
   // сортируем локальные данные по id
-  const sortedDrivers = [...(drivers )].sort((a, b) => a.id - b.id);
-  const sortedTeams = [...(teams )].sort((a, b) => a.id - b.id);
+  const sortedDrivers = [...drivers].sort((a, b) => a.id - b.id);
+  const sortedTeams = [...teams].sort((a, b) => a.id - b.id);
 
   useEffect(() => {
     dispatch(fetchDrivers());
@@ -42,7 +43,14 @@ export default function Teams() {
   return (
     <div>
       <div className="container mx-auto pb-6">
-        <h2 className="text-4xl mt-3 mb-8">F1 Teams 2025</h2>
+        <motion.h2
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-4xl mt-3 mb-8"
+        >
+          F1 Teams 2025
+        </motion.h2>
 
         <div className="grid md:grid-cols-2 gap-5">
           {sortedTeams.map((team) => {
@@ -55,7 +63,10 @@ export default function Teams() {
             );
 
             return (
-              <div
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
                 key={team.id}
                 className="p-4 rounded-lg  relative h-70 cursor-pointer overflow-hidden"
                 style={{
@@ -137,7 +148,7 @@ export default function Teams() {
                     className="object-cover w-full h-full"
                   />
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>

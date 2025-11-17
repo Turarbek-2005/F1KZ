@@ -9,6 +9,7 @@ import { Button } from "@/shared/ui/button";
 import { UserPlus } from "lucide-react";
 import { useAppDispatch } from "@/shared/lib/hooks";
 import { registerUser } from "@/entities/auth/model/authSlice";
+import Link from "next/link";
 
 
 export default function RegisterPage() {
@@ -181,9 +182,9 @@ export default function RegisterPage() {
 
           <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-2">
             Already have an account?{" "}
-            <a href="/login" className="text-blue-600 hover:underline">
+            <Link href="/login" className="text-blue-600 hover:underline">
               Sign in
-            </a>
+            </Link>
           </p>
         </form>
       </motion.div>

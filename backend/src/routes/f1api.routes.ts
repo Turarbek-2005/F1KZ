@@ -125,4 +125,15 @@ router.get("/races/last", (req: Request, res: Response) =>
 router.get("/races/next", (req: Request, res: Response) =>
   fetchFromF1Api("current/next", res, "current/next")
 );
+
+router.get("/races/:year/:round", (req: Request, res: Response) => {
+  const { year, round } = req.params;
+  return fetchFromF1Api(`${year}/${round}`, res, `${year}/${round}`);
+});
+
+router.get("/races/:year", (req: Request, res: Response) => {
+  const { year} = req.params;
+  return fetchFromF1Api(`${year}`, res, `${year}`);
+});
+
 export default router;

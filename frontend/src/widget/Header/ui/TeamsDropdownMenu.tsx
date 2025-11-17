@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
 import { fetchTeams, selectAllTeams } from "@/entities/f1/model/teamsSlice";
 import {
@@ -11,14 +12,17 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { useGetTeamsQuery } from "@/entities/f1api/f1api";
+import { cn } from "@/shared/lib/utils";
 
 export default function TeamsDropdownMenu() {
+  const pathname = usePathname();
+
   const {
     data: teamsApi = [],
     isLoading,
     error,
   } = useGetTeamsQuery(undefined, {
-    refetchOnMountOrArgChange: false, 
+    refetchOnMountOrArgChange: false,
   });
 
   const dispatch = useAppDispatch();
@@ -36,7 +40,13 @@ export default function TeamsDropdownMenu() {
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild onMouseEnter={() => setOpen(true)}>
-        <Link href="/teams" className="cursor-pointer">
+        <Link
+          className={cn(
+            "transition hover:text-red-500",
+            pathname === "/teams" && "text-red-500"
+          )}
+          href="/teams"
+        >
           Teams
         </Link>
       </DropdownMenuTrigger>
@@ -57,21 +67,21 @@ export default function TeamsDropdownMenu() {
               asChild
               className="hover:scale-105 transition-transform"
               style={{
-              background: `var(--team-${matchedTeam?.teamId
-                ?.toLowerCase()
-                .replace(" ", "_")})`,
-            }}
+                background: `var(--team-${matchedTeam?.teamId
+                  ?.toLowerCase()
+                  .replace(" ", "_")})`,
+              }}
             >
               <Link href={`/teams/${team.teamId}`} className="flex flex-col ">
                 <div className="flex  items-center gap-2">
                   <div>
                     <Image
-                    src={team.teamImgUrl}
-                    alt={team.teamId}
-                    width={40}
-                    height={40}
-                    className="w-full h-auto object-cover"
-                  />
+                      src={team.teamImgUrl}
+                      alt={team.teamId}
+                      width={40}
+                      height={40}
+                      className="w-full h-auto object-cover"
+                    />
                   </div>
                   {matchedTeam ? matchedTeam.teamName : team.teamId}
                 </div>

@@ -8,6 +8,7 @@ import {
   selectAllDrivers,
 } from "@/entities/f1/model/driversSlice";
 import { useGetDriversQuery, useGetTeamsQuery } from "@/entities/f1api/f1api";
+import { motion } from "framer-motion";
 
 export default function Drivers() {
   const { data: driversApi = [] } = useGetDriversQuery(undefined, {
@@ -31,7 +32,14 @@ export default function Drivers() {
 
   return (
     <div className="container mx-auto pb-6">
-      <h2 className="text-4xl mt-3 mb-8">F1 Drivers 2025</h2>
+      <motion.h2
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="text-4xl mt-3 mb-8"
+      >
+        F1 Drivers 2025
+      </motion.h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-5 ">
         {sortedDrivers.map((driver) => {
@@ -42,7 +50,10 @@ export default function Drivers() {
             (teamApi: any) => teamApi.teamId === driver.teamId
           );
           return (
-            <div
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
               key={driver.id}
               className=" p-4 rounded-lg relative h-70 cursor-pointer"
               style={{
@@ -88,7 +99,7 @@ export default function Drivers() {
                   className="object-cover object-top w-full h-full"
                 />
               </div>
-            </div>
+            </motion.div>
           );
         })}
       </div>

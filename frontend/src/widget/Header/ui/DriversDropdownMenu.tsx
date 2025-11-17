@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
 import {
   fetchDrivers,
@@ -14,8 +15,11 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { useGetDriversQuery } from "@/entities/f1api/f1api";
+import { cn } from "@/shared/lib/utils";
 
 export default function DriversDropdownMenu() {
+  const pathname = usePathname();
+
   const {
     data: driversApi = [],
     isLoading,
@@ -40,7 +44,13 @@ export default function DriversDropdownMenu() {
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild onMouseEnter={() => setOpen(true)}>
-        <Link href="/drivers" className="cursor-pointer">
+        <Link
+          className={cn(
+            "transition hover:text-red-500",
+            pathname === "/drivers" && "text-red-500"
+          )}
+          href="/drivers"
+        >
           Drivers
         </Link>
       </DropdownMenuTrigger>

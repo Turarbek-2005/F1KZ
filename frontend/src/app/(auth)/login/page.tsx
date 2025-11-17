@@ -9,6 +9,7 @@ import { Button } from "@/shared/ui/button";
 import { LogIn } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
 import { loginUser } from "@/entities/auth/model/authSlice";
+import Link from "next/link";
 
 export default function Login() {
   const router = useRouter();
@@ -123,9 +124,9 @@ export default function Login() {
 
           <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-2">
             Don't have an account yet?{" "}
-            <a href="/register" className="text-blue-600 hover:underline">
+            <Link href="/register" className="text-blue-600 hover:underline">
               Register
-            </a>
+            </Link>
           </p>
         </form>
       </motion.div>
