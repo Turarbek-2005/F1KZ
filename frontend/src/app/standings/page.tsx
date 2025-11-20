@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import DriversStandings from "@/entities/f1/ui/DriversStandings";
+import TeamsStandings from "@/entities/f1/ui/TeamsStandings";
 
 export default function Standings() {
   return (
@@ -22,7 +23,10 @@ export default function Standings() {
         <TabsContent value="drivers">
           <DriversStandings />
         </TabsContent>
-        <TabsContent value="teams">Teams Standings</TabsContent>
+        <TabsContent value="teams">
+          <TeamsStandings />
+        </TabsContent>
+
       </Tabs>
     </div>
   );

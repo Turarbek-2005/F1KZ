@@ -3,8 +3,8 @@ import { Inter } from "next/font/google";
 import { cn } from "@/shared/lib/utils";
 import { Header } from "@/widget/Header";
 import { Providers } from "@/app/providers/Providers";
-import { StoreProvider } from "@/app/providers/StoreProvider";
 import "./globals.css";
+import { InitAuth } from "@/app/providers/InitAuth";
 
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
@@ -20,6 +20,7 @@ export const metadata: Metadata = {
   },
 };
 
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -29,8 +30,8 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <body className={cn(inter.className, "antialiased")}>
         <Providers>
+          <InitAuth />
           <Header />
-          {/* <main className="min-h-screen">{children}</main> */}
           <main>{children}</main>
         </Providers>
       </body>
