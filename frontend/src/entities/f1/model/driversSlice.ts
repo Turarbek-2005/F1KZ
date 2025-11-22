@@ -5,7 +5,7 @@ import type { RootState } from "@/shared/store/index";
 
 const initialState: DriversState = {
   items: [],
-  byId: {},
+  byId: {} as Record<string, Driver>,
   status: "idle",
   error: null,
 };
@@ -36,9 +36,9 @@ const driversSlice = createSlice({
     setDrivers(state, action: PayloadAction<Driver[]>) {
       state.items = action.payload;
       state.byId = action.payload.reduce((acc, d) => {
-        acc[d.id] = d;
+        acc[d.driverId] = d; // <-- key by driverId (string)
         return acc;
-      }, {} as Record<number, Driver>);
+      }, {} as Record<string, Driver>);
       state.status = "succeeded";
       state.error = null;
     },
@@ -59,9 +59,9 @@ const driversSlice = createSlice({
         s.status = "succeeded";
         s.items = a.payload;
         s.byId = a.payload.reduce((acc, d) => {
-          acc[d.id] = d;
+          acc[d.driverId] = d; // <-- key by driverId (string)
           return acc;
-        }, {} as Record<number, Driver>);
+        }, {} as Record<string, Driver>);
       })
       .addCase(fetchDrivers.rejected, (s, a) => {
         s.status = "failed";
@@ -74,5 +74,6 @@ export const { setDrivers, clearDrivers } = driversSlice.actions;
 export default driversSlice.reducer;
 
 export const selectAllDrivers = (state: RootState) => state.drivers.items;
-export const selectDriverById = (state: RootState, id: number) =>
-  state.drivers.byId[id];
+
+export const selectDriverById = (state: RootState, driverId: string) =>
+  driverId ? state.drivers.byId[driverId] : undefined;

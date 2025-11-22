@@ -20,14 +20,14 @@ export interface Team {
 
 export type DriversState = {
   items: Driver[];
-  byId: Record<number, Driver>;
+  byId: Record<string, Driver>;
   status: "idle" | "loading" | "succeeded" | "failed";
   error?: string | null;
 };
 
 export type TeamsState = {
   items: Team[];
-  byId: Record<number, Team>;
+  byId: Record<string, Team>;
   status: "idle" | "loading" | "succeeded" | "failed";
   error?: string | null;
 };

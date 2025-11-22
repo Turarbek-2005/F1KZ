@@ -50,56 +50,58 @@ export default function Drivers() {
             (teamApi: any) => teamApi.teamId === driver.teamId
           );
           return (
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              key={driver.id}
-              className=" p-4 rounded-lg relative h-70 cursor-pointer"
-              style={{
-                background: `var(--team-${matchedTeam?.teamId
-                  ?.toLowerCase()
-                  .replace(" ", "_")})`,
-              }}
-            >
-              <div className="flex flex-col justify-between h-full">
-                <div className="flex flex-col">
-                  {matchedDriver && matchedTeam ? (
-                    <>
-                      <span className="text-2xl font-bold">
-                        {matchedDriver.name} {matchedDriver.surname}
-                      </span>{" "}
-                      {/* {matchedDriver.nationality} <br /> */}
-                      <span className="text-sm">{matchedTeam.teamName}</span>
-                      <span className="text-4xl font-medium font mt-2">
-                        {matchedDriver.number}
-                      </span>
-                    </>
-                  ) : (
-                    driver.teamId
-                  )}
+            <Link key={driver.id} href={`/drivers/${driver.driverId}`}>
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                key={driver.id}
+                className=" p-4 rounded-lg relative h-70 cursor-pointer"
+                style={{
+                  background: `var(--team-${matchedTeam?.teamId
+                    ?.toLowerCase()
+                    .replace(" ", "_")})`,
+                }}
+              >
+                <div className="flex flex-col justify-between h-full">
+                  <div className="flex flex-col">
+                    {matchedDriver && matchedTeam ? (
+                      <>
+                        <span className="text-2xl font-bold">
+                          {matchedDriver.name} {matchedDriver.surname}
+                        </span>{" "}
+                        {/* {matchedDriver.nationality} <br /> */}
+                        <span className="text-sm">{matchedTeam.teamName}</span>
+                        <span className="text-4xl font-medium font mt-2">
+                          {matchedDriver.number}
+                        </span>
+                      </>
+                    ) : (
+                      driver.teamId
+                    )}
+                  </div>
+                  <div className="w-8 h-8 rounded-full border-2  border-white">
+                    <Image
+                      src={driver.nationalityImgUrl}
+                      alt={driver.nationality}
+                      width={32}
+                      height={32}
+                      className="object-cover object-top w-full h-full rounded-full"
+                    />
+                  </div>
                 </div>
-                <div className="w-8 h-8 rounded-full border-2  border-white">
+
+                <div className="w-50 h-60 overflow-hidden absolute bottom-0 right-1/5 md:right-[10%] lg:right-1/5 2xl:right-[10%] ">
                   <Image
-                    src={driver.nationalityImgUrl}
-                    alt={driver.nationality}
-                    width={32}
-                    height={32}
-                    className="object-cover object-top w-full h-full rounded-full"
+                    src={driver.imgUrl}
+                    alt={driver.driverId}
+                    width={160}
+                    height={240}
+                    className="object-cover object-top w-full h-full"
                   />
                 </div>
-              </div>
-
-              <div className="w-50 h-60 overflow-hidden absolute bottom-0 right-1/5 md:right-[10%] lg:right-1/5 2xl:right-[10%] ">
-                <Image
-                  src={driver.imgUrl}
-                  alt={driver.driverId}
-                  width={160}
-                  height={240}
-                  className="object-cover object-top w-full h-full"
-                />
-              </div>
-            </motion.div>
+              </motion.div>
+            </Link>
           );
         })}
       </div>

@@ -18,7 +18,6 @@ export function Header() {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
   const auth = useAppSelector((s) => s.auth);
-  console.log("Auth state in Header:", auth);
   const dispatch = useAppDispatch();
 
   const handleLogout = () => {

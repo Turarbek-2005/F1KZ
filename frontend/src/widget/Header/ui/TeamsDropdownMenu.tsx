@@ -33,10 +33,6 @@ export default function TeamsDropdownMenu() {
     dispatch(fetchTeams());
   }, [dispatch]);
 
-  useEffect(() => {
-    console.log("Teams from API:", teamsApi);
-  }, [teamsApi]);
-
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild onMouseEnter={() => setOpen(true)}>

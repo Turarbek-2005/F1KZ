@@ -36,11 +36,7 @@ export default function DriversDropdownMenu() {
   useEffect(() => {
     dispatch(fetchDrivers());
   }, [dispatch]);
-
-  useEffect(() => {
-    console.log("Drivers from API:", driversApi);
-  }, [driversApi]);
-
+  
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild onMouseEnter={() => setOpen(true)}>

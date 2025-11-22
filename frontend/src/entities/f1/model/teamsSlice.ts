@@ -3,11 +3,9 @@ import { axiosClient } from "@/shared/api/axios";
 import { Team, TeamsState } from "../types/f1.types";
 import type { RootState } from "@/shared/store/index";
 
-
-
 const initialState: TeamsState = {
   items: [],
-  byId: {},
+  byId: {} as Record<string, Team>,
   status: "idle",
   error: null,
 };
@@ -37,10 +35,10 @@ const teamsSlice = createSlice({
   reducers: {
     setTeams(state, action: PayloadAction<Team[]>) {
       state.items = action.payload;
-      state.byId = action.payload.reduce((acc, t) => {
-        acc[t.id] = t;
+      state.byId = action.payload.reduce((acc: Record<string, Team>, t: Team) => {
+        acc[t.teamId] = t;
         return acc;
-      }, {} as Record<number, Team>);
+      }, {} as Record<string, Team>);
       state.status = "succeeded";
       state.error = null;
     },
@@ -60,10 +58,10 @@ const teamsSlice = createSlice({
       .addCase(fetchTeams.fulfilled, (s, a) => {
         s.status = "succeeded";
         s.items = a.payload;
-        s.byId = a.payload.reduce((acc, t) => {
-          acc[t.id] = t;
+        s.byId = a.payload.reduce((acc: Record<string, Team>, t: Team) => {
+          acc[t.teamId] = t;
           return acc;
-        }, {} as Record<number, Team>);
+        }, {} as Record<string, Team>);
       })
       .addCase(fetchTeams.rejected, (s, a) => {
         s.status = "failed";
@@ -76,5 +74,6 @@ export const { setTeams, clearTeams } = teamsSlice.actions;
 export default teamsSlice.reducer;
 
 export const selectAllTeams = (state: RootState) => state.teams.items;
-export const selectTeamById = (state: RootState, id: number) =>
-  state.teams.byId[id];
+
+export const selectTeamById = (state: RootState, teamId?: string): Team | undefined =>
+  teamId ? state.teams.byId[teamId] : undefined;
