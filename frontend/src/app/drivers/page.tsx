@@ -70,7 +70,6 @@ export default function Drivers() {
                         <span className="text-2xl font-bold">
                           {matchedDriver.name} {matchedDriver.surname}
                         </span>{" "}
-                        {/* {matchedDriver.nationality} <br /> */}
                         <span className="text-sm">{matchedTeam.teamName}</span>
                         <span className="text-4xl font-medium font mt-2">
                           {matchedDriver.number}

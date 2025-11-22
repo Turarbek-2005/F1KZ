@@ -14,7 +14,6 @@ import {
 import { fetchTeams, selectTeamById } from "@/entities/f1/model/teamsSlice";
 import {
   useGetDriverByIdQuery,
-  useGetTeamByIdQuery,
 } from "@/entities/f1api/f1api";
 import {
   Table,

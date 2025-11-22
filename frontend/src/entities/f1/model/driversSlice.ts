@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction,createSelector  } from "@reduxjs/toolkit";
 import { axiosClient } from "@/shared/api/axios";
 import { Driver,DriversState } from "../types/f1.types";
 import type { RootState } from "@/shared/store/index";
@@ -77,3 +77,8 @@ export const selectAllDrivers = (state: RootState) => state.drivers.items;
 
 export const selectDriverById = (state: RootState, driverId: string) =>
   driverId ? state.drivers.byId[driverId] : undefined;
+
+export const selectTeamDrivers = createSelector(
+  [(state) => state.drivers.items, (_, teamId: string) => teamId],
+  (drivers, teamId) => drivers.filter((driver: { teamId: string; }) => driver.teamId === teamId)
+);
