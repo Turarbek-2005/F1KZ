@@ -1,12 +1,5 @@
 "use client";
-import {
-  JSXElementConstructor,
-  Key,
-  ReactElement,
-  ReactNode,
-  ReactPortal,
-  useEffect,
-} from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -18,12 +11,23 @@ import {
   fetchDrivers,
   selectTeamDrivers,
 } from "@/entities/f1/model/driversSlice";
+import { Driver } from "@/entities/f1/types/f1.types";
 import { fetchTeams, selectTeamById } from "@/entities/f1/model/teamsSlice";
 import {
   useGetTeamByIdQuery,
   useGetTeamDriversQuery,
+  useGetStandingsTeamsQuery,
 } from "@/entities/f1api/f1api";
-import { Driver } from "@/entities/f1/types/f1.types";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+  TableHead,
+} from "@/shared/ui/table";
+import { cn } from "@/shared/lib/utils";
+import { grapeNuts } from "@/app/fonts";
 
 export default function Team() {
   const params = useParams();
@@ -53,17 +57,57 @@ export default function Team() {
   } = useGetTeamDriversQuery(teamId ?? skipToken, {
     refetchOnMountOrArgChange: false,
   });
+
+  const { data: teamsStandings = { constructors_championship: [] } } =
+    useGetStandingsTeamsQuery(undefined, {
+      refetchOnMountOrArgChange: false,
+    });
+
+  const topTeamStat = teamsStandings.constructors_championship?.find(
+    (t: any) => t.position === 1
+  );
+  const topTeamId = topTeamStat?.teamId;
+
+  const myTeamStat = teamsStandings.constructors_championship?.find(
+    (t: any) => t.teamId === teamId
+  );
+
+  const {
+    data: topTeamApi,
+    isLoading: topTeamLoading,
+    isError: topTeamError,
+  } = useGetTeamByIdQuery(topTeamId ?? skipToken, {
+    refetchOnMountOrArgChange: false,
+  });
+
+  const twoTeamIds = Array.from(new Set([topTeamId, teamId].filter(Boolean)));
+
+  const twoTeamsData = twoTeamIds.map((id) => {
+    const apiData = id === teamId ? team : topTeamApi;
+    const stat = teamsStandings.constructors_championship?.find(
+      (t: any) => t.teamId === id
+    );
+    return { id, apiData, stat };
+  });
+
   useEffect(() => {
     dispatch(fetchDrivers());
     dispatch(fetchTeams());
   }, [dispatch]);
 
-  useEffect(() => {
-    console.log("Redux team:", team);
-    console.log("API team:", teamApi);
-    console.log("Redux team drivers:", teamDrivers);
-    console.log("API team drivers:", teamDriversApi);
-  }, [team, teamApi, teamDriversApi, teamDrivers]);
+  // useEffect(() => {
+  //   console.log("Redux team:", team);
+  //   console.log("API team:", teamApi);
+  //   console.log("Redux team drivers:", teamDrivers);
+  //   console.log("API team drivers:", teamDriversApi);
+  //   console.log("Teams standings:", teamsStandings);
+  //   console.log("Top team stat:", topTeamStat);
+  // }, [team, teamApi, teamDriversApi, teamDrivers, teamsStandings, topTeamStat]);
+
+  if (teamApiLoading || teamDriversApiLoading) {
+    return <div>Loading team data...</div>;
+  }
+
   return (
     <div className="pb-6">
       <motion.div
@@ -77,14 +121,14 @@ export default function Team() {
         </Link>
       </motion.div>
       <div
-        className="w-full h-140 flex relative flex-col items-center justify-center mb-14"
+        className="w-full h-140 flex relative flex-col items-center justify-center mb-14 text-center"
         style={{
           background: `var(--team-${team?.teamId
             ?.toLowerCase()
             .replace(" ", "_")})`,
         }}
       >
-        <div className="w-200 h-45 mb-5">
+        <div className="w-full h-45 mb-5">
           <Image
             src={team?.bolidImgUrl || "/placeholder.png"}
             alt={team?.teamId || "Team Bolid"}
@@ -93,8 +137,8 @@ export default function Team() {
             className="object-contain w-full h-full"
           />
         </div>
-        <h1 className="text-5xl font-bold mb-5 uppercase">
-          {teamApi?.team[0]?.teamName}
+        <h1 className="text-3xl md:text-5xl font-bold mb-5 uppercase">
+          {teamApi?.team?.[0]?.teamName ?? team?.teamId}
         </h1>
         <div className="flex gap-3 mb-3">
           {teamDriversApi?.drivers?.map(
@@ -103,7 +147,7 @@ export default function Team() {
             }: {
               driver: { driverId: string; name: string; surname: string };
             }) => (
-              <p key={driver.driverId} className="text-white">
+              <p key={driver.driverId}>
                 {driver.name} {driver.surname}
               </p>
             )
@@ -122,9 +166,10 @@ export default function Team() {
       <div className="container mx-auto">
         <h3 className="text-4xl font-black uppercase mb-5">Drivers</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {teamDrivers?.map((driver:Driver) => {
+          {teamDrivers?.map((driver: Driver) => {
             const matchedDriver = teamDriversApi?.drivers?.find(
-              ({ driver: apiDriver }: {driver:any}) => apiDriver.driverId === driver.driverId
+              ({ driver: apiDriver }: { driver: any }) =>
+                apiDriver.driverId === driver.driverId
             )?.driver;
 
             return (
@@ -151,7 +196,12 @@ export default function Team() {
                           <span className="text-sm">
                             {teamDriversApi?.team?.teamName!}
                           </span>
-                          <span className="text-4xl font-medium font mt-2">
+                          <span
+                            className={cn(
+                              grapeNuts.className,
+                              "text-4xl font-medium font mt-2"
+                            )}
+                          >
                             {matchedDriver?.number}
                           </span>
                         </>
@@ -183,6 +233,66 @@ export default function Team() {
               </Link>
             );
           })}
+        </div>
+
+        <div className="mt-10">
+          <h4 className="text-lg font-medium mb-2">
+            My Team vs Championship Leader
+          </h4>
+          <div className="overflow-x-auto rounded-md mb-6">
+            <Table>
+              <TableHeader>
+                <TableRow className="text-sm text-white/60">
+                  <TableHead>Pos</TableHead>
+                  <TableHead>Team</TableHead>
+                  <TableHead>Pts</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {twoTeamsData.map(({ id, apiData, stat }) => {
+                  const position = stat?.position ?? "—";
+                  const points = stat?.points ?? 0;
+                  const teamName =
+                    apiData?.teamName ?? stat?.team?.teamName ?? id;
+
+                  return (
+                    <TableRow key={id} className="border-t border-white/6">
+                      <TableCell
+                        className={cn(
+                          "whitespace-nowrap px-3 py-3 text-sm",
+                          id == teamId && "text-red-500"
+                        )}
+                      >
+                        {position}
+                      </TableCell>
+                      <TableCell
+                        className={cn(
+                          "px-3 py-3 text-sm",
+                          id == teamId && "text-red-500"
+                        )}
+                      >
+                        <Link
+                          href={`/teams/${id}`}
+                          className="flex items-center gap-3"
+                        >
+                          <span>{teamName}</span>
+                        </Link>
+                      </TableCell>
+                      <TableCell
+                        className={cn(
+                          "px-3 py-3 text-sm",
+                          id == teamId && "text-red-500"
+                        )}
+                      >
+                        {points}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
     </div>

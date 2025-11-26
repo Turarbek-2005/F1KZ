@@ -16,7 +16,7 @@ import {
 } from "@/shared/ui/table";
 
 export default function DriversStandings() {
-  const { data: teamsApi = { constructors_championship: [] } } =
+  const { data: teamsApi = { constructors_championship: [] }, isLoading } =
     useGetStandingsTeamsQuery(undefined, { refetchOnMountOrArgChange: false });
 
   const dispatch = useAppDispatch();
@@ -35,7 +35,11 @@ export default function DriversStandings() {
       if (!stat) {
         return {
           team,
-          stat: { position: Infinity, points: 0, team: { teamName: "Unknown" }},
+          stat: {
+            position: Infinity,
+            points: 0,
+            team: { teamName: "Unknown" },
+          },
           position: Infinity,
         };
       }
@@ -46,6 +50,10 @@ export default function DriversStandings() {
       };
     })
     .sort((a, b) => a.position - b.position);
+
+  if (isLoading) {
+    return <div>Loading teams standings...</div>;
+  }
 
   return (
     <motion.div
@@ -67,7 +75,8 @@ export default function DriversStandings() {
               <TableCell>{stat.position}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-3">
-                  <Link href={`/teams/${team.teamId}`}
+                  <Link
+                    href={`/teams/${team.teamId}`}
                     className="w-8 h-8 overflow-hidden rounded-full flex items-center justify-center"
                     style={{
                       background: `var(--team-${team.teamId

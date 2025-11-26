@@ -20,7 +20,7 @@ import {
 } from "@/shared/ui/table";
 
 export default function DriversStandings() {
-  const { data: driversApi = { drivers_championship: [] } } =
+  const { data: driversApi = { drivers_championship: [] }, isLoading } =
     useGetStandingsDriversQuery(undefined, {
       refetchOnMountOrArgChange: false,
     });
@@ -68,6 +68,10 @@ export default function DriversStandings() {
       };
     })
     .sort((a, b) => a.position - b.position);
+
+  if (isLoading) {
+    return <div>Loading drivers standings...</div>;
+  }
 
   return (
     <motion.div

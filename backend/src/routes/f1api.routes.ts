@@ -34,16 +34,18 @@ async function fetchFromF1Api(path: string, res: Response, cacheName?: string) {
   }
 }
 
-
-
 //////////////////////////* Drivers *////////////////////////////
 
 router.get("/drivers", (req: Request, res: Response) =>
   fetchFromF1Api("current/drivers", res, "current/drivers")
 );
-router.get("/drivers/:driverId", (req: Request, res: Response) =>{
+router.get("/drivers/:driverId", (req: Request, res: Response) => {
   const { driverId } = req.params;
-  return fetchFromF1Api(`current/drivers/${driverId}`, res, `current/drivers/${driverId}`);
+  return fetchFromF1Api(
+    `current/drivers/${driverId}`,
+    res,
+    `current/drivers/${driverId}`
+  );
 });
 
 router.get("/drivers/search", async (req: Request, res: Response) => {
@@ -63,12 +65,20 @@ router.get("/teams", (req: Request, res: Response) =>
 
 router.get("/teams/:teamId", (req: Request, res: Response) => {
   const { teamId } = req.params;
-  return fetchFromF1Api(`current/teams/${teamId}`, res, `current/teams/${teamId}`);
+  return fetchFromF1Api(
+    `current/teams/${teamId}`,
+    res,
+    `current/teams/${teamId}`
+  );
 });
 
 router.get("/teams/:teamId/drivers", (req: Request, res: Response) => {
   const { teamId } = req.params;
-  return fetchFromF1Api(`current/teams/${teamId}/drivers`, res, `current/teams/${teamId}/drivers`);
+  return fetchFromF1Api(
+    `current/teams/${teamId}/drivers`,
+    res,
+    `current/teams/${teamId}/drivers`
+  );
 });
 
 router.get("/teams/search", async (req: Request, res: Response) => {
@@ -79,7 +89,6 @@ router.get("/teams/search", async (req: Request, res: Response) => {
 
   return fetchFromF1Api(`teams/search?q=${query}`, res);
 });
-
 
 //////////////////////////* Results *////////////////////////////
 
@@ -104,6 +113,47 @@ router.get("/last/sprint/qualy", (req: Request, res: Response) =>
 router.get("/last/sprint/race", (req: Request, res: Response) =>
   fetchFromF1Api("current/last/sprint/race", res, "/current/last/sprint/race")
 );
+
+router.get("/:year/:round/fp1", (req: Request, res: Response) => {
+  const { year, round } = req.params;
+  return fetchFromF1Api(`${year}/${round}/fp1`, res, `${year}/${round}/fp1`);
+});
+router.get("/:year/:round/fp2", (req: Request, res: Response) => {
+  const { year, round } = req.params;
+  return fetchFromF1Api(`${year}/${round}/fp2`, res, `${year}/${round}/fp2`);
+});
+router.get("/:year/:round/fp3", (req: Request, res: Response) => {
+  const { year, round } = req.params;
+  return fetchFromF1Api(`${year}/${round}/fp3`, res, `${year}/${round}/fp3`);
+});
+router.get("/:year/:round/qualy", (req: Request, res: Response) => {
+  const { year, round } = req.params;
+  return fetchFromF1Api(
+    `${year}/${round}/qualy`,
+    res,
+    `${year}/${round}/qualy`
+  );
+});
+router.get("/:year/:round/race", (req: Request, res: Response) => {
+  const { year, round } = req.params;
+  return fetchFromF1Api(`${year}/${round}/race`, res, `${year}/${round}/race`);
+});
+router.get("/:year/:round/sprint/qualy", (req: Request, res: Response) => {
+  const { year, round } = req.params;
+  return fetchFromF1Api(
+    `${year}/${round}/sprint/qualy`,
+    res,
+    `${year}/${round}/sprint/qualy`
+  );
+});
+router.get("/:year/:round/sprint/race", (req: Request, res: Response) => {
+  const { year, round } = req.params;
+  return fetchFromF1Api(
+    `${year}/${round}/sprint/race`,
+    res,
+    `${year}/${round}/sprint/race`
+  );
+});
 
 //////////////////////////* Standings *////////////////////////////
 
@@ -132,7 +182,7 @@ router.get("/races/:year/:round", (req: Request, res: Response) => {
 });
 
 router.get("/races/:year", (req: Request, res: Response) => {
-  const { year} = req.params;
+  const { year } = req.params;
   return fetchFromF1Api(`${year}`, res, `${year}`);
 });
 
