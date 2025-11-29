@@ -101,7 +101,7 @@ export default function Driver() {
 
   if (!driverId) {
     return (
-      <div className="container mx-auto pb-6">
+      <div className="container mx-auto">
         <p>Driver ID is missing in URL</p>
       </div>
     );
@@ -109,7 +109,7 @@ export default function Driver() {
 
   if (driverApiLoading || topDriverLoading) {
     return (
-      <div className="container mx-auto pb-6">
+      <div className="container mx-auto">
         <p>Loading...</p>
       </div>
     );
@@ -117,7 +117,7 @@ export default function Driver() {
 
   if (driverApiError || topDriverError) {
     return (
-      <div className="container mx-auto pb-6">
+      <div className="container mx-auto">
         <p>Error loading driver data.</p>
       </div>
     );
@@ -159,15 +159,26 @@ export default function Driver() {
                 <Image
                   src={driver?.nationalityImgUrl ?? ""}
                   alt={driver?.nationality ?? ""}
-                  width={32}
-                  height={32}
+                  width={20}
+                  height={20}
                   className="object-cover object-top w-full h-full rounded-full"
                 />
               </div>
               <p>{driver?.nationality}</p>
             </div>
             <span className="mx-3">|</span>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6">
+                <Image
+                  src={team?.teamImgUrl ?? ""}
+                  alt={team?.teamId ?? ""}
+                  width={24}
+                  height={24}
+                  className="object-cover object-top w-full h-full rounded-full"
+                />
+              </div>
             <p>{driverApi?.team?.teamName}</p>
+            </div>
             <span className="mx-3">|</span>
             <p>{driverApi?.driver?.number}</p>
           </div>

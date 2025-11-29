@@ -105,7 +105,7 @@ export default function Team() {
   // }, [team, teamApi, teamDriversApi, teamDrivers, teamsStandings, topTeamStat]);
 
   if (teamApiLoading || teamDriversApiLoading) {
-    return <div>Loading team data...</div>;
+    return <div className="container mx-auto">Loading team data...</div>;
   }
 
   return (

@@ -32,7 +32,7 @@ export default function RootLayout({
         <Providers>
           <InitAuth />
           <Header />
-          <main>{children}</main>
+          <main className="pt-16">{children}</main>
         </Providers>
       </body>
     </html>

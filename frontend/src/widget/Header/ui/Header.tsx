@@ -25,8 +25,8 @@ export function Header() {
     router.push("/login");
   };
   return (
-    <header className="w-full">
-      <div className="container h-16 mx-auto flex items-center justify-between">
+    <header className="w-full fixed top-0 left-0 z-50 bg-background shadow">
+      <div className="container h-16 mx-auto flex items-center justify-between font-medium">
         <Link href="/">
           <Image
             src="/F1KZ logo.png"
