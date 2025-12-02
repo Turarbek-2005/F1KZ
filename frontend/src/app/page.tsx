@@ -3,12 +3,11 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Card, CardHeader, CardTitle } from "@/shared/ui/card";
-
 export default function Home() {
   const links = [
-    { name: "Results", href: "/results" },
-    { name: "Standings", href: "/standings" },
     { name: "Races", href: "/races" },
+    // { name: "Results", href: "/results" },
+    { name: "Standings", href: "/standings" },
     { name: "Drivers", href: "/drivers" },
     { name: "Teams", href: "/teams" },
   ];
@@ -28,7 +27,7 @@ export default function Home() {
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.7 }}
-        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-4xl w-full"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 max-w-4xl w-full"
       >
         {links.map((link) => (
           <motion.div

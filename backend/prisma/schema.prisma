@@ -12,6 +12,8 @@ model User {
   email     String   @unique
   username  String   @unique
   password  String
+  favoriteDriverId String?
+  favoriteTeamId   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

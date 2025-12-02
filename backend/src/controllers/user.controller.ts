@@ -15,6 +15,8 @@ export async function getMe(req: Request, res: Response) {
         id: true,
         email: true,
         username: true,
+        favoriteDriverId: true,
+        favoriteTeamId: true,
         createdAt: true,
         updatedAt: true,
       },

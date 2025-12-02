@@ -2,6 +2,8 @@ export type UserInfo = {
   id: number;
   username: string;
   email: string;
+  favoriteDriverId: string;
+  favoriteTeamId: string;
 };
 
 export type AuthState = {

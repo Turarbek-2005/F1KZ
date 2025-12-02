@@ -26,7 +26,7 @@ function extractAxiosErrorMessage(error: any) {
 
 export const registerUser = createAsyncThunk<
   { user: UserInfo },
-  { username: string; email: string; password: string },
+  { username: string; email: string; password: string, favoriteDriverId?: string; favoriteTeamId?: string },
   { rejectValue: string }
 >("auth/register", async (payload, { rejectWithValue }) => {
   try {

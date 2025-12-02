@@ -21,6 +21,8 @@ export class AuthService {
         email: data.email,
         username: data.username,
         password: hash,
+        favoriteDriverId: data.favoriteDriverId,
+        favoriteTeamId: data.favoriteTeamId,
       },
       select: { id: true, email: true, username: true, createdAt: true, updatedAt: true },
     });

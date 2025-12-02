@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -9,8 +9,16 @@ import { Button } from "@/shared/ui/button";
 import { UserPlus } from "lucide-react";
 import { useAppDispatch } from "@/shared/lib/hooks";
 import { registerUser } from "@/entities/auth/model/authSlice";
+import { useGetTeamsQuery } from "@/entities/f1api/f1api";
+import { useGetDriversQuery } from "@/entities/f1api/f1api";
 import Link from "next/link";
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/select";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -20,9 +28,26 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [favoriteDriverId, setFavoriteDriverId] = useState<string | undefined>(
+    undefined
+  );
+  const [favoriteTeamId, setFavoriteTeamId] = useState<string | undefined>(
+    undefined
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const { data: driversApi = { drivers: [] } } = useGetDriversQuery(undefined, {
+    refetchOnMountOrArgChange: false,
+  });
+  const { data: teamsApi = { teams: [] } } = useGetTeamsQuery(undefined, {
+    refetchOnMountOrArgChange: false,
+  });
+
+  useEffect(() => {
+    console.log(favoriteDriverId, favoriteTeamId);
+  }, [favoriteDriverId, favoriteTeamId]);
 
   function validate() {
     if (!username.trim() || !email.trim() || !password) {
@@ -32,6 +57,8 @@ export default function RegisterPage() {
     if (!emailRe.test(email)) return "Invalid email address.";
     if (password.length < 6) return "Password must be at least 6 characters.";
     if (password !== confirm) return "Passwords do not match.";
+    if (!favoriteDriverId) return "Please select a favorite driver.";
+    if (!favoriteTeamId) return "Please select a favorite team.";
     return null;
   }
 
@@ -49,7 +76,13 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const result = await dispatch(
-        registerUser({ username: username.trim(), email: email.trim(), password })
+        registerUser({
+          username: username.trim(),
+          email: email.trim(),
+          password,
+          favoriteDriverId,
+          favoriteTeamId,
+        })
       ).unwrap();
 
       setSuccess("Registration successful! Redirecting to login...");
@@ -89,7 +122,7 @@ export default function RegisterPage() {
 
         <form
           onSubmit={handleRegister}
-          className="w-90 sm:w-110 md:w-96 p-8 flex flex-col m-auto gap-4"
+          className="w-90 sm:w-110 md:w-96 p-8 flex flex-col m-auto gap-2"
           aria-labelledby="register-heading"
         >
           <h2
@@ -99,7 +132,10 @@ export default function RegisterPage() {
             <UserPlus className="w-6 h-6 text-blue-600" /> Create Account
           </h2>
 
-          <label className="text-sm text-gray-600 dark:text-gray-300" htmlFor="username">
+          <label
+            className="text-sm text-gray-600 dark:text-gray-300"
+            htmlFor="username"
+          >
             Username
           </label>
           <Input
@@ -113,7 +149,10 @@ export default function RegisterPage() {
             required
           />
 
-          <label className="text-sm text-gray-600 dark:text-gray-300" htmlFor="email">
+          <label
+            className="text-sm text-gray-600 dark:text-gray-300"
+            htmlFor="email"
+          >
             Email
           </label>
           <Input
@@ -128,7 +167,10 @@ export default function RegisterPage() {
             required
           />
 
-          <label className="text-sm text-gray-600 dark:text-gray-300" htmlFor="password">
+          <label
+            className="text-sm text-gray-600 dark:text-gray-300"
+            htmlFor="password"
+          >
             Password
           </label>
           <Input
@@ -144,7 +186,10 @@ export default function RegisterPage() {
             required
           />
 
-          <label className="text-sm text-gray-600 dark:text-gray-300" htmlFor="confirm">
+          <label
+            className="text-sm text-gray-600 dark:text-gray-300"
+            htmlFor="confirm"
+          >
             Confirm Password
           </label>
           <Input
@@ -159,6 +204,42 @@ export default function RegisterPage() {
             minLength={6}
             required
           />
+          <label
+            className="text-sm text-gray-600 dark:text-gray-300"
+          >
+            Select your favorite driver
+          </label>
+          <Select value={favoriteDriverId} onValueChange={setFavoriteDriverId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Favorite driver" />
+            </SelectTrigger>
+
+            <SelectContent>
+              {driversApi?.drivers.map((driver: any) => (
+                <SelectItem key={driver.driverId} value={driver.driverId}>
+                  {driver.name} {driver.surname}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <label
+            className="text-sm text-gray-600 dark:text-gray-300"
+          >
+            Select your favorite team
+          </label>
+          <Select value={favoriteTeamId} onValueChange={setFavoriteTeamId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Favorite team" />
+            </SelectTrigger>
+
+            <SelectContent>
+              {teamsApi?.teams.map((team: any) => (
+                <SelectItem key={team.teamId} value={team.teamId}>
+                  {team.teamName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           {error && (
             <div role="alert" className="text-sm text-red-600 mt-1">
