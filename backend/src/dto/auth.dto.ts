@@ -5,8 +5,8 @@ export const registerDto = z.object({
   email: z.string().email(),
   username: z.string().min(3).max(30),
   password: z.string().min(6).max(100),
-  favoriteDriverId: z.string().optional(),
-  favoriteTeamId: z.string().optional(),
+  favoriteDriversIds: z.array(z.string()).optional(), 
+  favoriteTeamsIds: z.array(z.string()).optional(),
 });
 
 export const loginDto = z.object({

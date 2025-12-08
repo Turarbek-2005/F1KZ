@@ -21,8 +21,8 @@ export class AuthService {
         email: data.email,
         username: data.username,
         password: hash,
-        favoriteDriverId: data.favoriteDriverId,
-        favoriteTeamId: data.favoriteTeamId,
+        favoriteDriversIds: data.favoriteDriversIds,
+        favoriteTeamsIds: data.favoriteTeamsIds,
       },
       select: { id: true, email: true, username: true, createdAt: true, updatedAt: true },
     });
@@ -51,4 +51,6 @@ export class AuthService {
   verifyToken(token: string) {
     return jwt.verify(token, JWT_SECRET) as { userId: number; username: string; iat?: number; exp?: number };
   }
+
+  
 }
