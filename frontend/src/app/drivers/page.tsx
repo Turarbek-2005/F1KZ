@@ -29,8 +29,8 @@ export default function Drivers() {
   const { data: teamsApi = [] } = useGetTeamsQuery(undefined, {
     refetchOnMountOrArgChange: false,
   });
-  const driverArg = user?.favoriteDriverId ?? skipToken;
-  const teamArg = user?.favoriteTeamId ?? skipToken;
+  const driverArg = user?.favoriteDriversIds?.[0] ?? skipToken;
+  const teamArg = user?.favoriteTeamsIds?.[0] ?? skipToken;
 
   const { data: driverByIdApi } = useGetDriverByIdQuery(driverArg, {
     refetchOnMountOrArgChange: false,
@@ -43,7 +43,7 @@ export default function Drivers() {
   const drivers = useAppSelector(selectAllDrivers);
 
   const favoriteDriver = useAppSelector((state) =>
-    user?.favoriteDriverId ? selectDriverById(state, user.favoriteDriverId) : undefined
+    user?.favoriteDriversIds && user.favoriteDriversIds.length ? selectDriverById(state, user.favoriteDriversIds[0]) : undefined
   );
 
   const sortedDrivers = [...drivers].sort((a, b) => a.id - b.id);
@@ -71,89 +71,79 @@ export default function Drivers() {
 
       {user ? (
         <>
-          <h3 className="text-2xl mb-6">Your Favorite Driver</h3>
+          <h3 className="text-2xl mb-6">Your Favorite Drivers</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              key={favoriteDriver?.id ?? favDriverId}
-              className="p-4 rounded-lg relative h-70 cursor-pointer mb-6"
-              style={{
-                background: `var(--team-${favTeamId.toLowerCase().replace(
-                  " ",
-                  "_"
-                )})`,
-              }}
-            >
-              <Link key={favDriverId} href={`/drivers/${favDriverId}`}>
-                <div className="flex flex-col justify-between h-full">
-                  <div className="flex flex-col">
-                    {driverByIdApi && teamByIdApi ? (
-                      <>
-                        <span className="text-2xl font-bold">
-                          {driverByIdApi?.driver.name} {driverByIdApi?.driver.surname}
-                        </span>{" "}
-                        <span className="text-sm">
-                          {teamByIdApi?.team[0].teamName}
-                        </span>
-                        <span
-                          className={cn(
-                            grapeNuts.className,
-                            "text-4xl font-medium font mt-2"
+            {user.favoriteDriversIds && user.favoriteDriversIds.length ? (
+              user.favoriteDriversIds.map((favId: string) => {
+                const favDriver = drivers.find((d) => d.driverId === favId);
+                const favDriverApi = driversApi?.drivers?.find((d: any) => d.driverId === favId);
+                const favTeamIdLocal = favDriver?.teamId ?? favDriverApi?.teamId ?? "";
+                const favTeam = teamsApi?.teams?.find((t: any) => t.teamId === favTeamIdLocal) || undefined;
+                const favDriverDisplayId = favDriver?.driverId ?? favDriverApi?.driverId ?? favId;
+
+                return (
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    key={favId}
+                    className="p-4 rounded-lg relative h-70 cursor-pointer mb-6"
+                    style={{
+                      background: `var(--team-${favTeamIdLocal.toLowerCase().replace(" ", "_")})`,
+                    }}
+                  >
+                    <Link key={favId} href={`/drivers/${favDriverDisplayId}`}>
+                      <div className="flex flex-col justify-between h-full">
+                        <div className="flex flex-col">
+                          {favDriverApi && favTeam ? (
+                            <>
+                              <span className="text-2xl font-bold">
+                                {favDriverApi?.name} {favDriverApi?.surname}
+                              </span>{" "}
+                              <span className="text-sm">{favTeam?.teamName}</span>
+                              <span className={cn(grapeNuts.className, "text-4xl font-medium font mt-2")}>
+                                {favDriverApi?.number}
+                              </span>
+                            </>
+                          ) : favDriver ? (
+                            <>
+                              <span className="text-2xl font-bold">{favDriver?.driverId}</span>
+                              <span className="text-sm">{favDriver?.teamId}</span>
+                            </>
+                          ) : (
+                            <span className="text-sm">Driver {favId}</span>
                           )}
-                        >
-                          {driverByIdApi?.driver.number}
-                        </span>
-                      </>
-                    ) : favoriteDriver ? (
-                      <>
-                        <span className="text-2xl font-bold">
-                          {favoriteDriver?.driverId}
-                        </span>
-                        <span className="text-sm">{favoriteDriver?.teamId}</span>
-                      </>
-                    ) : (
-                      <span className="text-sm">You don't have a favorite driver set.</span>
-                    )}
-                  </div>
+                        </div>
 
-                  <div className="w-8 h-8 rounded-full border-2  border-white">
-                    {favoriteDriver?.nationalityImgUrl ? (
-                      <Image
-                        src={favoriteDriver.nationalityImgUrl}
-                        alt={favoriteDriver.nationality ?? "nat"}
-                        width={32}
-                        height={32}
-                        className="object-cover object-top w-full h-full rounded-full"
-                      />
-                    ) : null}
-                  </div>
-                </div>
+                        <div className="w-8 h-8 rounded-full border-2  border-white">
+                          {favDriver?.nationalityImgUrl ? (
+                            <Image
+                              src={favDriver.nationalityImgUrl}
+                              alt={favDriver.nationality ?? "nat"}
+                              width={32}
+                              height={32}
+                              className="object-cover object-top w-full h-full rounded-full"
+                            />
+                          ) : null}
+                        </div>
+                      </div>
 
-                {favoriteDriver?.imgUrl ? (
-                  <div className="w-50 h-60 overflow-hidden absolute bottom-0 right-1/5 md:right-[10%] lg:right-1/5 2xl:right-[10%] ">
-                    <Image
-                      src={favoriteDriver.imgUrl}
-                      alt={favoriteDriver.driverId}
-                      width={160}
-                      height={240}
-                      className="object-cover object-top w-full h-full"
-                    />
-                  </div>
-                ) : driverByIdApi?.driver?.imgUrl ? (
-                  <div className="w-50 h-60 overflow-hidden absolute bottom-0 right-1/5 md:right-[10%] lg:right-1/5 2xl:right-[10%] ">
-                    <Image
-                      src={driverByIdApi.driver.imgUrl}
-                      alt={driverByIdApi.driver.driverId}
-                      width={160}
-                      height={240}
-                      className="object-cover object-top w-full h-full"
-                    />
-                  </div>
-                ) : null}
-              </Link>
-            </motion.div>
+                      {favDriver?.imgUrl ? (
+                        <div className="w-50 h-60 overflow-hidden absolute bottom-0 right-1/5 md:right-[10%] lg:right-1/5 2xl:right-[10%] ">
+                          <Image src={favDriver.imgUrl} alt={favDriver.driverId} width={160} height={240} className="object-cover object-top w-full h-full" />
+                        </div>
+                      ) : favDriverApi?.imgUrl ? (
+                        <div className="w-50 h-60 overflow-hidden absolute bottom-0 right-1/5 md:right-[10%] lg:right-1/5 2xl:right-[10%] ">
+                          <Image src={favDriverApi.imgUrl} alt={favDriverApi.driverId} width={160} height={240} className="object-cover object-top w-full h-full" />
+                        </div>
+                      ) : null}
+                    </Link>
+                  </motion.div>
+                );
+              })
+            ) : (
+              <p className="text-sm">You don't have a favorite driver set.</p>
+            )}
           </div>
         </>
       ) : null}

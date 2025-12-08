@@ -12,13 +12,6 @@ import { registerUser } from "@/entities/auth/model/authSlice";
 import { useGetTeamsQuery } from "@/entities/f1api/f1api";
 import { useGetDriversQuery } from "@/entities/f1api/f1api";
 import Link from "next/link";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/ui/select";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -28,12 +21,8 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [favoriteDriverId, setFavoriteDriverId] = useState<string | undefined>(
-    undefined
-  );
-  const [favoriteTeamId, setFavoriteTeamId] = useState<string | undefined>(
-    undefined
-  );
+  const [favoriteDriversIds, setFavoriteDriversIds] = useState<string[]>([]);
+  const [favoriteTeamsIds, setFavoriteTeamsIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -46,8 +35,7 @@ export default function RegisterPage() {
   });
 
   useEffect(() => {
-    console.log(favoriteDriverId, favoriteTeamId);
-  }, [favoriteDriverId, favoriteTeamId]);
+  }, [favoriteDriversIds, favoriteTeamsIds]);
 
   function validate() {
     if (!username.trim() || !email.trim() || !password) {
@@ -57,8 +45,8 @@ export default function RegisterPage() {
     if (!emailRe.test(email)) return "Invalid email address.";
     if (password.length < 6) return "Password must be at least 6 characters.";
     if (password !== confirm) return "Passwords do not match.";
-    if (!favoriteDriverId) return "Please select a favorite driver.";
-    if (!favoriteTeamId) return "Please select a favorite team.";
+    if (favoriteDriversIds.length === 0) return "Please select at least one favorite driver.";
+    if (favoriteTeamsIds.length === 0) return "Please select at least one favorite team.";
     return null;
   }
 
@@ -80,8 +68,8 @@ export default function RegisterPage() {
           username: username.trim(),
           email: email.trim(),
           password,
-          favoriteDriverId,
-          favoriteTeamId,
+          favoriteDriversIds: favoriteDriversIds.length ? favoriteDriversIds : undefined,
+          favoriteTeamsIds: favoriteTeamsIds.length ? favoriteTeamsIds : undefined,
         })
       ).unwrap();
 
@@ -207,39 +195,51 @@ export default function RegisterPage() {
           <label
             className="text-sm text-gray-600 dark:text-gray-300"
           >
-            Select your favorite driver
+            Select your favorite drivers
           </label>
-          <Select value={favoriteDriverId} onValueChange={setFavoriteDriverId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Favorite driver" />
-            </SelectTrigger>
-
-            <SelectContent>
-              {driversApi?.drivers.map((driver: any) => (
-                <SelectItem key={driver.driverId} value={driver.driverId}>
-                  {driver.name} {driver.surname}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="grid grid-cols-2 gap-2 max-h-15 overflow-auto p-2 border rounded">
+            {driversApi?.drivers.map((driver: any) => (
+              <label key={driver.driverId} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  value={driver.driverId}
+                  checked={favoriteDriversIds.includes(driver.driverId)}
+                  onChange={(e) => {
+                    const id = driver.driverId;
+                    setFavoriteDriversIds((prev) =>
+                      e.target.checked ? [...prev, id] : prev.filter((x) => x !== id)
+                    );
+                  }}
+                  className="accent-blue-600"
+                />
+                <span>{driver.name} {driver.surname}</span>
+              </label>
+            ))}
+          </div>
           <label
             className="text-sm text-gray-600 dark:text-gray-300"
           >
-            Select your favorite team
+            Select your favorite teams
           </label>
-          <Select value={favoriteTeamId} onValueChange={setFavoriteTeamId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Favorite team" />
-            </SelectTrigger>
-
-            <SelectContent>
-              {teamsApi?.teams.map((team: any) => (
-                <SelectItem key={team.teamId} value={team.teamId}>
-                  {team.teamName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="grid grid-cols-2 gap-2 max-h-15 overflow-auto p-2 border rounded">
+            {teamsApi?.teams.map((team: any) => (
+              <label key={team.teamId} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  value={team.teamId}
+                  checked={favoriteTeamsIds.includes(team.teamId)}
+                  onChange={(e) => {
+                    const id = team.teamId;
+                    setFavoriteTeamsIds((prev) =>
+                      e.target.checked ? [...prev, id] : prev.filter((x) => x !== id)
+                    );
+                  }}
+                  className="accent-blue-600"
+                />
+                <span>{team.teamName}</span>
+              </label>
+            ))}
+          </div>
 
           {error && (
             <div role="alert" className="text-sm text-red-600 mt-1">

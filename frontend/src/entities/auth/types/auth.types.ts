@@ -2,8 +2,8 @@ export type UserInfo = {
   id: number;
   username: string;
   email: string;
-  favoriteDriverId: string;
-  favoriteTeamId: string;
+  favoriteDriversIds?: string[];
+  favoriteTeamsIds?: string[];
 };
 
 export type AuthState = {
@@ -11,4 +11,5 @@ export type AuthState = {
   user: UserInfo | null;
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
+  lastUpdated: string | null;
 };

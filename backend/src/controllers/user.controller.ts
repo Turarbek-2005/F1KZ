@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/prisma";
 import { logger } from "@/utils/log";
 
@@ -39,7 +40,7 @@ export async function updateUser(req: Request, res: Response) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { email, username, favoriteDriversIds, favoriteTeamsIds } = req.body;
+    const { email, username, favoriteDriversIds, favoriteTeamsIds, password } = req.body;
 
     if (email) {
       const existingEmail = await prisma.user.findUnique({ where: { email } });
@@ -60,6 +61,10 @@ export async function updateUser(req: Request, res: Response) {
     if (username !== undefined) data.username = username;
     if (favoriteDriversIds !== undefined) data.favoriteDriversIds = favoriteDriversIds;
     if (favoriteTeamsIds !== undefined) data.favoriteTeamsIds = favoriteTeamsIds;
+    if (password !== undefined) {
+      const hash = await bcrypt.hash(password, 10);
+      data.password = hash;
+    }
 
     const updated = await prisma.user.update({
       where: { id: userId },
