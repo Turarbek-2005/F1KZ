@@ -87,7 +87,7 @@ export default function Drivers() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
                     key={favId}
-                    className="p-4 rounded-lg relative h-70 cursor-pointer mb-6"
+                    className="p-4 rounded-lg relative h-70 cursor-pointer"
                     style={{
                       background: `var(--team-${favTeamIdLocal.toLowerCase().replace(" ", "_")})`,
                     }}

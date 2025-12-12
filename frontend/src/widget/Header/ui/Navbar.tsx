@@ -10,7 +10,7 @@ export default function Navbar() {
   const pathname = usePathname();
 
   const links = [
-    { href: "/races", label: "Races" },
+    { href: "/schedule", label: "Schedule" },
     { href: "/result", label: "Results" },
     { href: "/standings", label: "Standings" },
   ];
