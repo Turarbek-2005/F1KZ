@@ -11,7 +11,7 @@ export default function Navbar() {
 
   const links = [
     { href: "/schedule", label: "Schedule" },
-    { href: "/result", label: "Results" },
+    { href: "/results/2025/1/race", label: "Results" },
     { href: "/standings", label: "Standings" },
   ];
 

@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
+import { Loader2 } from "lucide-react";
 export default function Schedule() {
   const [year, setYear] = useState(new Date().getFullYear().toString());
 
@@ -79,7 +80,11 @@ export default function Schedule() {
   }, [races, racesLast, racesNext]);
 
   if (isLoading || isLoadingLast || isLoadingNext) {
-    return <div className="container mx-auto">Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin h-16 w-16" />
+      </div>
+    );
   }
 
   return (
@@ -139,9 +144,7 @@ export default function Schedule() {
             Next Race
           </h4>
           {!racesNext ? (
-            <h4 className="text-xl font-black uppercase">
-              The season is over
-            </h4>
+            <h4 className="text-xl font-black uppercase">The season is over</h4>
           ) : (
             <div className="space-y-1">
               <p className="text-sm">Round {racesNext?.round}</p>

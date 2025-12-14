@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/ui/table";
+import { Loader2 } from "lucide-react";
 
 export default function DriversStandings() {
   const { data: driversApi = { drivers_championship: [] }, isLoading } =
@@ -70,7 +71,11 @@ export default function DriversStandings() {
     .sort((a, b) => a.position - b.position);
 
   if (isLoading) {
-    return <div>Loading drivers standings...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin h-16 w-16" />
+      </div>
+    );
   }
 
   return (

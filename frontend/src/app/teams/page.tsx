@@ -18,18 +18,21 @@ import {
   useGetTeamsQuery,
   useGetTeamByIdQuery,
 } from "@/entities/f1api/f1api";
+import { Loader2 } from "lucide-react";
 
 export default function Teams() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
 
-  const { data: driversApi = { drivers: [] } } = useGetDriversQuery(undefined, {
-    refetchOnMountOrArgChange: false,
-  });
-  const { data: teamsApi = { teams: [] } } = useGetTeamsQuery(undefined, {
-    refetchOnMountOrArgChange: false,
-  });
+  const { data: driversApi, isLoading: isLoadingDrivers = { drivers: [] } } =
+    useGetDriversQuery(undefined, {
+      refetchOnMountOrArgChange: false,
+    });
+  const { data: teamsApi, isLoading: isLoadingTeams = { teams: [] } } =
+    useGetTeamsQuery(undefined, {
+      refetchOnMountOrArgChange: false,
+    });
 
   const teamArg = user?.favoriteTeamsIds?.[0] ?? skipToken;
   const { data: teamByIdApi } = useGetTeamByIdQuery(teamArg, {
@@ -42,15 +45,23 @@ export default function Teams() {
   const sortedDrivers = [...drivers].sort((a, b) => a.id - b.id);
   const sortedTeams = [...teams].sort((a, b) => a.id - b.id);
 
-  const favoriteTeam = user?.favoriteTeamsIds && user.favoriteTeamsIds.length
-    ? teams.find((t) => t.teamId === user.favoriteTeamsIds[0])
-    : undefined;
+  const favoriteTeam =
+    user?.favoriteTeamsIds && user.favoriteTeamsIds.length
+      ? teams.find((t) => t.teamId === user.favoriteTeamsIds![0])
+      : undefined;
 
   useEffect(() => {
     dispatch(fetchDrivers());
     dispatch(fetchTeams());
   }, [dispatch]);
 
+  if (isLoadingDrivers || isLoadingTeams) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin h-16 w-16" />
+      </div>
+    );
+  }
   return (
     <div className="container mx-auto pb-6">
       <motion.h2
@@ -69,8 +80,11 @@ export default function Teams() {
             {user.favoriteTeamsIds && user.favoriteTeamsIds.length ? (
               user.favoriteTeamsIds.map((favTeamId: string) => {
                 const favTeam = teams.find((t) => t.teamId === favTeamId);
-                const favTeamApi = teamsApi?.teams?.find((t: any) => t.teamId === favTeamId);
-                const displayTeamId = favTeam?.teamId ?? favTeamApi?.teamId ?? favTeamId;
+                const favTeamApi = teamsApi?.teams?.find(
+                  (t: any) => t.teamId === favTeamId
+                );
+                const displayTeamId =
+                  favTeam?.teamId ?? favTeamApi?.teamId ?? favTeamId;
 
                 const teamDrivers = sortedDrivers
                   .filter((d) => d.teamId === displayTeamId)
@@ -84,7 +98,9 @@ export default function Teams() {
                     key={favTeamId}
                     className="p-4 rounded-lg relative h-70 cursor-pointer overflow-hidden"
                     style={{
-                      background: `var(--team-${displayTeamId.toLowerCase().replace(" ", "_")})`,
+                      background: `var(--team-${displayTeamId
+                        .toLowerCase()
+                        .replace(" ", "_")})`,
                     }}
                     onClick={() => router.push(`/teams/${displayTeamId}`)}
                   >
@@ -97,18 +113,41 @@ export default function Teams() {
                         <p className="text-sm">No drivers found</p>
                       ) : (
                         teamDrivers.map((d) => {
-                          const matchedDriverApi = driversApi?.drivers?.find((da: any) => da.driverId === d.driverId);
+                          const matchedDriverApi = driversApi?.drivers?.find(
+                            (da: any) => da.driverId === d.driverId
+                          );
                           return (
-                            <Link key={d.id ?? d.driverId} href={`/drivers/${d.driverId}`} className="flex items-center gap-2">
-                              <div className="w-8 h-8 overflow-hidden rounded-full " style={{ background: `var(--team-${d?.teamId?.toLowerCase().replace(" ", "_")})` }}>
-                                <Image src={d.imgUrl} alt={d.driverId} width={32} height={32} className="object-cover object-top w-full h-full" />
+                            <Link
+                              key={d.id ?? d.driverId}
+                              href={`/drivers/${d.driverId}`}
+                              className="flex items-center gap-2"
+                            >
+                              <div
+                                className="w-8 h-8 overflow-hidden rounded-full "
+                                style={{
+                                  background: `var(--team-${d?.teamId
+                                    ?.toLowerCase()
+                                    .replace(" ", "_")})`,
+                                }}
+                              >
+                                <Image
+                                  src={d.imgUrl}
+                                  alt={d.driverId}
+                                  width={32}
+                                  height={32}
+                                  className="object-cover object-top w-full h-full"
+                                />
                               </div>
 
                               <p className="text-sm font-bold">
                                 {matchedDriverApi ? (
                                   <>
-                                    <span className="font-normal">{matchedDriverApi.name}</span>{" "}
-                                    <span className="font-bold uppercase">{matchedDriverApi.surname}</span>
+                                    <span className="font-normal">
+                                      {matchedDriverApi.name}
+                                    </span>{" "}
+                                    <span className="font-bold uppercase">
+                                      {matchedDriverApi.surname}
+                                    </span>
                                   </>
                                 ) : (
                                   d.driverId
@@ -121,11 +160,27 @@ export default function Teams() {
                     </div>
 
                     <div className="w-14 h-14 rounded-full absolute right-5 top-5">
-                      <Image src={favTeam?.teamImgUrl ?? favTeamApi?.teamImgUrl ?? ""} alt={displayTeamId} width={56} height={56} className="object-contain object-center w-full h-full p-1" />
+                      <Image
+                        src={
+                          favTeam?.teamImgUrl ?? favTeamApi?.teamImgUrl ?? ""
+                        }
+                        alt={displayTeamId}
+                        width={56}
+                        height={56}
+                        className="object-contain object-center w-full h-full p-1"
+                      />
                     </div>
 
                     <div className="rounded-lg absolute bottom-4 left-5 w-130 overflow-hidden">
-                      <Image src={favTeam?.bolidImgUrl ?? favTeamApi?.bolidImgUrl ?? ""} alt={displayTeamId} width={500} height={200} className="object-cover w-full h-full" />
+                      <Image
+                        src={
+                          favTeam?.bolidImgUrl ?? favTeamApi?.bolidImgUrl ?? ""
+                        }
+                        alt={displayTeamId}
+                        width={500}
+                        height={200}
+                        className="object-cover w-full h-full"
+                      />
                     </div>
                   </motion.div>
                 );

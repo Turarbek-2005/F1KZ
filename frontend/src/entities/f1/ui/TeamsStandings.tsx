@@ -14,8 +14,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/ui/table";
+import { Loader2 } from "lucide-react";
 
-export default function DriversStandings() {
+export default function TeamsStandings() {
   const { data: teamsApi = { constructors_championship: [] }, isLoading } =
     useGetStandingsTeamsQuery(undefined, { refetchOnMountOrArgChange: false });
 
@@ -52,7 +53,11 @@ export default function DriversStandings() {
     .sort((a, b) => a.position - b.position);
 
   if (isLoading) {
-    return <div>Loading teams standings...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin h-16 w-16" />
+      </div>
+    );
   }
 
   return (

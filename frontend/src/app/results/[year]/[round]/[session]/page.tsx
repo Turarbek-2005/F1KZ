@@ -31,9 +31,19 @@ function toSingleString(v: string | string[] | undefined): string | undefined {
 export default function ResultsYearRoundSessionPage() {
   const params = useParams();
 
-  const [year, setYear] = useState(toSingleString(params?.year));
-  const [round, setRound] = useState(toSingleString(params?.round));
-  const [session, setSession] = useState(toSingleString(params?.session));
+  const DEFAULT_YEAR = "2025";
+  const DEFAULT_ROUND = "1";
+  const DEFAULT_SESSION = "race";
+
+  const [year, setYear] = useState(
+    toSingleString(params?.year) ?? DEFAULT_YEAR
+  );
+  const [round, setRound] = useState(
+    toSingleString(params?.round) ?? DEFAULT_ROUND
+  );
+  const [session, setSession] = useState(
+    toSingleString(params?.session) ?? DEFAULT_SESSION
+  );
 
   const { data: races, error, isLoading } = useGetRacesYearQuery(year!);
   const queryArgs = year && round ? { year, round } : skipToken;
@@ -128,7 +138,6 @@ export default function ResultsYearRoundSessionPage() {
         {session === "race" && year && round && (
           <RaceTable year={year} round={round} />
         )}
-
       </motion.div>
     </div>
   );

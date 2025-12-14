@@ -5,7 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { useParams } from "next/navigation";
 import { skipToken } from "@reduxjs/toolkit/query/react";
-import { MoveLeft } from "lucide-react";
+import { Loader2, MoveLeft } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
 import {
   fetchDrivers,
@@ -109,8 +109,8 @@ export default function Driver() {
 
   if (driverApiLoading || topDriverLoading) {
     return (
-      <div className="container mx-auto">
-        <p>Loading...</p>
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin h-16 w-16" />
       </div>
     );
   }

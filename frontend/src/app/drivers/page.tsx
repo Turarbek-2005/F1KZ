@@ -19,11 +19,12 @@ import {
 } from "@/entities/f1api/f1api";
 import { cn } from "@/shared/lib/utils";
 import { grapeNuts } from "../fonts";
+import { Loader2 } from "lucide-react";
 
 export default function Drivers() {
   const user = useAppSelector((state) => state.auth.user);
 
-  const { data: driversApi = [] } = useGetDriversQuery(undefined, {
+  const { data: driversApi, isLoading = [] } = useGetDriversQuery(undefined, {
     refetchOnMountOrArgChange: false,
   });
   const { data: teamsApi = [] } = useGetTeamsQuery(undefined, {
@@ -58,6 +59,13 @@ export default function Drivers() {
   const favDriverId =
     favoriteDriver?.driverId ?? driverByIdApi?.driver?.driverId ?? "";
 
+    if (isLoading) {
+        return (
+          <div className="flex justify-center items-center h-screen">
+            <Loader2 className="animate-spin h-16 w-16" />
+          </div>
+        );
+      }
   return (
     <div className="container mx-auto pb-6">
       <motion.h2
