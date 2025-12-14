@@ -2,6 +2,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import type { AxiosRequestConfig } from "axios";
 import { axiosClient } from "@/shared/api/axios";
+import { get } from "http";
 
 type AxiosBaseQueryArgs = {
   url: string;
@@ -114,6 +115,56 @@ export const f1Api = createApi({
       providesTags: ["Results"],
     }),
 
+    getYearRoundFp1: build.query<any, { year: string | number; round: string | number }>({
+      query: ({ year, round }) => ({
+        url: `/f1api/${year}/${round}/fp1`,
+        method: "get",
+      }),
+      providesTags: ["Results"],
+    }),
+    getYearRoundFp2: build.query<any, { year: string | number; round: string | number }>({
+      query: ({ year, round }) => ({
+        url: `/f1api/${year}/${round}/fp2`,
+        method: "get",
+      }),
+      providesTags: ["Results"],
+    }),
+    getYearRoundFp3: build.query<any, { year: string | number; round: string | number }>({
+      query: ({ year, round }) => ({
+        url: `/f1api/${year}/${round}/fp3`,
+        method: "get",
+      }),
+      providesTags: ["Results"],
+    }),
+    getYearRoundQualy: build.query<any, { year: string | number; round: string | number }>({
+      query: ({ year, round }) => ({
+        url: `/f1api/${year}/${round}/qualy`,
+        method: "get",
+      }),
+      providesTags: ["Results"],
+    }),
+    getYearRoundRace: build.query<any, { year: string | number; round: string | number }>({
+      query: ({ year, round }) => ({
+        url: `/f1api/${year}/${round}/race`,
+        method: "get",
+      }),
+      providesTags: ["Results"],
+    }),
+    getYearRoundSprintQualy: build.query<any, { year: string | number; round: string | number }>({
+      query: ({ year, round }) => ({
+        url: `/f1api/${year}/${round}/sprint/qualy`,
+        method: "get",
+      }),
+      providesTags: ["Results"],
+    }),
+    getYearRoundSprintRace: build.query<any, { year: string | number; round: string | number }>({
+      query: ({ year, round }) => ({
+        url: `/f1api/${year}/${round}/sprint/race`,
+        method: "get",
+      }),
+      providesTags: ["Results"],
+    }),
+
     // Standings
     getStandingsTeams: build.query<any, void>({
       query: () => ({ url: "/f1api/standings/teams", method: "get" }),
@@ -171,6 +222,13 @@ export const {
   useGetLastRaceQuery,
   useGetLastSprintQualyQuery,
   useGetLastSprintRaceQuery,
+  useGetYearRoundFp1Query,
+  useGetYearRoundFp2Query,
+  useGetYearRoundFp3Query,
+  useGetYearRoundQualyQuery,
+  useGetYearRoundRaceQuery,
+  useGetYearRoundSprintQualyQuery,
+  useGetYearRoundSprintRaceQuery,
   useGetStandingsTeamsQuery,
   useGetStandingsDriversQuery,
   useGetRacesQuery,
