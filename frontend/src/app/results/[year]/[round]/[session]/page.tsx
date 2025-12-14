@@ -86,9 +86,9 @@ export default function ResultsYearRoundSessionPage() {
             <SelectValue placeholder="Выбери этап" />
           </SelectTrigger>
           <SelectContent>
-            {races.races.map((race: any) => (
+            {races?.races?.map((race: any) => (
               <SelectItem key={race?.round} value={race?.round?.toString()}>
-                {race?.circuit?.city}
+                {race?.circuit?.country}
               </SelectItem>
             ))}
           </SelectContent>
