@@ -27,6 +27,47 @@ import {
 import { cn } from "@/shared/lib/utils";
 import { grapeNuts } from "@/app/fonts";
 
+interface DriverStanding {
+  driverId: string;
+  position?: number;
+  points?: number;
+  team?: {
+    teamName?: string;
+  };
+}
+
+interface DriverApiData {
+  season?: string;
+  driver?: {
+    name?: string;
+    surname?: string;
+    number?: string | number;
+    birthday?: string;
+  };
+  team?: {
+    teamName?: string;
+  };
+  results?: ResultEntry[];
+}
+
+interface ResultEntry {
+  race?: {
+    round?: string | number;
+    name?: string;
+    date?: string;
+    raceId?: string;
+  };
+  result?: {
+    gridPosition?: number | string;
+    finishingPosition?: number | string;
+    pointsObtained?: number;
+  };
+  sprintResult?: {
+    finishingPosition?: number | string;
+    pointsObtained?: number;
+  };
+}
+
 export default function Driver() {
   const params = useParams();
   const rawId = params?.id;
@@ -44,43 +85,53 @@ export default function Driver() {
   );
 
   const {
-    data: driverApi,
+    data: rawDriverApi,
     isLoading: driverApiLoading,
     isError: driverApiError,
   } = useGetDriverByIdQuery(driverId ?? skipToken, {
     refetchOnMountOrArgChange: false,
   });
 
-  const { data: driversStandings = { drivers_championship: [] } } =
-    useGetStandingsDriversQuery(undefined, {
-      refetchOnMountOrArgChange: false,
-    });
+  const {
+    data: rawStandingsData,
+  } = useGetStandingsDriversQuery(undefined, {
+    refetchOnMountOrArgChange: false,
+  });
+
+  const driverApi = (rawDriverApi ?? undefined) as DriverApiData | undefined;
+  const driversStandings = (rawStandingsData ?? {
+    drivers_championship: [],
+  }) as { drivers_championship: DriverStanding[] };
 
   const topDriverStat = driversStandings.drivers_championship?.find(
-    (d: any) => d.position === 1
+    (d: DriverStanding) => d.position === 1
   );
   const topDriverId = topDriverStat?.driverId;
 
-  const myDriverStat = driversStandings.drivers_championship?.find(
-    (d: any) => d.driverId === driverId
-  );
-
   const {
-    data: topDriverApi,
+    data: rawTopDriverApi,
     isLoading: topDriverLoading,
     isError: topDriverError,
   } = useGetDriverByIdQuery(topDriverId ?? skipToken, {
     refetchOnMountOrArgChange: false,
   });
 
+  const topDriverApi = (rawTopDriverApi ?? undefined) as
+    | DriverApiData
+    | undefined;
+
   const twoDriverIds = Array.from(
     new Set([topDriverId, driverId].filter(Boolean))
   );
 
-  const twoDriversData = twoDriverIds.map((id) => {
+  const twoDriversData: {
+    id?: string;
+    apiData?: DriverApiData | undefined;
+    stat?: DriverStanding | undefined;
+  }[] = twoDriverIds.map((id) => {
     const apiData = id === driverId ? driverApi : topDriverApi;
     const stat = driversStandings.drivers_championship?.find(
-      (d: any) => d.driverId === id
+      (d) => d.driverId === id
     );
     return { id, apiData, stat };
   });
@@ -89,15 +140,6 @@ export default function Driver() {
     dispatch(fetchDrivers());
     dispatch(fetchTeams());
   }, [dispatch]);
-
-  // useEffect(() => {
-  //   console.log("Redux driver:", driver);
-  //   console.log("Redux team:", team);
-  //   console.log("API driver:", driverApi);
-  //   console.log("Top Driver Stat:", topDriverStat);
-  //   console.log("My Driver Stat:", myDriverStat);
-  //   console.log("Top Driver API:", topDriverApi);
-  // }, [driver, team, driverApi, topDriverStat, myDriverStat, topDriverApi]);
 
   if (!driverId) {
     return (
@@ -177,7 +219,7 @@ export default function Driver() {
                   className="object-cover object-top w-full h-full rounded-full"
                 />
               </div>
-            <p>{driverApi?.team?.teamName}</p>
+              <p>{driverApi?.team?.teamName}</p>
             </div>
             <span className="mx-3">|</span>
             <p>{driverApi?.driver?.number}</p>
@@ -279,8 +321,8 @@ export default function Driver() {
 
               <TableBody>
                 {twoDriversData.map(({ id, apiData, stat }) => {
-                  const position = stat?.position ?? apiData?.position ?? "—";
-                  const points = stat?.points ?? apiData?.points ?? 0;
+                  const position = stat?.position ?? apiData?.driver?.number ?? "—";
+                  const points = stat?.points ?? (apiData as any)?.points ?? 0;
                   const name = apiData?.driver
                     ? `${apiData.driver.name} ${apiData.driver.surname}`
                     : id;
@@ -347,7 +389,7 @@ export default function Driver() {
               </TableHeader>
 
               <TableBody>
-                {(driverApi?.results ?? []).map((r: any) => {
+                {(driverApi?.results ?? []).map((r: ResultEntry) => {
                   const round = r.race?.round ?? "—";
                   const name = r.race?.name ?? "—";
                   const date = r.race?.date ?? "—";
@@ -368,22 +410,14 @@ export default function Driver() {
                       <TableCell className="whitespace-nowrap px-3 py-3 text-sm">
                         {round}
                       </TableCell>
-                      <TableCell className="px-3 py-3 text-sm">
-                        {name}
-                      </TableCell>
+                      <TableCell className="px-3 py-3 text-sm">{name}</TableCell>
                       <TableCell className="whitespace-nowrap px-3 py-3 text-sm">
                         {date}
                       </TableCell>
-                      <TableCell className="px-3 py-3 text-sm">
-                        {grid}
-                      </TableCell>
-                      <TableCell className="px-3 py-3 text-sm">
-                        {finish}
-                      </TableCell>
+                      <TableCell className="px-3 py-3 text-sm">{grid}</TableCell>
+                      <TableCell className="px-3 py-3 text-sm">{finish}</TableCell>
                       <TableCell className="px-3 py-3 text-sm">{pts}</TableCell>
-                      <TableCell className="px-3 py-3 text-sm">
-                        {sprint}
-                      </TableCell>
+                      <TableCell className="px-3 py-3 text-sm">{sprint}</TableCell>
                     </TableRow>
                   );
                 })}

@@ -28,6 +28,17 @@ function toSingleString(v: string | string[] | undefined): string | undefined {
   if (v === undefined) return undefined;
   return Array.isArray(v) ? v[0] : v;
 }
+
+interface RaceEntry {
+  round?: string | number;
+  circuit?: {
+    country?: string;
+  };
+  raceName?: string;
+  date?: string;
+  raceId?: string;
+}
+
 export default function ResultsYearRoundSessionPage() {
   const params = useParams();
 
@@ -51,10 +62,20 @@ export default function ResultsYearRoundSessionPage() {
   const { data: race, isLoading: isLoadingRace } =
     useGetRacesYearRoundQuery(queryArgs);
 
-  if (isLoading) {
+  const racesData = (races ?? undefined) as { races: RaceEntry[] } | undefined;
+
+  if (isLoading || isLoadingRace) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto">
+        <p>Error loading races.</p>
       </div>
     );
   }
@@ -81,18 +102,23 @@ export default function ResultsYearRoundSessionPage() {
             <SelectItem value="2020">2020</SelectItem>
           </SelectContent>
         </Select>
+
         <Select value={round} onValueChange={setRound}>
           <SelectTrigger>
             <SelectValue placeholder="Выбери этап" />
           </SelectTrigger>
           <SelectContent>
-            {races?.races?.map((race: any) => (
-              <SelectItem key={race?.round} value={race?.round?.toString()}>
-                {race?.circuit?.country}
+            {racesData?.races?.map((raceEntry) => (
+              <SelectItem
+                key={String(raceEntry?.round ?? Math.random())}
+                value={String(raceEntry?.round ?? "")}
+              >
+                {raceEntry?.circuit?.country ?? `Round ${raceEntry?.round}`}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+
         <Select value={session} onValueChange={setSession}>
           <SelectTrigger>
             <SelectValue placeholder="Выбери сессию" />
@@ -108,14 +134,16 @@ export default function ResultsYearRoundSessionPage() {
           </SelectContent>
         </Select>
       </motion.div>
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
         <h1 className="text-3xl font-bold mb-4">
-          {race?.race[0]?.raceName} - {session?.toUpperCase()} Results
+          {race?.race?.[0]?.raceName} - {session?.toUpperCase()} Results
         </h1>
+
         {session === "fp1" && year && round && (
           <Fp1Table year={year} round={round} />
         )}
@@ -125,7 +153,6 @@ export default function ResultsYearRoundSessionPage() {
         {session === "fp3" && year && round && (
           <Fp3Table year={year} round={round} />
         )}
-
         {session === "sprintQualyfying" && year && round && (
           <SprintQualyTable year={year} round={round} />
         )}

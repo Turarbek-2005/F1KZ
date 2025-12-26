@@ -14,16 +14,26 @@ import {
 import { useGetTeamsQuery } from "@/entities/f1api/f1api";
 import { cn } from "@/shared/lib/utils";
 
+// Тип API-данных команд
+type TeamApi = {
+  teamId: string;
+  teamName: string;
+  teamImgUrl?: string;
+  bolidImgUrl?: string;
+};
+
+type TeamsApiResponse = {
+  teams: TeamApi[];
+};
+
 export default function TeamsDropdownMenu() {
   const pathname = usePathname();
 
-  const {
-    data: teamsApi = [],
-    isLoading,
-    error,
-  } = useGetTeamsQuery(undefined, {
-    refetchOnMountOrArgChange: false,
-  });
+  // Приведение типа данных API
+  const { data: teamsApiData = { teams: [] } } = useGetTeamsQuery(
+    undefined,
+    { refetchOnMountOrArgChange: false }
+  ) as { data?: TeamsApiResponse };
 
   const dispatch = useAppDispatch();
   const teams = useAppSelector(selectAllTeams);
@@ -54,9 +64,10 @@ export default function TeamsDropdownMenu() {
         onMouseLeave={() => setOpen(false)}
       >
         {teams.map((team) => {
-          const matchedTeam = teamsApi?.teams?.find(
-            (teamApi: any) => teamApi.teamId === team.teamId
+          const matchedTeam: TeamApi | undefined = teamsApiData?.teams.find(
+            (teamApi: TeamApi) => teamApi.teamId === team.teamId
           );
+
           return (
             <DropdownMenuItem
               key={team.id}
@@ -68,8 +79,8 @@ export default function TeamsDropdownMenu() {
                   .replace(" ", "_")})`,
               }}
             >
-              <Link href={`/teams/${team.teamId}`} className="flex flex-col ">
-                <div className="flex  items-center gap-2">
+              <Link href={`/teams/${team.teamId}`} className="flex flex-col">
+                <div className="flex items-center gap-2">
                   <div>
                     <Image
                       src={team.teamImgUrl}

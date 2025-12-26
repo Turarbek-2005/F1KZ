@@ -9,19 +9,47 @@ import {
     TableHeader,
     TableRow,
 } from "@/shared/ui/table";
-import {
-    Card,
-  CardContent,
-} from "@/shared/ui/card";
+import { Card, CardContent } from "@/shared/ui/card";
 import { useGetYearRoundRaceQuery } from "@/entities/f1api/f1api";
+
+interface DriverResult {
+  driverId: string;
+  name: string;
+  surname: string;
+}
+
+interface TeamResult {
+  teamId: string;
+  teamName: string;
+}
+
+interface RaceResult {
+  driver: DriverResult;
+  team: TeamResult;
+  position: number;
+  time?: string;
+  retired?: string;
+  points: number;
+}
+
+interface RaceData {
+  results: RaceResult[];
+}
+
+interface RaceApiResponse {
+  races?: RaceData;
+}
 
 type Props = { year?: string; round?: string | number; };
 
 export default function RaceTable({ year, round }: Props) {
-   const args = year && round ? { year, round } : skipToken;
-    const { data, isLoading } = useGetYearRoundRaceQuery(args!);
-
-    if (isLoading) {
+  const args = year && round ? { year, round } : skipToken;
+  const { data, isLoading } = useGetYearRoundRaceQuery(args) as {
+      data?: RaceApiResponse;
+      isLoading: boolean;
+    };
+    
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />
@@ -29,7 +57,7 @@ export default function RaceTable({ year, round }: Props) {
     );
   }
 
-  if (!data || !data.races?.results || data.races.results.length === 0) {
+  if (!data?.races?.results || data.races.results.length === 0) {
     return (
       <Card>
         <CardContent className="pt-6">
@@ -40,45 +68,45 @@ export default function RaceTable({ year, round }: Props) {
   }
 
   return (
-      <Card>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[50px]">Pos</TableHead>
-                <TableHead>Driver</TableHead>
-                <TableHead>Team</TableHead>
-                <TableHead>Time/Status</TableHead>
-                <TableHead>Points</TableHead>
+    <Card>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[50px]">Pos</TableHead>
+              <TableHead>Driver</TableHead>
+              <TableHead>Team</TableHead>
+              <TableHead>Time/Status</TableHead>
+              <TableHead>Points</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.races.results.map((result: RaceResult) => (
+              <TableRow key={result.driver.driverId}>
+                <TableCell className="font-bold">{result.position}</TableCell>
+                <TableCell>
+                  <Link
+                    href={`/drivers/${result.driver.driverId}`}
+                    className="hover:underline"
+                  >
+                    {result.driver.name} {result.driver.surname}
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  <Link
+                    href={`/teams/${result.team.teamId}`}
+                    className="hover:underline"
+                  >
+                    {result.team.teamName}
+                  </Link>
+                </TableCell>
+                <TableCell>{result.time ?? result.retired ?? "N/A"}</TableCell>
+                <TableCell className="font-bold">{result.points}</TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data?.races?.results.map((result:any) => (
-                <TableRow key={result.driver.driverId}>
-                  <TableCell className="font-bold">{result.position}</TableCell>
-                  <TableCell>
-                    <Link
-                      href={`/drivers/${result.driver.driverId}`}
-                      className="hover:underline"
-                    >
-                      {result.driver.name} {result.driver.surname}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Link
-                      href={`/teams/${result.team.teamId}`}
-                      className="hover:underline"
-                    >
-                      {result.team.teamName}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{result.time || result.retired || 'N/A'}</TableCell>
-                  <TableCell className="font-bold">{result.points}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }

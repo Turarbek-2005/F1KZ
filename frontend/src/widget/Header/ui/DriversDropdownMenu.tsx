@@ -4,10 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
-import {
-  fetchDrivers,
-  selectAllDrivers,
-} from "@/entities/f1/model/driversSlice";
+import { fetchDrivers, selectAllDrivers } from "@/entities/f1/model/driversSlice";
+import { Driver } from "@/entities/f1/types/f1.types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,18 +15,28 @@ import {
 import { useGetDriversQuery } from "@/entities/f1api/f1api";
 import { cn } from "@/shared/lib/utils";
 
+type DriverApi = {
+  driverId: string;
+  name: string;
+  surname: string;
+  teamId: string;
+  imgUrl?: string;
+};
+type DriversApiResponse = {
+  drivers: DriverApi[];
+};
 export default function DriversDropdownMenu() {
   const pathname = usePathname();
 
-  const {
-    data: driversApi = [],
-    isLoading,
-    error,
-  } = useGetDriversQuery(undefined, {
-    refetchOnMountOrArgChange: false,
-  });
+  const { data: driversApiData = { drivers: [] } } = useGetDriversQuery(
+    undefined,
+    { refetchOnMountOrArgChange: false }
+  ) as { data?: DriversApiResponse };
+
+
   const dispatch = useAppDispatch();
   const drivers = useAppSelector(selectAllDrivers);
+
   const sortedDrivers = [...drivers].sort((a, b) => a.id - b.id);
 
   const [open, setOpen] = useState(false);
@@ -36,7 +44,7 @@ export default function DriversDropdownMenu() {
   useEffect(() => {
     dispatch(fetchDrivers());
   }, [dispatch]);
-  
+
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild onMouseEnter={() => setOpen(true)}>
@@ -57,10 +65,11 @@ export default function DriversDropdownMenu() {
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
       >
-        {sortedDrivers.map((driver) => {
-          const matchedDriver = driversApi?.drivers?.find(
-            (driverApi: any) => driverApi.driverId === driver.driverId
+        {sortedDrivers.map((driver: Driver) => {
+          const matchedDriver: DriverApi | undefined = driversApiData.drivers.find(
+            (driverApi: DriverApi) => driverApi.driverId === driver.driverId
           );
+
           return (
             <DropdownMenuItem
               key={driver.id}
@@ -69,10 +78,10 @@ export default function DriversDropdownMenu() {
             >
               <Link
                 href={`/drivers/${driver.driverId}`}
-                className="flex  items-center gap-2 "
+                className="flex items-center gap-2"
               >
                 <div
-                  className="w-12 h-12 overflow-hidden rounded-full  "
+                  className="w-12 h-12 overflow-hidden rounded-full"
                   style={{
                     background: `var(--team-${driver?.teamId
                       ?.toLowerCase()
@@ -89,7 +98,7 @@ export default function DriversDropdownMenu() {
                 </div>
                 <span className="text-sm">
                   {matchedDriver
-                    ? matchedDriver.name + " " + matchedDriver.surname
+                    ? `${matchedDriver.name} ${matchedDriver.surname}`
                     : driver.teamId}
                 </span>
               </Link>

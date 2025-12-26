@@ -15,6 +15,7 @@ export default function Login() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const auth = useAppSelector((s) => s.auth);
+  const { user } = auth; // destructure user to avoid depending on the whole auth object
 
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,11 +24,11 @@ export default function Login() {
   const loading = auth.status === "loading";
 
   useEffect(() => {
-    console.log("Auth state:", auth);
-    if (auth.user) {
+    console.log("Auth user:", user); 
+    if (user) {
       router.push("/");
     }
-  }, [auth.user, router]);
+  }, [user, router]); 
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +44,7 @@ export default function Login() {
     );
 
     if (loginUser.fulfilled.match(res)) {
-      console.log(res)
+      console.log(res);
       router.push("/");
     } else {
       const msg = (res.payload as string) || res.error?.message || "Login failed";
@@ -123,7 +124,7 @@ export default function Login() {
           </Button>
 
           <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-2">
-            Don't have an account yet?{" "}
+            Don&apos;t have an account yet?{" "}
             <Link href="/register" className="text-blue-600 hover:underline">
               Register
             </Link>

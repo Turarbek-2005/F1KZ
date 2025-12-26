@@ -21,20 +21,59 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import { Loader2 } from "lucide-react";
+
+export type RaceScheduleSession = {
+  date: string;
+  time?: string;
+};
+
+export type RaceSchedule = {
+  fp1: RaceScheduleSession;
+  fp2?: RaceScheduleSession;
+  fp3?: RaceScheduleSession;
+  sprintQualyfying?: RaceScheduleSession;
+  sprintRace?: RaceScheduleSession;
+  qualyfying?: RaceScheduleSession;
+  race: RaceScheduleSession;
+};
+
+export type RaceWinner = {
+  driverId: string;
+  name: string;
+  surname: string;
+};
+
+export type RaceTeamWinner = {
+  teamId: string;
+};
+
+export type RaceCircuit = {
+  country: string;
+  city: string;
+};
+
+export type Race = {
+  raceId: string;
+  raceName: string;
+  round: number;
+  circuit: RaceCircuit;
+  schedule: RaceSchedule;
+  winner: RaceWinner;
+  teamWinner: RaceTeamWinner;
+};
+
 export default function Schedule() {
   const [year, setYear] = useState(new Date().getFullYear().toString());
 
   const dispatch = useAppDispatch();
   const drivers = useAppSelector(selectAllDrivers);
-  const { data: races, error, isLoading } = useGetRacesYearQuery(year);
+  const { data: races, isLoading } = useGetRacesYearQuery(year);
   const {
     data: racesLast,
-    error: errorLast,
     isLoading: isLoadingLast,
   } = useGetRacesLastQuery();
   const {
     data: racesNext,
-    error: errorNext,
     isLoading: isLoadingNext,
   } = useGetRacesNextQuery();
 
@@ -101,6 +140,7 @@ export default function Schedule() {
           </SelectTrigger>
 
           <SelectContent>
+            <SelectItem value="2026">2026</SelectItem>
             <SelectItem value="2025">2025</SelectItem>
             <SelectItem value="2024">2024</SelectItem>
             <SelectItem value="2023">2023</SelectItem>
@@ -167,7 +207,7 @@ export default function Schedule() {
         </Link>
       </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {races?.races?.map((race: any) => (
+        {races?.races?.map((race: Race) => (
           <Link
             key={race?.raceId}
             href={`/schedule/${year}/${race.round}`}

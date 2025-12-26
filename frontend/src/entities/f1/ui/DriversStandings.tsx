@@ -1,8 +1,11 @@
 "use client";
+
 import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
+
 import {
   fetchDrivers,
   selectAllDrivers,
@@ -18,13 +21,33 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/ui/table";
-import { Loader2 } from "lucide-react";
+
+import type { Driver } from "@/entities/f1/types/f1.types";
+
+type DriverStanding = {
+  driverId: string;
+  position?: number;
+  points?: number;
+  teamId: string;
+  driver: {
+    name: string;
+    surname: string;
+    shortName: string;
+  };
+  team?: {
+    teamName?: string;
+  };
+};
+
+type StandingsApiResponse = {
+  drivers_championship: DriverStanding[];
+};
 
 export default function DriversStandings() {
   const { data: driversApi = { drivers_championship: [] }, isLoading } =
     useGetStandingsDriversQuery(undefined, {
       refetchOnMountOrArgChange: false,
-    });
+    }) as { data?: StandingsApiResponse; isLoading: boolean };
 
   const dispatch = useAppDispatch();
   const drivers = useAppSelector(selectAllDrivers);
@@ -36,9 +59,9 @@ export default function DriversStandings() {
   }, [dispatch]);
 
   const sortedDrivers = drivers
-    .map((driver: any) => {
+    .map((driver: Driver) => {
       const stat = driversApi.drivers_championship.find(
-        (d: any) => d.driverId === driver.driverId
+        (d) => d.driverId === driver.driverId
       );
 
       if (!stat) {
@@ -51,21 +74,25 @@ export default function DriversStandings() {
             driver: { name: "", surname: "", shortName: "" },
             team: { teamName: "Unknown" },
           },
-          matchedTeam: { teamImgUrl: "/placeholder.png", teamId: "unknown" },
+          matchedTeam: {
+            teamImgUrl: "/placeholder.png",
+            teamId: "unknown",
+          },
           position: Infinity,
         };
       }
 
-      const matchedTeam = teams.find((t: any) => t.teamId === stat.teamId) || {
-        teamImgUrl: "/placeholder.png",
-        teamId: stat.teamId,
-      };
+      const matchedTeam =
+        teams.find((t) => t.teamId === stat.teamId) ?? {
+          teamImgUrl: "/placeholder.png",
+          teamId: stat.teamId,
+        };
 
       return {
         driver,
         stat,
         matchedTeam,
-        position: stat.position !== undefined ? stat.position : Infinity,
+        position: stat.position ?? Infinity,
       };
     })
     .sort((a, b) => a.position - b.position);
@@ -97,12 +124,10 @@ export default function DriversStandings() {
 
         <TableBody>
           {sortedDrivers.map(({ driver, stat, matchedTeam }) => {
-            const position = stat.position !== undefined ? stat.position : "-";
-            const points = stat.points !== undefined ? stat.points : 0;
+            const position = stat.position ?? "-";
+            const points = stat.points ?? 0;
             const teamName =
-              stat.team && stat.team.teamName
-                ? stat.team.teamName
-                : stat.teamId;
+              stat.team?.teamName ?? stat.teamId ?? "Unknown";
 
             return (
               <TableRow key={driver.driverId}>
@@ -129,6 +154,7 @@ export default function DriversStandings() {
                         className="object-cover object-top w-full h-full"
                       />
                     </div>
+
                     <p className="text-sm font-bold">
                       <span className="hidden md:inline-block font-normal">
                         {stat.driver.name}
@@ -151,7 +177,7 @@ export default function DriversStandings() {
                         alt={driver.nationality}
                         width={32}
                         height={32}
-                        className="object-cover object-top w-full h-full rounded-full"
+                        className="object-cover w-full h-full rounded-full"
                       />
                     </div>
                     <p className="hidden sm:block">{driver.nationality}</p>
@@ -176,7 +202,7 @@ export default function DriversStandings() {
                         alt={matchedTeam.teamId}
                         width={32}
                         height={32}
-                        className="object-cover object-top w-7 h-7"
+                        className="object-cover w-7 h-7"
                       />
                     </div>
                     <p className="hidden sm:block text-sm font-bold">

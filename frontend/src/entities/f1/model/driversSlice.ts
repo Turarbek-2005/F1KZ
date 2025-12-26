@@ -1,6 +1,11 @@
-import { createSlice, createAsyncThunk, PayloadAction,createSelector  } from "@reduxjs/toolkit";
+import {
+  createSlice,
+  createAsyncThunk,
+  PayloadAction,
+  createSelector,
+} from "@reduxjs/toolkit";
 import { axiosClient } from "@/shared/api/axios";
-import { Driver,DriversState } from "../types/f1.types";
+import { Driver, DriversState } from "../types/f1.types";
 import type { RootState } from "@/shared/store/index";
 
 const initialState: DriversState = {
@@ -18,14 +23,30 @@ export const fetchDrivers = createAsyncThunk<
   try {
     const res = await axiosClient.get<Driver[]>("/f1/drivers");
     return res.data;
-  } catch (err: any) {
-    if (err.response) {
+  } catch (err) {
+    if (typeof err === "object" && err !== null && "response" in err) {
+      const axiosErr = err as {
+        response?: {
+          data?: { message?: string };
+          status?: number;
+          statusText?: string;
+        };
+      };
+
       return rejectWithValue({
-        message: err.response.data?.message || err.response.statusText,
-        status: err.response.status,
+        message:
+          axiosErr.response?.data?.message ??
+          axiosErr.response?.statusText ??
+          "Request failed",
+        status: axiosErr.response?.status,
       });
     }
-    return rejectWithValue({ message: err.message || "Network error" });
+
+    if (err instanceof Error) {
+      return rejectWithValue({ message: err.message });
+    }
+
+    return rejectWithValue({ message: "Network error" });
   }
 });
 
@@ -36,7 +57,7 @@ const driversSlice = createSlice({
     setDrivers(state, action: PayloadAction<Driver[]>) {
       state.items = action.payload;
       state.byId = action.payload.reduce((acc, d) => {
-        acc[d.driverId] = d; // <-- key by driverId (string)
+        acc[d.driverId] = d;
         return acc;
       }, {} as Record<string, Driver>);
       state.status = "succeeded";
@@ -59,13 +80,13 @@ const driversSlice = createSlice({
         s.status = "succeeded";
         s.items = a.payload;
         s.byId = a.payload.reduce((acc, d) => {
-          acc[d.driverId] = d; // <-- key by driverId (string)
+          acc[d.driverId] = d;
           return acc;
         }, {} as Record<string, Driver>);
       })
       .addCase(fetchDrivers.rejected, (s, a) => {
         s.status = "failed";
-        s.error = (a.payload as any)?.message ?? a.error.message ?? "Error";
+        s.error = a.payload?.message ?? a.error.message ?? "Error";
       });
   },
 });
@@ -80,5 +101,6 @@ export const selectDriverById = (state: RootState, driverId: string) =>
 
 export const selectTeamDrivers = createSelector(
   [(state) => state.drivers.items, (_, teamId: string) => teamId],
-  (drivers, teamId) => drivers.filter((driver: { teamId: string; }) => driver.teamId === teamId)
+  (drivers, teamId) =>
+    drivers.filter((driver: { teamId: string }) => driver.teamId === teamId)
 );

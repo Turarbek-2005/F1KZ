@@ -15,7 +15,7 @@ import { logout } from "@/entities/auth/model/authSlice";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
 import { useRouter } from "next/navigation";
 export function Header() {
-  const { theme, setTheme } = useTheme();
+  const { setTheme } = useTheme();
   const router = useRouter();
   const auth = useAppSelector((s) => s.auth);
   const dispatch = useAppDispatch();
