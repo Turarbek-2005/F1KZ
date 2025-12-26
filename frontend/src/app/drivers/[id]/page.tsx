@@ -322,7 +322,7 @@ export default function Driver() {
               <TableBody>
                 {twoDriversData.map(({ id, apiData, stat }) => {
                   const position = stat?.position ?? apiData?.driver?.number ?? "—";
-                  const points = stat?.points ?? (apiData as any)?.points ?? 0;
+                  const points = stat?.points ?? 0;
                   const name = apiData?.driver
                     ? `${apiData.driver.name} ${apiData.driver.surname}`
                     : id;
