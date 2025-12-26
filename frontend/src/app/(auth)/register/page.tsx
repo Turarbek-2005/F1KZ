@@ -23,7 +23,13 @@ interface Team {
   teamId: string;
   teamName: string;
 }
+type DriversApiResponse = {
+  drivers: Driver[];
+};
 
+type TeamsApiResponse = {
+  teams: Team[];
+};
 export default function RegisterPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -40,10 +46,11 @@ export default function RegisterPage() {
 
   const { data: driversApi = { drivers: [] } } = useGetDriversQuery(undefined, {
     refetchOnMountOrArgChange: false,
-  });
+  }) as { data?: DriversApiResponse };
+
   const { data: teamsApi = { teams: [] } } = useGetTeamsQuery(undefined, {
     refetchOnMountOrArgChange: false,
-  });
+  }) as { data?: TeamsApiResponse };
 
   function validate() {
     if (!username.trim() || !email.trim() || !password) {
@@ -53,8 +60,10 @@ export default function RegisterPage() {
     if (!emailRe.test(email)) return "Invalid email address.";
     if (password.length < 6) return "Password must be at least 6 characters.";
     if (password !== confirm) return "Passwords do not match.";
-    if (favoriteDriversIds.length === 0) return "Please select at least one favorite driver.";
-    if (favoriteTeamsIds.length === 0) return "Please select at least one favorite team.";
+    if (favoriteDriversIds.length === 0)
+      return "Please select at least one favorite driver.";
+    if (favoriteTeamsIds.length === 0)
+      return "Please select at least one favorite team.";
     return null;
   }
 
@@ -77,8 +86,12 @@ export default function RegisterPage() {
           username: username.trim(),
           email: email.trim(),
           password,
-          favoriteDriversIds: favoriteDriversIds.length ? favoriteDriversIds : undefined,
-          favoriteTeamsIds: favoriteTeamsIds.length ? favoriteTeamsIds : undefined,
+          favoriteDriversIds: favoriteDriversIds.length
+            ? favoriteDriversIds
+            : undefined,
+          favoriteTeamsIds: favoriteTeamsIds.length
+            ? favoriteTeamsIds
+            : undefined,
         })
       ).unwrap();
 
@@ -130,28 +143,38 @@ export default function RegisterPage() {
             <UserPlus className="w-6 h-6 text-blue-600" /> Create Account
           </h2>
 
-          <label className="text-sm text-gray-600 dark:text-gray-300" htmlFor="username">
+          <label
+            className="text-sm text-gray-600 dark:text-gray-300"
+            htmlFor="username"
+          >
             Username
           </label>
           <Input
             id="username"
             name="username"
             value={username}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setUsername(e.target.value)
+            }
             placeholder="Your username"
             className="focus:ring-2 focus:ring-blue-500"
             autoComplete="username"
             required
           />
 
-          <label className="text-sm text-gray-600 dark:text-gray-300" htmlFor="email">
+          <label
+            className="text-sm text-gray-600 dark:text-gray-300"
+            htmlFor="email"
+          >
             Email
           </label>
           <Input
             id="email"
             name="email"
             value={email}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setEmail(e.target.value)
+            }
             placeholder="you@example.com"
             type="email"
             className="focus:ring-2 focus:ring-blue-500"
@@ -159,14 +182,19 @@ export default function RegisterPage() {
             required
           />
 
-          <label className="text-sm text-gray-600 dark:text-gray-300" htmlFor="password">
+          <label
+            className="text-sm text-gray-600 dark:text-gray-300"
+            htmlFor="password"
+          >
             Password
           </label>
           <Input
             id="password"
             name="password"
             value={password}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setPassword(e.target.value)
+            }
             placeholder="At least 6 characters"
             type="password"
             className="focus:ring-2 focus:ring-blue-500"
@@ -175,14 +203,19 @@ export default function RegisterPage() {
             required
           />
 
-          <label className="text-sm text-gray-600 dark:text-gray-300" htmlFor="confirm">
+          <label
+            className="text-sm text-gray-600 dark:text-gray-300"
+            htmlFor="confirm"
+          >
             Confirm Password
           </label>
           <Input
             id="confirm"
             name="confirm"
             value={confirm}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirm(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setConfirm(e.target.value)
+            }
             placeholder="Repeat your password"
             type="password"
             className="focus:ring-2 focus:ring-blue-500"
@@ -191,7 +224,9 @@ export default function RegisterPage() {
             required
           />
 
-          <label className="text-sm text-gray-600 dark:text-gray-300">Select your favorite drivers</label>
+          <label className="text-sm text-gray-600 dark:text-gray-300">
+            Select your favorite drivers
+          </label>
           <div className="grid grid-cols-2 gap-2 max-h-15 overflow-auto p-2 border rounded">
             {driversApi?.drivers.map((driver: Driver) => (
               <label key={driver.driverId} className="flex items-center gap-2">
@@ -202,17 +237,23 @@ export default function RegisterPage() {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const id = driver.driverId;
                     setFavoriteDriversIds((prev) =>
-                      e.target.checked ? [...prev, id] : prev.filter((x) => x !== id)
+                      e.target.checked
+                        ? [...prev, id]
+                        : prev.filter((x) => x !== id)
                     );
                   }}
                   className="accent-blue-600"
                 />
-                <span>{driver.name} {driver.surname}</span>
+                <span>
+                  {driver.name} {driver.surname}
+                </span>
               </label>
             ))}
           </div>
 
-          <label className="text-sm text-gray-600 dark:text-gray-300">Select your favorite teams</label>
+          <label className="text-sm text-gray-600 dark:text-gray-300">
+            Select your favorite teams
+          </label>
           <div className="grid grid-cols-2 gap-2 max-h-15 overflow-auto p-2 border rounded">
             {teamsApi?.teams.map((team: Team) => (
               <label key={team.teamId} className="flex items-center gap-2">
@@ -223,7 +264,9 @@ export default function RegisterPage() {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const id = team.teamId;
                     setFavoriteTeamsIds((prev) =>
-                      e.target.checked ? [...prev, id] : prev.filter((x) => x !== id)
+                      e.target.checked
+                        ? [...prev, id]
+                        : prev.filter((x) => x !== id)
                     );
                   }}
                   className="accent-blue-600"

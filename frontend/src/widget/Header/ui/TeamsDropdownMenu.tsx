@@ -29,7 +29,6 @@ type TeamsApiResponse = {
 export default function TeamsDropdownMenu() {
   const pathname = usePathname();
 
-  // Приведение типа данных API
   const { data: teamsApiData = { teams: [] } } = useGetTeamsQuery(
     undefined,
     { refetchOnMountOrArgChange: false }
