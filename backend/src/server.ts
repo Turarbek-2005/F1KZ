@@ -21,6 +21,7 @@ app.use(
     credentials: true,
   })
 );
+
 app.use(helmet());
 app.use(compression());
 app.use(express.json());
@@ -38,7 +39,10 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   logger.error(err.stack);
   res.status(500).send({ message: "Something went wrong!" });
 });
-
+app.use((req, res, next) => {
+  console.log('Origin:', req.headers.origin);
+  next();
+});
 // const PORT = process.env.PORT;
 
 // const server = app.listen(PORT, () => {
