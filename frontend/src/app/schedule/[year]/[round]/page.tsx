@@ -21,6 +21,37 @@ import {
 import { Button } from "@/shared/ui/button";
 import { Calendar, Clock, Loader2 } from "lucide-react";
 
+interface Session {
+  date?: string;
+  time?: string;
+}
+
+interface Schedule {
+  fp1?: Session;
+  fp2?: Session;
+  fp3?: Session;
+  sprintQualy?: Session;
+  sprintRace?: Session;
+  qualy?: Session;
+  race?: Session;
+}
+
+interface RaceEntry {
+  round?: string | number;
+  circuit?: {
+    name?: string;
+    country?: string;
+  };
+  raceName?: string;
+  date?: string;
+  raceId?: string;
+  schedule?: Schedule;
+}
+
+interface RaceRoundResponse {
+  race: RaceEntry[];
+}
+
 function toSingleString(v: string | string[] | undefined): string | undefined {
   if (v === undefined) return undefined;
   return Array.isArray(v) ? v[0] : v;
@@ -56,7 +87,11 @@ export default function ScheduleYearRoundPage() {
     data: race,
     isLoading,
     error,
-  } = useGetRacesYearRoundQuery({ year: year!, round: round! }, { skip });
+  } = useGetRacesYearRoundQuery({ year: year!, round: round! }, { skip })as {
+    data?: RaceRoundResponse;
+    isLoading: boolean;
+    error: Error;
+  };
 
   if (isLoading) {
     return (
@@ -101,7 +136,7 @@ export default function ScheduleYearRoundPage() {
           <CardTitle className="text-3xl font-bold mb-2">
             {race?.race[0]?.raceName}
           </CardTitle>
-          <p className="text-muted-foreground">{race?.race[0]?.circuit.name}</p>
+          <p className="text-muted-foreground">{race?.race[0]?.circuit?.name}</p>
         </CardHeader>
         <CardContent>
           <h3 className="text-2xl font-semibold mb-4">Schedule</h3>

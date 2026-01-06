@@ -22,12 +22,18 @@ type ApiTeam = {
 type UserShape = {
   username?: string;
   email?: string;
-  favoriteDriversIds?: string[]; 
-  favoriteDriverIds?: string[]; 
-  favoriteTeamsIds?: string[]; 
-  favoriteTeamIds?: string[]; 
+  favoriteDriversIds?: string[];
+  favoriteDriverIds?: string[];
+  favoriteTeamsIds?: string[];
+  favoriteTeamIds?: string[];
+};
+type DriversApiResponse = {
+  drivers: ApiDriver[];
 };
 
+type TeamsApiResponse = {
+  teams: ApiTeam[];
+};
 export default function SettingsPage() {
   const dispatch = useAppDispatch();
   const user = useAppSelector((s) => s.auth.user) as UserShape | undefined;
@@ -48,26 +54,25 @@ export default function SettingsPage() {
     ? user!.favoriteTeamIds!
     : [];
 
-  const [favoriteDriversIds, setFavoriteDriversIds] = useState<string[]>(
-    initialFavDrivers
-  );
-  const [favoriteTeamsIds, setFavoriteTeamsIds] = useState<string[]>(
-    initialFavTeams
-  );
+  const [favoriteDriversIds, setFavoriteDriversIds] =
+    useState<string[]>(initialFavDrivers);
+  const [favoriteTeamsIds, setFavoriteTeamsIds] =
+    useState<string[]>(initialFavTeams);
 
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">(
     "idle"
   );
   const [error, setError] = useState<string | null>(null);
 
-  const { data: driversApi = { drivers: [] as ApiDriver[] } } = useGetDriversQuery(
-    undefined,
-    { refetchOnMountOrArgChange: false }
-  );
+  const { data: driversApi = { drivers: [] as ApiDriver[] } } =
+    useGetDriversQuery(undefined, { refetchOnMountOrArgChange: false }) as {
+      data?: DriversApiResponse;
+      loading?: boolean;
+    };
   const { data: teamsApi = { teams: [] as ApiTeam[] } } = useGetTeamsQuery(
     undefined,
     { refetchOnMountOrArgChange: false }
-  );
+  ) as { data?: TeamsApiResponse; loading?: boolean };
 
   useEffect(() => {
     setUsername(user?.username ?? "");
@@ -156,7 +161,9 @@ export default function SettingsPage() {
         </label>
 
         <div>
-          <div className="text-sm text-muted-foreground mb-2">Favorite drivers</div>
+          <div className="text-sm text-muted-foreground mb-2">
+            Favorite drivers
+          </div>
           <div className="grid grid-cols-2 gap-2 max-h-48 overflow-auto p-2 border rounded">
             {driversApi.drivers.map((driver: ApiDriver) => (
               <label key={driver.driverId} className="flex items-center gap-2">
@@ -167,7 +174,9 @@ export default function SettingsPage() {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const id = driver.driverId;
                     setFavoriteDriversIds((prev) =>
-                      e.target.checked ? [...prev, id] : prev.filter((x) => x !== id)
+                      e.target.checked
+                        ? [...prev, id]
+                        : prev.filter((x) => x !== id)
                     );
                   }}
                   className="accent-blue-600"
@@ -181,7 +190,9 @@ export default function SettingsPage() {
         </div>
 
         <div>
-          <div className="text-sm text-muted-foreground mb-2">Favorite teams</div>
+          <div className="text-sm text-muted-foreground mb-2">
+            Favorite teams
+          </div>
           <div className="grid grid-cols-2 gap-2 max-h-48 overflow-auto p-2 border rounded">
             {teamsApi.teams.map((team: ApiTeam) => (
               <label key={team.teamId} className="flex items-center gap-2">
@@ -192,7 +203,9 @@ export default function SettingsPage() {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const id = team.teamId;
                     setFavoriteTeamsIds((prev) =>
-                      e.target.checked ? [...prev, id] : prev.filter((x) => x !== id)
+                      e.target.checked
+                        ? [...prev, id]
+                        : prev.filter((x) => x !== id)
                     );
                   }}
                   className="accent-blue-600"
@@ -204,7 +217,9 @@ export default function SettingsPage() {
         </div>
 
         {error && <div className="text-sm text-red-600">{error}</div>}
-        {status === "saved" && <div className="text-sm text-green-600">Settings saved.</div>}
+        {status === "saved" && (
+          <div className="text-sm text-green-600">Settings saved.</div>
+        )}
 
         <Button type="submit" className="w-fit" disabled={status === "saving"}>
           {status === "saving" ? "Saving..." : "Save settings"}

@@ -36,6 +36,11 @@ interface ConstructorStanding {
   team?: { teamName?: string };
 }
 
+interface ApiTeam {
+  teamId: string;
+  teamName?: string;
+}
+
 interface TeamsStandings {
   constructors_championship: ConstructorStanding[];
 }
@@ -61,17 +66,17 @@ export default function Team() {
   const { data: teamApi, isLoading: teamApiLoading } = useGetTeamByIdQuery(
     teamId ?? skipToken,
     { refetchOnMountOrArgChange: false }
-  );
+  ) as { data?: { team: ApiTeam[] }, isLoading: boolean };
 
   const { data: teamDriversApi, isLoading: teamDriversApiLoading } =
     useGetTeamDriversQuery(teamId ?? skipToken, {
       refetchOnMountOrArgChange: false,
-    });
+    }) as { data?: { drivers: ApiDriverWrapper[],team: ApiTeam }, isLoading: boolean };
 
   const { data: teamsStandings = { constructors_championship: [] } as TeamsStandings } =
     useGetStandingsTeamsQuery(undefined, {
       refetchOnMountOrArgChange: false,
-    });
+    }) as { data?: TeamsStandings };
 
   const topTeamStat = teamsStandings.constructors_championship?.find(
     (t: ConstructorStanding) => Number(t.position) === 1
@@ -80,14 +85,18 @@ export default function Team() {
 
   const { data: topTeamApi } = useGetTeamByIdQuery(topTeamId ?? skipToken, {
     refetchOnMountOrArgChange: false,
-  });
+  }) as { data?: { team: ApiTeam[] } };
 
   const twoTeamIds = Array.from(
     new Set([topTeamId, teamId].filter(Boolean) as string[])
   );
 
   const twoTeamsData = twoTeamIds.map((id) => {
-    const apiData = id === teamId ? team : topTeamApi;
+    const apiData: ApiTeam | undefined =
+  id === teamId
+    ? teamApi?.team?.[0]
+    : topTeamApi?.team?.[0];
+
     const stat = teamsStandings.constructors_championship?.find(
       (t: ConstructorStanding) => t.teamId === id
     );

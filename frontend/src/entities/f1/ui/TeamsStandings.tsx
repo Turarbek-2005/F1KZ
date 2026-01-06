@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
-
 import { fetchTeams, selectAllTeams } from "@/entities/f1/model/teamsSlice";
 import { useGetStandingsTeamsQuery } from "@/entities/f1api/f1api";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
@@ -20,10 +19,6 @@ import {
 } from "@/shared/ui/table";
 
 import type { Team } from "@/entities/f1/types/f1.types";
-
-/* =======================
-   Types
-======================= */
 
 type TeamStanding = {
   teamId: string;

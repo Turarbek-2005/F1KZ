@@ -39,7 +39,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).send({ message: "Something went wrong!" });
 });
 
-const PORT = process.env.PORT || 4200;
+const PORT = process.env.PORT;
 
 const server = app.listen(PORT, () => {
   logger.info(`Server is running on port ${PORT}`);

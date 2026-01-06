@@ -15,7 +15,7 @@ export default function Login() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const auth = useAppSelector((s) => s.auth);
-  const { user } = auth; // destructure user to avoid depending on the whole auth object
+  const { user } = auth;
 
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");

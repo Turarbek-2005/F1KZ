@@ -13,10 +13,7 @@ import {
 } from "@/entities/f1/model/driversSlice";
 import { fetchTeams, selectAllTeams } from "@/entities/f1/model/teamsSlice";
 
-import {
-  useGetDriversQuery,
-  useGetTeamsQuery,
-} from "@/entities/f1api/f1api";
+import { useGetDriversQuery, useGetTeamsQuery } from "@/entities/f1api/f1api";
 import { Loader2 } from "lucide-react";
 
 interface ApiDriver {
@@ -32,22 +29,32 @@ interface ApiTeam {
   bolidImgUrl?: string;
 }
 
+type DriversApiResponse = {
+  drivers: ApiDriver[];
+};
+
+type TeamsApiResponse = {
+  teams: ApiTeam[];
+};
+
 export default function Teams() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
 
-  const { data: driversApi, isLoading: isLoadingDrivers } =
-    useGetDriversQuery(undefined, {
-      refetchOnMountOrArgChange: false,
-    });
-
-  const { data: teamsApi, isLoading: isLoadingTeams } = useGetTeamsQuery(
+  const { data: driversApi, loading: isLoadingDrivers } = useGetDriversQuery(
     undefined,
     {
       refetchOnMountOrArgChange: false,
     }
-  );
+  ) as { data?: DriversApiResponse; loading?: boolean };
+
+  const { data: teamsApi, loading: isLoadingTeams } = useGetTeamsQuery(
+    undefined,
+    {
+      refetchOnMountOrArgChange: false,
+    }
+  ) as { data?: TeamsApiResponse; loading?: boolean };
 
   const drivers = useAppSelector(selectAllDrivers);
   const teams = useAppSelector(selectAllTeams);
@@ -120,10 +127,9 @@ export default function Teams() {
                         <p className="text-sm">No drivers found</p>
                       ) : (
                         teamDrivers.map((d) => {
-                          const matchedDriverApi =
-                            driversApi?.drivers?.find(
-                              (da: ApiDriver) => da.driverId === d.driverId
-                            );
+                          const matchedDriverApi = driversApi?.drivers?.find(
+                            (da: ApiDriver) => da.driverId === d.driverId
+                          );
 
                           return (
                             <Link
@@ -171,7 +177,8 @@ export default function Teams() {
                     <div className="w-14 h-14 rounded-full absolute right-5 top-5">
                       <Image
                         src={
-                          favTeam?.teamImgUrl ?? favTeamApi?.teamImgUrl ??
+                          favTeam?.teamImgUrl ??
+                          favTeamApi?.teamImgUrl ??
                           "/placeholder.png"
                         }
                         alt={displayTeamId}
@@ -184,7 +191,8 @@ export default function Teams() {
                     <div className="rounded-lg absolute bottom-4 left-5 w-130 overflow-hidden">
                       <Image
                         src={
-                          favTeam?.bolidImgUrl ?? favTeamApi?.bolidImgUrl ??
+                          favTeam?.bolidImgUrl ??
+                          favTeamApi?.bolidImgUrl ??
                           "/placeholder.png"
                         }
                         alt={displayTeamId}
@@ -197,7 +205,9 @@ export default function Teams() {
                 );
               })
             ) : (
-              <p className="text-sm">You don&apos;t have a favorite team set.</p>
+              <p className="text-sm">
+                You don&apos;t have a favorite team set.
+              </p>
             )}
           </div>
         </>

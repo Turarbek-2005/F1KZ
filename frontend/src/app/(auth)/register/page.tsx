@@ -80,7 +80,6 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      // we don't need the returned value here — just await the thunk
       await dispatch(
         registerUser({
           username: username.trim(),

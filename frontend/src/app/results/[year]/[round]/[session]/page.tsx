@@ -39,6 +39,10 @@ interface RaceEntry {
   raceId?: string;
 }
 
+interface RaceRoundResponse {
+  race: RaceEntry[];
+}
+
 export default function ResultsYearRoundSessionPage() {
   const params = useParams();
 
@@ -59,8 +63,12 @@ export default function ResultsYearRoundSessionPage() {
   const { data: races, error, isLoading } = useGetRacesYearQuery(year!);
   const queryArgs = year && round ? { year, round } : skipToken;
 
-  const { data: race, isLoading: isLoadingRace } =
-    useGetRacesYearRoundQuery(queryArgs);
+  const { data: race, isLoading: isLoadingRace } = useGetRacesYearRoundQuery(
+    queryArgs
+  ) as {
+    data?: RaceRoundResponse;
+    isLoading: boolean;
+  };
 
   const racesData = (races ?? undefined) as { races: RaceEntry[] } | undefined;
 

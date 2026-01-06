@@ -3,18 +3,14 @@ import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-// import { skipToken } from "@reduxjs/toolkit/query/react";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
 import {
   fetchDrivers,
   selectAllDrivers,
-  // selectDriverById,
 } from "@/entities/f1/model/driversSlice";
 import {
   useGetDriversQuery,
   useGetTeamsQuery,
-  // useGetDriverByIdQuery,
-  // useGetTeamByIdQuery,
 } from "@/entities/f1api/f1api";
 import { cn } from "@/shared/lib/utils";
 import { grapeNuts } from "../fonts";
@@ -35,41 +31,30 @@ interface ApiTeam {
   teamName?: string;
 }
 
+type DriversApiResponse = {
+  drivers: ApiDriver[];
+};
+
+type TeamsApiResponse = {
+  teams: ApiTeam[];
+};
+
 export default function Drivers() {
   const user = useAppSelector((state) => state.auth.user);
 
-  const {
-    data: driversApi = { drivers: [] as ApiDriver[] },
-    isLoading: driversLoading = false,
-  } = useGetDriversQuery(undefined, {
+  const { data: driversApi = { drivers: [] }, loading: driversLoading } = useGetDriversQuery(undefined, {
     refetchOnMountOrArgChange: false,
-  });
+  }) as { data?: DriversApiResponse, loading?: boolean };
 
-  const { data: teamsApi = { teams: [] as ApiTeam[] } } = useGetTeamsQuery(
+  const { data: teamsApi = { teams: [] }, loading: teamsLoading } = useGetTeamsQuery(
     undefined,
     {
       refetchOnMountOrArgChange: false,
     }
-  );
-
-  // const driverArg = user?.favoriteDriversIds?.[0] ?? skipToken;
-  // const teamArg = user?.favoriteTeamsIds?.[0] ?? skipToken;
-
-  // const { data: driverByIdApi } = useGetDriverByIdQuery(driverArg, {
-  //   refetchOnMountOrArgChange: false,
-  // });
-  // const { data: teamByIdApi } = useGetTeamByIdQuery(teamArg, {
-  //   refetchOnMountOrArgChange: false,
-  // });
+  ) as { data?: TeamsApiResponse, loading?: boolean };
 
   const dispatch = useAppDispatch();
   const drivers = useAppSelector(selectAllDrivers);
-
-  // const favoriteDriver = useAppSelector((state) =>
-  //   user?.favoriteDriversIds && user.favoriteDriversIds.length
-  //     ? selectDriverById(state, user.favoriteDriversIds[0])
-  //     : undefined
-  // );
 
   const sortedDrivers = [...drivers].sort((a, b) => a.id - b.id);
 
@@ -77,7 +62,7 @@ export default function Drivers() {
     dispatch(fetchDrivers());
   }, [dispatch]);
 
-  if (driversLoading) {
+  if (driversLoading || teamsLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />
