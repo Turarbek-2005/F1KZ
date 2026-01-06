@@ -51,4 +51,6 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 //   server.close(() => process.exit(0));
 // });
 
-export default app;
+export default function handler(req: Request, res: Response) {
+  app(req, res);
+}
