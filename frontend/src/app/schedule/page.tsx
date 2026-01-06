@@ -53,6 +53,7 @@ export type RaceCircuit = {
 };
 
 export type Race = {
+  race:string;
   raceId: string;
   raceName: string;
   round: number;
@@ -71,7 +72,7 @@ export default function Schedule() {
 
   const dispatch = useAppDispatch();
   const drivers = useAppSelector(selectAllDrivers);
-  const { data: races, isLoading } = useGetRacesYearQuery(year);
+  const { data: races, isLoading } = useGetRacesYearQuery(year) as { data?: RaceApiResponse; isLoading: boolean };
   const { data: racesLast, isLoading: isLoadingLast } =
     useGetRacesLastQuery() as { data?: RaceApiResponse; isLoading: boolean };
   const { data: racesNext, isLoading: isLoadingNext } =
@@ -116,8 +117,7 @@ export default function Schedule() {
   // small helpers to avoid repeating optional chains in JSX
   const lastRaceFirst = racesLast?.race?.[0];
   const nextRaceFirst = racesNext?.race?.[0];
-  const racesList =
-    (races as any)?.races ?? (races as Race[] | undefined) ?? undefined;
+  const racesList: Race[] = races?.race ?? [];
 
   useEffect(() => {
     console.log("Races:", races);
