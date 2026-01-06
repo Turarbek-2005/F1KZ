@@ -17,7 +17,8 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://f1-kz-frontend.vercel.app"],
+    // origin: ["http://localhost:3000", "https://f1-kz-frontend.vercel.app"],
+    origin: true,
     credentials: true,
   })
 );
@@ -50,3 +51,5 @@ process.on("SIGINT", async () => {
   await prisma.$disconnect();
   server.close(() => process.exit(0));
 });
+
+export default app;
