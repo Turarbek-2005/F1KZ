@@ -4,8 +4,12 @@ import * as jwt from "jsonwebtoken";
 import { prisma } from "../prisma";
 import { RegisterDto } from "../dto/auth.dto";
 
-const JWT_SECRET = process.env.JWT_SECRET || "secret";
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
+const JWT_SECRET: jwt.Secret = process.env.JWT_SECRET ?? "secret";
+const defaultExpires = "7d";
+const JWT_EXPIRES_IN: jwt.SignOptions["expiresIn"] = process.env.JWT_EXPIRES_IN && process.env.JWT_EXPIRES_IN.match(/^\d+[smhdy]$/)
+  ? (process.env.JWT_EXPIRES_IN as `${number}${"s" | "m" | "h" | "d" | "y"}`)
+  : defaultExpires;
+
 
 export class AuthService {
   async register(data: RegisterDto) {
@@ -24,7 +28,7 @@ export class AuthService {
         favoriteDriversIds: data.favoriteDriversIds,
         favoriteTeamsIds: data.favoriteTeamsIds,
       },
-      select: { id: true, email: true, username: true,favoriteDriversIds:true, favoriteTeamsIds:true, createdAt: true, updatedAt: true },
+      select: { id: true, email: true, username: true, favoriteDriversIds: true, favoriteTeamsIds: true, createdAt: true, updatedAt: true },
     });
 
     return user;
@@ -43,14 +47,22 @@ export class AuthService {
     if (!isValid) throw { status: 401, message: "Invalid credentials" };
 
     const payload = { userId: user.id, username: user.username };
+
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
-    return { token, user: { id: user.id, username: user.username, email: user.email, favoriteDriversIds:user.favoriteDriversIds,  favoriteTeamsIds:user.favoriteTeamsIds } };
+    return {
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        favoriteDriversIds: user.favoriteDriversIds,
+        favoriteTeamsIds: user.favoriteTeamsIds,
+      },
+    };
   }
 
   verifyToken(token: string) {
     return jwt.verify(token, JWT_SECRET) as { userId: number; username: string; iat?: number; exp?: number };
   }
-
-  
 }

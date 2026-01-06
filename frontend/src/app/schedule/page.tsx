@@ -53,7 +53,7 @@ export type RaceCircuit = {
 };
 
 export type Race = {
-  race:string;
+  race: string;
   raceId: string;
   raceName: string;
   round: number;
@@ -68,11 +68,14 @@ export interface RaceApiResponse {
 }
 
 export default function Schedule() {
-  const [year, setYear] = useState(new Date().getFullYear().toString());
+  const [year, setYear] = useState("2025");
 
   const dispatch = useAppDispatch();
   const drivers = useAppSelector(selectAllDrivers);
-  const { data: races, isLoading } = useGetRacesYearQuery(year) as { data?: RaceApiResponse; isLoading: boolean };
+  const { data: races, isLoading } = useGetRacesYearQuery(year) as {
+    data?: { races: Race[] };
+    isLoading: boolean;
+  };
   const { data: racesLast, isLoading: isLoadingLast } =
     useGetRacesLastQuery() as { data?: RaceApiResponse; isLoading: boolean };
   const { data: racesNext, isLoading: isLoadingNext } =
@@ -114,10 +117,9 @@ export default function Schedule() {
     return `${startDay} – ${endDay} ${month}`;
   }
 
-  // small helpers to avoid repeating optional chains in JSX
   const lastRaceFirst = racesLast?.race?.[0];
   const nextRaceFirst = racesNext?.race?.[0];
-  const racesList: Race[] = races?.race ?? [];
+  const racesList = races?.races;
 
   useEffect(() => {
     console.log("Races:", races);
@@ -225,77 +227,79 @@ export default function Schedule() {
         </Link>
       </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {Array.isArray(racesList)
-          ? racesList.map((race: Race) => {
-              const winnerDriver =
-                race?.winner &&
-                drivers?.find((d) => d.driverId === race.winner?.driverId);
+        {Array.isArray(racesList) ? (
+          racesList.map((race: Race) => {
+            const winnerDriver =
+              race?.winner &&
+              drivers?.find((d) => d.driverId === race.winner?.driverId);
 
-              const teamColor = safeTeamColor(race?.teamWinner?.teamId);
+            const teamColor = safeTeamColor(race?.teamWinner?.teamId);
 
-              return (
-                <Link
-                  key={race?.raceId}
-                  href={`/schedule/${year}/${race.round}`}
-                  className="border rounded p-3  flex flex-col"
-                >
-                  <div className="flex justify-between uppercase text-[10px] items-center">
-                    <p>Round {race?.round}</p>
-                    {race?.winner ? (
-                      <p>
-                        {formatRaceDates(
-                          race?.schedule.fp1?.date,
-                          race?.schedule.race?.date
-                        )}
-                      </p>
-                    ) : (
-                      ""
-                    )}
-                  </div>
-                  <p className="font-bold text-xl">
-                    {race?.circuit?.country}{" "}
-                    {race?.circuit?.city === race?.circuit?.country
-                      ? ""
-                      : race?.circuit?.city}
-                  </p>
-                  <p className="text-[12px] mb-10">{race?.raceName}</p>
-                  <div className="flex items-center gap-2">
-                    {winnerDriver ? (
-                      <div className="flex items-center gap-2">
-                        Winner:
-                        <div
-                          className="w-8 h-8 overflow-hidden rounded-full"
-                          style={{
-                            background: teamColor,
-                          }}
-                        >
-                          <Image
-                            src={winnerDriver.imgUrl}
-                            alt={winnerDriver.driverId}
-                            width={32}
-                            height={32}
-                            className="object-cover object-top w-full h-full"
-                          />
-                        </div>
-                        {race.winner?.name} {race.winner?.surname}
-                      </div>
-                    ) : (
-                      ""
-                    )}
-                  </div>
-
-                  {!race?.winner ? (
-                    <p className="mt-auto uppercase text-lg font-bold">
+            return (
+              <Link
+                key={race?.raceId}
+                href={`/schedule/${year}/${race.round}`}
+                className="border rounded p-3  flex flex-col"
+              >
+                <div className="flex justify-between uppercase text-[10px] items-center">
+                  <p>Round {race?.round}</p>
+                  {race?.winner ? (
+                    <p>
                       {formatRaceDates(
                         race?.schedule.fp1?.date,
                         race?.schedule.race?.date
                       )}
                     </p>
-                  ) : null}
-                </Link>
-              );
-            })
-          : null}
+                  ) : (
+                    ""
+                  )}
+                </div>
+                <p className="font-bold text-xl">
+                  {race?.circuit?.country}{" "}
+                  {race?.circuit?.city === race?.circuit?.country
+                    ? ""
+                    : race?.circuit?.city}
+                </p>
+                <p className="text-[12px] mb-10">{race?.raceName}</p>
+                <div className="flex items-center gap-2">
+                  {winnerDriver ? (
+                    <div className="flex items-center gap-2">
+                      Winner:
+                      <div
+                        className="w-8 h-8 overflow-hidden rounded-full"
+                        style={{
+                          background: teamColor,
+                        }}
+                      >
+                        <Image
+                          src={winnerDriver.imgUrl}
+                          alt={winnerDriver.driverId}
+                          width={32}
+                          height={32}
+                          className="object-cover object-top w-full h-full"
+                        />
+                      </div>
+                      {race.winner?.name} {race.winner?.surname}
+                    </div>
+                  ) : (
+                    ""
+                  )}
+                </div>
+
+                {!race?.winner ? (
+                  <p className="mt-auto uppercase text-lg font-bold">
+                    {formatRaceDates(
+                      race?.schedule.fp1?.date,
+                      race?.schedule.race?.date
+                    )}
+                  </p>
+                ) : null}
+              </Link>
+            );
+          })
+        ) : (
+          <div>No races available</div>
+        )}
       </div>
     </div>
   );
