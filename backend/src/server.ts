@@ -17,8 +17,7 @@ const app = express();
 
 app.use(
   cors({
-    // origin: ["http://localhost:3000", "https://f1-kz-frontend.vercel.app"],
-    origin: true,
+    origin: ["http://localhost:3000", "https://f1-kz-frontend.vercel.app"],
     credentials: true,
   })
 );
@@ -40,16 +39,16 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).send({ message: "Something went wrong!" });
 });
 
-const PORT = process.env.PORT;
+// const PORT = process.env.PORT;
 
-const server = app.listen(PORT, () => {
-  logger.info(`Server is running on port ${PORT}`);
-});
+// const server = app.listen(PORT, () => {
+//   logger.info(`Server is running on port ${PORT}`);
+// });
 
-process.on("SIGINT", async () => {
-  logger.info("Shutting down...");
-  await prisma.$disconnect();
-  server.close(() => process.exit(0));
-});
+// process.on("SIGINT", async () => {
+//   logger.info("Shutting down...");
+//   await prisma.$disconnect();
+//   server.close(() => process.exit(0));
+// });
 
 export default app;
