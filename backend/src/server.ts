@@ -4,7 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import compression from "compression";
 import { authMiddleware } from "./middlewares/auth.middleware";
-import { prisma } from "./prisma";
+// import { prisma } from "./prisma";
 import { logger } from "./utils/log";
 import f1apiRouter from "./routes/f1api.routes";
 import authRouter from "./routes/auth.routes";

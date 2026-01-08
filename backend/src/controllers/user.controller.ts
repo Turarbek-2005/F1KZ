@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
-import { prisma } from "@/prisma";
+import { prisma } from "../prisma";
 import { logger } from "../utils/log";
 
 export async function getMe(req: Request, res: Response) {
