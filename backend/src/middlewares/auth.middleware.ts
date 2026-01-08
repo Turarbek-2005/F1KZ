@@ -1,4 +1,4 @@
-import { logger } from "@/utils/log";
+import { logger } from "../utils/log";
 import "dotenv/config";
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
