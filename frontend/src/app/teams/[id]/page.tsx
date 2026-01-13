@@ -122,7 +122,7 @@ export default function Team() {
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="container mx-auto mb-2"
+        className="container px-4 sm:px-0 mx-auto mb-2"
       >
         <Link href="/teams" className="hover:underline flex gap-2">
           <MoveLeft className="w-4" /> Back to Teams
@@ -163,7 +163,7 @@ export default function Team() {
           />
         </div>
       </div>
-      <div className="container mx-auto">
+      <div className="container px-4 sm:px-0 mx-auto">
         <h3 className="text-4xl font-black uppercase mb-5">Drivers</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {teamDrivers?.map((driver: Driver) => {

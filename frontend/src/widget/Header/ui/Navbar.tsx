@@ -16,7 +16,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="flex gap-6">
+    <nav className=" gap-6 hidden md:flex">
       {links.map((link) => (
         <Link
           key={link.href}

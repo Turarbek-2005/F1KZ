@@ -143,7 +143,7 @@ export default function Driver() {
 
   if (!driverId) {
     return (
-      <div className="container mx-auto">
+      <div className="container px-4 sm:px-0 mx-auto">
         <p>Driver ID is missing in URL</p>
       </div>
     );
@@ -159,7 +159,7 @@ export default function Driver() {
 
   if (driverApiError || topDriverError) {
     return (
-      <div className="container mx-auto">
+      <div className="container px-4 sm:px-0 mx-auto">
         <p>Error loading driver data.</p>
       </div>
     );
@@ -171,7 +171,7 @@ export default function Driver() {
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="container mx-auto mb-2"
+        className="container px-4 sm:px-0 mx-auto mb-2"
       >
         <Link href="/drivers" className="hover:underline flex gap-2">
           <MoveLeft className="w-4" /> Back to Drivers
@@ -197,7 +197,7 @@ export default function Driver() {
           </div>
           <div className="flex items-center">
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full border-2 border-white">
+              <div className="hidden sm:block w-5 h-5 rounded-full border-2 border-white">
                 <Image
                   src={driver?.nationalityImgUrl ?? ""}
                   alt={driver?.nationality ?? ""}
@@ -208,7 +208,7 @@ export default function Driver() {
               </div>
               <p>{driver?.nationality}</p>
             </div>
-            <span className="mx-3">|</span>
+            <span className="mx-1 sm:mx-3">|</span>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6">
                 <Image
@@ -221,7 +221,7 @@ export default function Driver() {
               </div>
               <p>{driverApi?.team?.teamName}</p>
             </div>
-            <span className="mx-3">|</span>
+            <span className="mx-1 sm:mx-3">|</span>
             <p>{driverApi?.driver?.number}</p>
           </div>
         </div>
@@ -238,7 +238,7 @@ export default function Driver() {
         </div>
       </div>
 
-      <section className="container mx-auto mt-8">
+      <section className="container px-4 sm:px-0 mx-auto mt-8">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

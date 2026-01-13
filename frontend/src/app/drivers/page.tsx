@@ -71,7 +71,7 @@ export default function Drivers() {
   }
 
   return (
-    <div className="container mx-auto pb-6">
+    <div className="container px-4 sm:px-0 mx-auto pb-6">
       <motion.h2
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}

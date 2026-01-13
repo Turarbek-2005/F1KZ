@@ -82,14 +82,14 @@ export default function ResultsYearRoundSessionPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto">
+      <div className="container px-4 sm:px-0 mx-auto">
         <p>Error loading races.</p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto pb-6">
+    <div className="container px-4 sm:px-0 mx-auto pb-6">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}

@@ -123,7 +123,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="container px-4 sm:px-0 mx-auto">
       <h1 className="text-2xl font-semibold mb-4">Settings</h1>
       <form onSubmit={handleSave} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1">

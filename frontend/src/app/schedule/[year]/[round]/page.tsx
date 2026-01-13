@@ -19,7 +19,8 @@ import {
   CardTitle,
 } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
-import { Calendar, Clock, Loader2 } from "lucide-react";
+import { Calendar, Clock, Loader2, MoveLeft } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface Session {
   date?: string;
@@ -130,7 +131,17 @@ export default function ScheduleYearRoundPage() {
   }
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container px-4 sm:px-0 mx-auto pt-5">
+      <motion.div
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="mb-5"
+      >
+        <Link href="/schedule" className="hover:underline flex gap-2">
+          <MoveLeft className="w-4" /> Back to Schedule
+        </Link>
+      </motion.div>
       <Card>
         <CardHeader>
           <CardTitle className="text-3xl font-bold mb-2">
