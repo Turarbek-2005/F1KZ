@@ -104,14 +104,14 @@ export function Header() {
       </button>
     </SheetTrigger>
 
-    <SheetContent className="w-screen h-screen p-10 flex flex-col">
+    <SheetContent className="w-screen h-screen p-10 pb-20 flex flex-col">
       <SheetTitle className="sr-only">Navigation</SheetTitle>
 
       <div className="flex items-center justify-between">
         <span className="text-lg font-semibold">Menu</span>
       </div>
 
-      <nav className="mt-12 flex flex-col gap-6 text-3xl font-semibold">
+      <nav className="mt-12 flex flex-col gap-6 text-3xl font-semibold mb-auto">
         {links.map((link) => (
           <SheetClose asChild key={link.href}>
             <Link
@@ -124,7 +124,7 @@ export function Header() {
         ))}
       </nav>
 
-      <div className="flex-1" />
+      {/* <div className="flex-1" /> */}
 
       <div className="flex flex-col gap-4">
         <Button

@@ -295,7 +295,7 @@ export default function ScheduleYearRoundPage() {
                   </TableCell>
                   <TableCell>
                     <Button variant="outline" asChild>
-                      <Link href={`/results/${year}/${round}/qualy`}>
+                      <Link href={`/results/${year}/${round}/qualyfying`}>
                         Results
                       </Link>
                     </Button>

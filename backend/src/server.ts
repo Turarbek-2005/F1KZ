@@ -4,12 +4,13 @@ import cors from "cors";
 import dotenv from "dotenv";
 import compression from "compression";
 import { authMiddleware } from "./middlewares/auth.middleware";
-// import { prisma } from "./prisma";
 import { logger } from "./utils/log";
 import f1apiRouter from "./routes/f1api.routes";
 import authRouter from "./routes/auth.routes";
 import userRouter from "./routes/user.routes";
 import f1Router from "./routes/f1.routes";
+import aiRouter from "./routes/ai.routes";
+import { prisma } from "./prisma";
 
 dotenv.config();
 
@@ -17,7 +18,8 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://f1-kz-frontend.vercel.app"],
+    // origin: ["http://localhost:3000", "https://f1-kz-frontend.vercel.app"],
+    origin: true,
     credentials: true,
   })
 );
@@ -30,6 +32,7 @@ app.use("/api/f1api",  f1apiRouter);
 app.use("/api/f1", f1Router);
 app.use("/api/auth", authRouter);
 app.use("/api/user", authMiddleware, userRouter);
+app.use("/api/ai", aiRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Not found" });
