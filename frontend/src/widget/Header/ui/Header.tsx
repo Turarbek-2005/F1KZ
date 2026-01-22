@@ -23,6 +23,7 @@ import {
 } from "@/shared/ui/sheet";
 export function Header() {
   const links = [
+    { href: "/news", label: "News" },
     { href: "/schedule", label: "Schedule" },
     { href: "/results/2025/1/race", label: "Results" },
     { href: "/standings", label: "Standings" },
