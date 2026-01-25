@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Card, CardHeader, CardTitle } from "@/shared/ui/card";
 export default function Home() {
   const links = [
+    { name: "News", href: "/news" },
     { name: "Schedule", href: "/schedule" },
     { name: "Results", href: "/results/2025/1/race" },
     { name: "Standings", href: "/standings" },
@@ -35,10 +36,10 @@ export default function Home() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", stiffness: 300 }}
-            className={i === links.length - 1 ? "sm:col-span-2 mx-auto w-full sm:w-1/2" : ""}
+            // className={i === links.length - 1 ? "sm:col-span-2 mx-auto w-full sm:w-1/2" : ""}
           >
             <Link href={link.href}>
-              <Card className="bg-black/70 hover:bg-red-600 border border-gray-800 hover:border-red-400 transition-all duration-300 text-white backdrop-blur-sm shadow-xl">
+              <Card className="bg-black/70 h-16 sm:h-20 p-4 sm:p-6 hover:bg-red-600 border border-gray-800 hover:border-red-400 transition-all duration-300 text-white backdrop-blur-sm shadow-xl">
                 <CardHeader>
                   <CardTitle className="text-center text-xl font-semibold">
                     {link.name}
