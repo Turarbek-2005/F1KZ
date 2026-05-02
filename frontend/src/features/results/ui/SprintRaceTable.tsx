@@ -12,43 +12,44 @@ import {
 import { Card, CardContent } from "@/shared/ui/card";
 import { useGetYearRoundSprintRaceQuery } from "@/entities/f1api/f1api";
 
-interface DriverResult {
+type DriverResult = {
   driverId: string;
   name: string;
   surname: string;
-}
+};
 
-interface TeamResult {
+type TeamResult = {
   teamId: string;
   teamName: string;
-}
+};
 
-interface SprintRaceResult {
+type SprintRaceResult = {
   sprintRaceId: string;
   driver: DriverResult;
   team: TeamResult;
   position: number;
   points: number;
-}
+};
 
-interface SprintRaceData {
+type SprintRaceData = {
   sprintRaceResults: SprintRaceResult[];
-}
+};
 
-interface SprintRaceApiResponse {
+type SprintRaceApiResponse = {
   races?: SprintRaceData;
-}
+};
 
 type Props = { year?: string; round?: string | number };
 
 export default function SprintRaceTable({ year, round }: Props) {
   const args = year && round ? { year, round } : skipToken;
-  const { data, isLoading } = useGetYearRoundSprintRaceQuery(args) as {
+  const { data, isLoading, isFetching } = useGetYearRoundSprintRaceQuery(args) as {
     data?: SprintRaceApiResponse;
     isLoading: boolean;
+    isFetching: boolean;
   };
   
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />

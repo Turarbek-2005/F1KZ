@@ -16,6 +16,13 @@ import {
   useGetDriverByIdQuery,
   useGetStandingsDriversQuery,
 } from "@/entities/f1api/f1api";
+import type { RootState } from "@/shared/store";
+import type {
+  DriverByIdResponse as DriverApiData,
+  DriverResultEntry as ResultEntry,
+  DriverStanding,
+  DriversStandingsResponse,
+} from "@/entities/f1api/f1api.interfaces";
 import {
   Table,
   TableBody,
@@ -27,46 +34,6 @@ import {
 import { cn } from "@/shared/lib/utils";
 import { grapeNuts } from "@/app/fonts";
 
-interface DriverStanding {
-  driverId: string;
-  position?: number;
-  points?: number;
-  team?: {
-    teamName?: string;
-  };
-}
-
-interface DriverApiData {
-  season?: string;
-  driver?: {
-    name?: string;
-    surname?: string;
-    number?: string | number;
-    birthday?: string;
-  };
-  team?: {
-    teamName?: string;
-  };
-  results?: ResultEntry[];
-}
-
-interface ResultEntry {
-  race?: {
-    round?: string | number;
-    name?: string;
-    date?: string;
-    raceId?: string;
-  };
-  result?: {
-    gridPosition?: number | string;
-    finishingPosition?: number | string;
-    pointsObtained?: number;
-  };
-  sprintResult?: {
-    finishingPosition?: number | string;
-    pointsObtained?: number;
-  };
-}
 
 export default function Driver() {
   const params = useParams();
@@ -83,6 +50,8 @@ export default function Driver() {
   const team = useAppSelector((state) =>
     teamIdFromDriver ? selectTeamById(state, teamIdFromDriver) : undefined
   );
+  const driversStatus = useAppSelector((state: RootState) => state.drivers.status);
+  const teamsStatus = useAppSelector((state: RootState) => state.teams.status);
 
   const {
     data: rawDriverApi,
@@ -101,7 +70,7 @@ export default function Driver() {
   const driverApi = (rawDriverApi ?? undefined) as DriverApiData | undefined;
   const driversStandings = (rawStandingsData ?? {
     drivers_championship: [],
-  }) as { drivers_championship: DriverStanding[] };
+  }) as DriversStandingsResponse;
 
   const topDriverStat = driversStandings.drivers_championship?.find(
     (d: DriverStanding) => d.position === 1
@@ -137,9 +106,13 @@ export default function Driver() {
   });
 
   useEffect(() => {
-    dispatch(fetchDrivers());
-    dispatch(fetchTeams());
-  }, [dispatch]);
+    if (driversStatus === "idle") {
+      dispatch(fetchDrivers());
+    }
+    if (teamsStatus === "idle") {
+      dispatch(fetchTeams());
+    }
+  }, [dispatch, driversStatus, teamsStatus]);
 
   if (!driverId) {
     return (
@@ -149,7 +122,13 @@ export default function Driver() {
     );
   }
 
-  if (driverApiLoading || topDriverLoading) {
+  const isStoreLoading =
+    driversStatus === "idle" ||
+    driversStatus === "loading" ||
+    teamsStatus === "idle" ||
+    teamsStatus === "loading";
+
+  if (driverApiLoading || topDriverLoading || isStoreLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />

@@ -45,14 +45,15 @@ type Props = {
 export default function Fp1Table({ year, round }: Props) {
   const args = year && round ? { year, round } : skipToken;
 
-  const { data, isLoading } = useGetYearRoundFp1Query(
+  const { data, isLoading, isFetching } = useGetYearRoundFp1Query(
     args
   ) as {
     data?: Fp1Response;
     isLoading: boolean;
+    isFetching: boolean;
   };
 
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />

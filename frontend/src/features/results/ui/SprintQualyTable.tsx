@@ -12,18 +12,18 @@ import {
 import { Card, CardContent } from "@/shared/ui/card";
 import { useGetYearRoundSprintQualyQuery } from "@/entities/f1api/f1api";
 
-interface DriverResult {
+type DriverResult = {
   driverId: string;
   name: string;
   surname: string;
-}
+};
 
-interface TeamResult {
+type TeamResult = {
   teamId: string;
   teamName: string;
-}
+};
 
-interface SprintQualyResult {
+type SprintQualyResult = {
   sprintQualyId: string;
   driver: DriverResult;
   team: TeamResult;
@@ -31,26 +31,27 @@ interface SprintQualyResult {
   sq1?: string;
   sq2?: string;
   sq3?: string;
-}
+};
 
-interface SprintQualyData {
+type SprintQualyData = {
   sprintQualyResults: SprintQualyResult[];
-}
+};
 
-interface SprintQualyApiResponse {
+type SprintQualyApiResponse = {
   races?: SprintQualyData;
-}
+};
 
 type Props = { year?: string; round?: string | number };
 
 export default function SprintQualyTable({ year, round }: Props) {
   const args = year && round ? { year, round } : skipToken;
-  const { data, isLoading } = useGetYearRoundSprintQualyQuery(args) as {
+  const { data, isLoading, isFetching } = useGetYearRoundSprintQualyQuery(args) as {
     data?: SprintQualyApiResponse;
     isLoading: boolean;
+    isFetching: boolean;
   };
 
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />

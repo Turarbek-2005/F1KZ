@@ -12,18 +12,18 @@ import {
 import { Card, CardContent } from "@/shared/ui/card";
 import { useGetYearRoundQualyQuery } from "@/entities/f1api/f1api";
 
-interface DriverResult {
+type DriverResult = {
   driverId: string;
   name: string;
   surname: string;
-}
+};
 
-interface TeamResult {
+type TeamResult = {
   teamId: string;
   teamName: string;
-}
+};
 
-interface QualyResult {
+type QualyResult = {
   classificationId: string;
   gridPosition: number;
   driver: DriverResult;
@@ -31,26 +31,27 @@ interface QualyResult {
   q1?: string;
   q2?: string;
   q3?: string;
-}
+};
 
-interface RaceData {
+type RaceData = {
   qualyResults: QualyResult[];
-}
+};
 
-interface QualyApiResponse {
+type QualyApiResponse = {
   races?: RaceData;
-}
+};
 
 type Props = { year?: string; round?: string | number };
 
 export default function QualyTable({ year, round }: Props) {
   const args = year && round ? { year, round } : skipToken;
-  const { data, isLoading } = useGetYearRoundQualyQuery(args) as {
+  const { data, isLoading, isFetching } = useGetYearRoundQualyQuery(args) as {
     data?: QualyApiResponse;
     isLoading: boolean;
+    isFetching: boolean;
   };
   
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />

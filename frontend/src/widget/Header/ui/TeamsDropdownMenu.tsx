@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
 import { fetchTeams, selectAllTeams } from "@/entities/f1/model/teamsSlice";
+import type { RootState } from "@/shared/store";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,35 +13,44 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { useGetTeamsQuery } from "@/entities/f1api/f1api";
+import type { ApiTeam as TeamApi, TeamsResponse } from "@/entities/f1api/f1api.interfaces";
 import { cn } from "@/shared/lib/utils";
-
-// Тип API-данных команд
-type TeamApi = {
-  teamId: string;
-  teamName: string;
-  teamImgUrl?: string;
-  bolidImgUrl?: string;
-};
-
-type TeamsApiResponse = {
-  teams: TeamApi[];
-};
 
 export default function TeamsDropdownMenu() {
   const pathname = usePathname();
 
-  const { data: teamsApiData = { teams: [] } } = useGetTeamsQuery(
+  const { data: teamsApiData = { teams: [] }, isLoading: isTeamsApiLoading } = useGetTeamsQuery(
     undefined,
     { refetchOnMountOrArgChange: false }
-  ) as { data?: TeamsApiResponse };
+  ) as { data?: TeamsResponse; isLoading: boolean };
 
   const dispatch = useAppDispatch();
   const teams = useAppSelector(selectAllTeams);
+  const teamsStatus = useAppSelector((state: RootState) => state.teams.status);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchTeams());
-  }, [dispatch]);
+    if (teamsStatus === "idle") {
+      dispatch(fetchTeams());
+    }
+  }, [dispatch, teamsStatus]);
+
+  const isStoreLoading = teamsStatus === "idle" || teamsStatus === "loading";
+  const isDataLoading = isStoreLoading || isTeamsApiLoading;
+
+  if (isDataLoading) {
+    return (
+      <Link
+        className={cn(
+          "transition hover:text-red-500",
+          pathname === "/teams" && "text-red-500"
+        )}
+        href="/teams"
+      >
+        Teams
+      </Link>
+    );
+  }
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>

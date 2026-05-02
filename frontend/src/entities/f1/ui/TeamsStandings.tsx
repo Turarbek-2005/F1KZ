@@ -7,7 +7,12 @@ import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { fetchTeams, selectAllTeams } from "@/entities/f1/model/teamsSlice";
 import { useGetStandingsTeamsQuery } from "@/entities/f1api/f1api";
+import type {
+  TeamStanding,
+  TeamsStandingsResponse as TeamsStandingsApiResponse,
+} from "@/entities/f1api/f1api.interfaces";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
+import type { RootState } from "@/shared/store";
 
 import {
   Table,
@@ -19,19 +24,6 @@ import {
 } from "@/shared/ui/table";
 
 import type { Team } from "@/entities/f1/types/f1.types";
-
-type TeamStanding = {
-  teamId: string;
-  position?: number;
-  points?: number;
-  team: {
-    teamName: string;
-  };
-};
-
-type TeamsStandingsApiResponse = {
-  constructors_championship: TeamStanding[];
-};
 
 /* =======================
    Component
@@ -45,10 +37,13 @@ export default function TeamsStandings() {
 
   const dispatch = useAppDispatch();
   const teams = useAppSelector(selectAllTeams);
+  const teamsStatus = useAppSelector((state: RootState) => state.teams.status);
 
   useEffect(() => {
-    dispatch(fetchTeams());
-  }, [dispatch]);
+    if (teamsStatus === "idle") {
+      dispatch(fetchTeams());
+    }
+  }, [dispatch, teamsStatus]);
 
   const sortedTeams = teams
     .map((team: Team) => {
@@ -76,7 +71,9 @@ export default function TeamsStandings() {
     })
     .sort((a, b) => a.position - b.position);
 
-  if (isLoading) {
+  const isStoreLoading = teamsStatus === "idle" || teamsStatus === "loading";
+
+  if (isLoading || isStoreLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />
@@ -125,7 +122,7 @@ export default function TeamsStandings() {
                   </Link>
 
                   <span className="font-medium">
-                    {stat.team.teamName}
+                    {stat.team?.teamName ?? team.teamId}
                   </span>
                 </div>
               </TableCell>

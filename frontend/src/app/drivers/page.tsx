@@ -12,57 +12,47 @@ import {
   useGetDriversQuery,
   useGetTeamsQuery,
 } from "@/entities/f1api/f1api";
+import type { RootState } from "@/shared/store";
+import type {
+  ApiDriver,
+  ApiTeam,
+  DriversResponse,
+  TeamsResponse,
+} from "@/entities/f1api/f1api.interfaces";
 import { cn } from "@/shared/lib/utils";
 import { grapeNuts } from "../fonts";
 import { Loader2 } from "lucide-react";
-
-interface ApiDriver {
-  driverId: string;
-  name?: string;
-  surname?: string;
-  number?: string | number;
-  imgUrl?: string;
-  teamId?: string;
-  nationalityImgUrl?: string;
-}
-
-interface ApiTeam {
-  teamId: string;
-  teamName?: string;
-}
-
-type DriversApiResponse = {
-  drivers: ApiDriver[];
-};
-
-type TeamsApiResponse = {
-  teams: ApiTeam[];
-};
 
 export default function Drivers() {
   const user = useAppSelector((state) => state.auth.user);
 
   const { data: driversApi = { drivers: [] }, loading: driversLoading } = useGetDriversQuery(undefined, {
     refetchOnMountOrArgChange: false,
-  }) as { data?: DriversApiResponse, loading?: boolean };
+  }) as { data?: DriversResponse, loading?: boolean };
 
   const { data: teamsApi = { teams: [] }, loading: teamsLoading } = useGetTeamsQuery(
     undefined,
     {
       refetchOnMountOrArgChange: false,
     }
-  ) as { data?: TeamsApiResponse, loading?: boolean };
+  ) as { data?: TeamsResponse, loading?: boolean };
 
   const dispatch = useAppDispatch();
   const drivers = useAppSelector(selectAllDrivers);
+  const driversStatus = useAppSelector((state: RootState) => state.drivers.status);
 
   const sortedDrivers = [...drivers].sort((a, b) => a.id - b.id);
 
   useEffect(() => {
-    dispatch(fetchDrivers());
-  }, [dispatch]);
+    if (driversStatus === "idle") {
+      dispatch(fetchDrivers());
+    }
+  }, [dispatch, driversStatus]);
 
-  if (driversLoading || teamsLoading) {
+  const isStoreLoading =
+    driversStatus === "idle" || driversStatus === "loading";
+
+  if (driversLoading || teamsLoading || isStoreLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />

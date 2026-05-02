@@ -46,17 +46,17 @@ app.use((req, res, next) => {
   console.log('Origin:', req.headers.origin);
   next();
 });
-// const PORT = process.env.PORT;
+const PORT = process.env.PORT;
 
-// const server = app.listen(PORT, () => {
-//   logger.info(`Server is running on port ${PORT}`);
-// });
+const server = app.listen(PORT, () => {
+  logger.info(`Server is running on port ${PORT}`);
+});
 
-// process.on("SIGINT", async () => {
-//   logger.info("Shutting down...");
-//   await prisma.$disconnect();
-//   server.close(() => process.exit(0));
-// });
+process.on("SIGINT", async () => {
+  logger.info("Shutting down...");
+  await prisma.$disconnect();
+  server.close(() => process.exit(0));
+});
 
 export default function handler(req: Request, res: Response) {
   app(req, res);

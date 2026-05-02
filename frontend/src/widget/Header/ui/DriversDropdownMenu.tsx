@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
 import { fetchDrivers, selectAllDrivers } from "@/entities/f1/model/driversSlice";
 import { Driver } from "@/entities/f1/types/f1.types";
+import type { RootState } from "@/shared/store";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,37 +14,48 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { useGetDriversQuery } from "@/entities/f1api/f1api";
+import type { ApiDriver as DriverApi, DriversResponse } from "@/entities/f1api/f1api.interfaces";
 import { cn } from "@/shared/lib/utils";
-
-type DriverApi = {
-  driverId: string;
-  name: string;
-  surname: string;
-  teamId: string;
-  imgUrl?: string;
-};
-type DriversApiResponse = {
-  drivers: DriverApi[];
-};
 export default function DriversDropdownMenu() {
   const pathname = usePathname();
 
-  const { data: driversApiData = { drivers: [] } } = useGetDriversQuery(
+  const { data: driversApiData = { drivers: [] }, isLoading: isDriversApiLoading } = useGetDriversQuery(
     undefined,
     { refetchOnMountOrArgChange: false }
-  ) as { data?: DriversApiResponse };
+  ) as { data?: DriversResponse; isLoading: boolean };
 
 
   const dispatch = useAppDispatch();
   const drivers = useAppSelector(selectAllDrivers);
+  const driversStatus = useAppSelector((state: RootState) => state.drivers.status);
 
   const sortedDrivers = [...drivers].sort((a, b) => a.id - b.id);
 
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchDrivers());
-  }, [dispatch]);
+    if (driversStatus === "idle") {
+      dispatch(fetchDrivers());
+    }
+  }, [dispatch, driversStatus]);
+
+  const isStoreLoading =
+    driversStatus === "idle" || driversStatus === "loading";
+  const isDataLoading = isStoreLoading || isDriversApiLoading;
+
+  if (isDataLoading) {
+    return (
+      <Link
+        className={cn(
+          "transition hover:text-red-500",
+          pathname === "/drivers" && "text-red-500"
+        )}
+        href="/drivers"
+      >
+        Drivers
+      </Link>
+    );
+  }
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>

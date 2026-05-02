@@ -16,6 +16,11 @@ import {
   useGetRacesYearQuery,
   useGetRacesYearRoundQuery,
 } from "@/entities/f1api/f1api";
+import type {
+  RaceEntry,
+  RaceRoundResponse,
+  RacesListResponse,
+} from "@/entities/f1api/f1api.interfaces";
 import Fp1Table from "@/features/results/ui/Fp1Table";
 import Fp2Table from "@/features/results/ui/Fp2Table";
 import Fp3Table from "@/features/results/ui/Fp3Table";
@@ -27,20 +32,6 @@ import SprintRaceTable from "@/features/results/ui/SprintRaceTable";
 function toSingleString(v: string | string[] | undefined): string | undefined {
   if (v === undefined) return undefined;
   return Array.isArray(v) ? v[0] : v;
-}
-
-interface RaceEntry {
-  round?: string | number;
-  circuit?: {
-    country?: string;
-  };
-  raceName?: string;
-  date?: string;
-  raceId?: string;
-}
-
-interface RaceRoundResponse {
-  race: RaceEntry[];
 }
 
 export default function ResultsYearRoundSessionPage() {
@@ -60,19 +51,24 @@ export default function ResultsYearRoundSessionPage() {
     toSingleString(params?.session) ?? DEFAULT_SESSION
   );
 
-  const { data: races, error, isLoading } = useGetRacesYearQuery(year!);
+  const { data: races, error, isLoading, isFetching } = useGetRacesYearQuery(
+    year!
+  );
   const queryArgs = year && round ? { year, round } : skipToken;
 
-  const { data: race, isLoading: isLoadingRace } = useGetRacesYearRoundQuery(
-    queryArgs
-  ) as {
+  const {
+    data: race,
+    isLoading: isLoadingRace,
+    isFetching: isFetchingRace,
+  } = useGetRacesYearRoundQuery(queryArgs) as {
     data?: RaceRoundResponse;
     isLoading: boolean;
+    isFetching: boolean;
   };
 
-  const racesData = (races ?? undefined) as { races: RaceEntry[] } | undefined;
+  const racesData = (races ?? undefined) as RacesListResponse | undefined;
 
-  if (isLoading || isLoadingRace) {
+  if (isLoading || isLoadingRace || isFetching || isFetchingRace) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />

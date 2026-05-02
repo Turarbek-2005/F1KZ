@@ -8,11 +8,17 @@ import {
   selectAllDrivers,
 } from "@/entities/f1/model/driversSlice";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
+import type { RootState } from "@/shared/store";
 import {
   useGetRacesYearQuery,
   useGetRacesLastQuery,
   useGetRacesNextQuery,
 } from "@/entities/f1api/f1api";
+import type {
+  LastNextRacesResponse as RaceApiResponse,
+  RaceEntry as Race,
+  RacesListResponse,
+} from "@/entities/f1api/f1api.interfaces";
 import {
   Select,
   SelectContent,
@@ -22,58 +28,14 @@ import {
 } from "@/shared/ui/select";
 import { Loader2 } from "lucide-react";
 
-export type RaceScheduleSession = {
-  date: string;
-  time?: string;
-};
-
-export type RaceSchedule = {
-  fp1: RaceScheduleSession;
-  fp2?: RaceScheduleSession;
-  fp3?: RaceScheduleSession;
-  sprintQualyfying?: RaceScheduleSession;
-  sprintRace?: RaceScheduleSession;
-  qualyfying?: RaceScheduleSession;
-  race: RaceScheduleSession;
-};
-
-export type RaceWinner = {
-  driverId: string;
-  name: string;
-  surname: string;
-};
-
-export type RaceTeamWinner = {
-  teamId: string;
-};
-
-export type RaceCircuit = {
-  country: string;
-  city: string;
-};
-
-export type Race = {
-  race: string;
-  raceId: string;
-  raceName: string;
-  round: number;
-  circuit: RaceCircuit;
-  schedule: RaceSchedule;
-  winner?: RaceWinner;
-  teamWinner?: RaceTeamWinner;
-};
-export interface RaceApiResponse {
-  round: number;
-  race: Race[];
-}
-
 export default function Schedule() {
   const [year, setYear] = useState("2025");
 
   const dispatch = useAppDispatch();
   const drivers = useAppSelector(selectAllDrivers);
+  const driversStatus = useAppSelector((state: RootState) => state.drivers.status);
   const { data: races, isLoading } = useGetRacesYearQuery(year) as {
-    data?: { races: Race[] };
+    data?: RacesListResponse;
     isLoading: boolean;
   };
   const { data: racesLast, isLoading: isLoadingLast } =
@@ -82,8 +44,10 @@ export default function Schedule() {
     useGetRacesNextQuery() as { data?: RaceApiResponse; isLoading: boolean };
 
   useEffect(() => {
-    dispatch(fetchDrivers());
-  }, [dispatch]);
+    if (driversStatus === "idle") {
+      dispatch(fetchDrivers());
+    }
+  }, [dispatch, driversStatus]);
 
   function formatRaceDates(start?: string, end?: string) {
     if (!start || !end) return "";
@@ -127,7 +91,10 @@ export default function Schedule() {
     console.log("Next Race:", racesNext);
   }, [races, racesLast, racesNext]);
 
-  if (isLoading || isLoadingLast || isLoadingNext) {
+  const isStoreLoading =
+    driversStatus === "idle" || driversStatus === "loading";
+
+  if (isLoading || isLoadingLast || isLoadingNext || isStoreLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />
@@ -246,8 +213,8 @@ export default function Schedule() {
                   {race?.winner ? (
                     <p>
                       {formatRaceDates(
-                        race?.schedule.fp1?.date,
-                        race?.schedule.race?.date
+                        race?.schedule?.fp1?.date,
+                        race?.schedule?.race?.date
                       )}
                     </p>
                   ) : (
@@ -289,8 +256,8 @@ export default function Schedule() {
                 {!race?.winner ? (
                   <p className="mt-auto uppercase text-lg font-bold">
                     {formatRaceDates(
-                      race?.schedule.fp1?.date,
-                      race?.schedule.race?.date
+                      race?.schedule?.fp1?.date,
+                      race?.schedule?.race?.date
                     )}
                   </p>
                 ) : null}

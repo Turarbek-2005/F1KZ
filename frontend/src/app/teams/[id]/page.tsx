@@ -7,6 +7,7 @@ import { useParams } from "next/navigation";
 import { skipToken } from "@reduxjs/toolkit/query/react";
 import { Loader2, MoveLeft } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
+import type { RootState } from "@/shared/store";
 import {
   fetchDrivers,
   selectTeamDrivers,
@@ -18,6 +19,13 @@ import {
   useGetTeamDriversQuery,
   useGetStandingsTeamsQuery,
 } from "@/entities/f1api/f1api";
+import type {
+  ApiTeam,
+  TeamDriversResponse,
+  TeamStanding as ConstructorStanding,
+  TeamByIdResponse,
+  TeamsStandingsResponse as TeamsStandings,
+} from "@/entities/f1api/f1api.interfaces";
 import {
   Table,
   TableBody,
@@ -28,26 +36,6 @@ import {
 } from "@/shared/ui/table";
 import { cn } from "@/shared/lib/utils";
 import { grapeNuts } from "@/app/fonts";
-
-interface ConstructorStanding {
-  position: number | string;
-  teamId: string;
-  points: number;
-  team?: { teamName?: string };
-}
-
-interface ApiTeam {
-  teamId: string;
-  teamName?: string;
-}
-
-interface TeamsStandings {
-  constructors_championship: ConstructorStanding[];
-}
-
-interface ApiDriverWrapper {
-  driver: { driverId: string; name: string; surname: string; number?: string };
-}
 
 export default function Team() {
   const params = useParams();
@@ -62,16 +50,18 @@ export default function Team() {
   const teamDrivers = useAppSelector((state) =>
     teamId ? selectTeamDrivers(state, teamId) : []
   );
+  const driversStatus = useAppSelector((state: RootState) => state.drivers.status);
+  const teamsStatus = useAppSelector((state: RootState) => state.teams.status);
 
   const { data: teamApi, isLoading: teamApiLoading } = useGetTeamByIdQuery(
     teamId ?? skipToken,
     { refetchOnMountOrArgChange: false }
-  ) as { data?: { team: ApiTeam[] }, isLoading: boolean };
+  ) as { data?: TeamByIdResponse, isLoading: boolean };
 
   const { data: teamDriversApi, isLoading: teamDriversApiLoading } =
     useGetTeamDriversQuery(teamId ?? skipToken, {
       refetchOnMountOrArgChange: false,
-    }) as { data?: { drivers: ApiDriverWrapper[],team: ApiTeam }, isLoading: boolean };
+    }) as { data?: TeamDriversResponse, isLoading: boolean };
 
   const { data: teamsStandings = { constructors_championship: [] } as TeamsStandings } =
     useGetStandingsTeamsQuery(undefined, {
@@ -85,7 +75,7 @@ export default function Team() {
 
   const { data: topTeamApi } = useGetTeamByIdQuery(topTeamId ?? skipToken, {
     refetchOnMountOrArgChange: false,
-  }) as { data?: { team: ApiTeam[] } };
+  }) as { data?: TeamByIdResponse };
 
   const twoTeamIds = Array.from(
     new Set([topTeamId, teamId].filter(Boolean) as string[])
@@ -104,11 +94,21 @@ export default function Team() {
   });
 
   useEffect(() => {
-    dispatch(fetchDrivers());
-    dispatch(fetchTeams());
-  }, [dispatch]);
+    if (driversStatus === "idle") {
+      dispatch(fetchDrivers());
+    }
+    if (teamsStatus === "idle") {
+      dispatch(fetchTeams());
+    }
+  }, [dispatch, driversStatus, teamsStatus]);
 
-  if (teamApiLoading || teamDriversApiLoading) {
+  const isStoreLoading =
+    driversStatus === "idle" ||
+    driversStatus === "loading" ||
+    teamsStatus === "idle" ||
+    teamsStatus === "loading";
+
+  if (teamApiLoading || teamDriversApiLoading || isStoreLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />
@@ -147,7 +147,7 @@ export default function Team() {
           {teamApi?.team?.[0]?.teamName ?? team?.teamId}
         </h1>
         <div className="flex gap-3 mb-3">
-          {teamDriversApi?.drivers?.map(({ driver }: ApiDriverWrapper) => (
+          {teamDriversApi?.drivers?.map(({ driver }) => (
             <p key={driver.driverId}>
               {driver.name} {driver.surname}
             </p>
@@ -168,7 +168,7 @@ export default function Team() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {teamDrivers?.map((driver: Driver) => {
             const matchedDriver = teamDriversApi?.drivers?.find(
-              ({ driver: apiDriver }: ApiDriverWrapper) =>
+              ({ driver: apiDriver }) =>
                 apiDriver.driverId === driver.driverId
             )?.driver;
 

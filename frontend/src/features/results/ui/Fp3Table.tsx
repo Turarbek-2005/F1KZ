@@ -12,42 +12,43 @@ import {
 import { Card, CardContent } from "@/shared/ui/card";
 import { useGetYearRoundFp3Query } from "@/entities/f1api/f1api";
 
-interface DriverResult {
+type DriverResult = {
   driverId: string;
   name: string;
   surname: string;
-}
+};
 
-interface TeamResult {
+type TeamResult = {
   teamId: string;
   teamName: string;
-}
+};
 
-interface Fp3Result {
+type Fp3Result = {
   fp3Id: string;
   driver: DriverResult;
   team: TeamResult;
   time?: string;
-}
+};
 
-interface RaceData {
+type RaceData = {
   fp3Results: Fp3Result[];
-}
+};
 
-interface Fp3ApiResponse {
+type Fp3ApiResponse = {
   races?: RaceData;
-}
+};
 
 type Props = { year?: string; round?: string | number };
 
 export default function Fp3Table({ year, round }: Props) {
   const args = year && round ? { year, round } : skipToken;
-  const { data, isLoading } = useGetYearRoundFp3Query(args) as {
+  const { data, isLoading, isFetching } = useGetYearRoundFp3Query(args) as {
     data?: Fp3ApiResponse;
     isLoading: boolean;
+    isFetching: boolean;
   };
 
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />

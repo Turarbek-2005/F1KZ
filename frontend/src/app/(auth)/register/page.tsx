@@ -6,30 +6,18 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
-import { UserPlus } from "lucide-react";
+import { Loader2, UserPlus } from "lucide-react";
 import { useAppDispatch } from "@/shared/lib/hooks";
 import { registerUser } from "@/entities/auth/model/authSlice";
 import { useGetTeamsQuery } from "@/entities/f1api/f1api";
 import { useGetDriversQuery } from "@/entities/f1api/f1api";
+import type {
+  ApiDriver as Driver,
+  ApiTeam as Team,
+  DriversResponse,
+  TeamsResponse,
+} from "@/entities/f1api/f1api.interfaces";
 import Link from "next/link";
-
-interface Driver {
-  driverId: string;
-  name: string;
-  surname?: string;
-}
-
-interface Team {
-  teamId: string;
-  teamName: string;
-}
-type DriversApiResponse = {
-  drivers: Driver[];
-};
-
-type TeamsApiResponse = {
-  teams: Team[];
-};
 export default function RegisterPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -44,13 +32,15 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const { data: driversApi = { drivers: [] } } = useGetDriversQuery(undefined, {
-    refetchOnMountOrArgChange: false,
-  }) as { data?: DriversApiResponse };
+  const { data: driversApi = { drivers: [] }, isLoading: isDriversLoading } =
+    useGetDriversQuery(undefined, {
+      refetchOnMountOrArgChange: false,
+    }) as { data?: DriversResponse; isLoading: boolean };
 
-  const { data: teamsApi = { teams: [] } } = useGetTeamsQuery(undefined, {
-    refetchOnMountOrArgChange: false,
-  }) as { data?: TeamsApiResponse };
+  const { data: teamsApi = { teams: [] }, isLoading: isTeamsLoading } =
+    useGetTeamsQuery(undefined, {
+      refetchOnMountOrArgChange: false,
+    }) as { data?: TeamsResponse; isLoading: boolean };
 
   function validate() {
     if (!username.trim() || !email.trim() || !password) {
@@ -104,6 +94,14 @@ export default function RegisterPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (isDriversLoading || isTeamsLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin h-16 w-16" />
+      </div>
+    );
   }
 
   return (

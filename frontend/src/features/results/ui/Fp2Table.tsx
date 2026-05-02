@@ -12,44 +12,45 @@ import {
 import { Card, CardContent } from "@/shared/ui/card";
 import { useGetYearRoundFp2Query } from "@/entities/f1api/f1api";
 
-interface DriverResult {
+type DriverResult = {
   driverId: string;
   name: string;
   surname: string;
-}
+};
 
-interface TeamResult {
+type TeamResult = {
   teamId: string;
   teamName: string;
-}
+};
 
-interface Fp2Result {
+type Fp2Result = {
   fp2Id: string;
   driver: DriverResult;
   team: TeamResult;
   time?: string;
-}
+};
 
-interface RaceData {
+type RaceData = {
   fp2Results: Fp2Result[];
-}
+};
 
-interface Fp2ApiResponse {
+type Fp2ApiResponse = {
   races?: RaceData;
-}
+};
 
 type Props = { year?: string; round?: string | number; };
 
 export default function Fp2Table({ year, round }: Props) {
   const args = year && round ? { year, round } : skipToken;
-    const { data, isLoading } = useGetYearRoundFp2Query(
+    const { data, isLoading, isFetching } = useGetYearRoundFp2Query(
       args
     ) as {
       data?: Fp2ApiResponse;
       isLoading: boolean;
+      isFetching: boolean;
     };
 
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />

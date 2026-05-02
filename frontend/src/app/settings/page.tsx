@@ -6,18 +6,13 @@ import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
 import { updateUser } from "@/entities/auth/model/authSlice";
 import { useGetDriversQuery, useGetTeamsQuery } from "@/entities/f1api/f1api";
-
-type ApiDriver = {
-  driverId: string;
-  name?: string;
-  surname?: string;
-  imgUrl?: string;
-};
-
-type ApiTeam = {
-  teamId: string;
-  teamName?: string;
-};
+import { Loader2 } from "lucide-react";
+import type {
+  ApiDriver,
+  ApiTeam,
+  DriversResponse,
+  TeamsResponse,
+} from "@/entities/f1api/f1api.interfaces";
 
 type UserShape = {
   username?: string;
@@ -26,13 +21,6 @@ type UserShape = {
   favoriteDriverIds?: string[];
   favoriteTeamsIds?: string[];
   favoriteTeamIds?: string[];
-};
-type DriversApiResponse = {
-  drivers: ApiDriver[];
-};
-
-type TeamsApiResponse = {
-  teams: ApiTeam[];
 };
 export default function SettingsPage() {
   const dispatch = useAppDispatch();
@@ -64,15 +52,15 @@ export default function SettingsPage() {
   );
   const [error, setError] = useState<string | null>(null);
 
-  const { data: driversApi = { drivers: [] as ApiDriver[] } } =
+  const { data: driversApi = { drivers: [] as ApiDriver[] }, isLoading: isDriversLoading } =
     useGetDriversQuery(undefined, { refetchOnMountOrArgChange: false }) as {
-      data?: DriversApiResponse;
-      loading?: boolean;
+      data?: DriversResponse;
+      isLoading: boolean;
     };
-  const { data: teamsApi = { teams: [] as ApiTeam[] } } = useGetTeamsQuery(
-    undefined,
-    { refetchOnMountOrArgChange: false }
-  ) as { data?: TeamsApiResponse; loading?: boolean };
+  const { data: teamsApi = { teams: [] as ApiTeam[] }, isLoading: isTeamsLoading } =
+    useGetTeamsQuery(undefined, {
+      refetchOnMountOrArgChange: false,
+    }) as { data?: TeamsResponse; isLoading: boolean };
 
   useEffect(() => {
     setUsername(user?.username ?? "");
@@ -120,6 +108,14 @@ export default function SettingsPage() {
       setError(msg || "Unknown error");
       setStatus("error");
     }
+  }
+
+  if (isDriversLoading || isTeamsLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin h-16 w-16" />
+      </div>
+    );
   }
 
   return (

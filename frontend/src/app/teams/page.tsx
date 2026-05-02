@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 // import { skipToken } from "@reduxjs/toolkit/query/react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
+import type { RootState } from "@/shared/store";
 
 import {
   fetchDrivers,
@@ -14,28 +15,13 @@ import {
 import { fetchTeams, selectAllTeams } from "@/entities/f1/model/teamsSlice";
 
 import { useGetDriversQuery, useGetTeamsQuery } from "@/entities/f1api/f1api";
+import type {
+  ApiDriver,
+  ApiTeam,
+  DriversResponse,
+  TeamsResponse,
+} from "@/entities/f1api/f1api.interfaces";
 import { Loader2 } from "lucide-react";
-
-interface ApiDriver {
-  driverId: string;
-  name: string;
-  surname: string;
-}
-
-interface ApiTeam {
-  teamId: string;
-  teamName?: string;
-  teamImgUrl?: string;
-  bolidImgUrl?: string;
-}
-
-type DriversApiResponse = {
-  drivers: ApiDriver[];
-};
-
-type TeamsApiResponse = {
-  teams: ApiTeam[];
-};
 
 export default function Teams() {
   const router = useRouter();
@@ -47,27 +33,39 @@ export default function Teams() {
     {
       refetchOnMountOrArgChange: false,
     }
-  ) as { data?: DriversApiResponse; loading?: boolean };
+  ) as { data?: DriversResponse; loading?: boolean };
 
   const { data: teamsApi, loading: isLoadingTeams } = useGetTeamsQuery(
     undefined,
     {
       refetchOnMountOrArgChange: false,
     }
-  ) as { data?: TeamsApiResponse; loading?: boolean };
+  ) as { data?: TeamsResponse; loading?: boolean };
 
   const drivers = useAppSelector(selectAllDrivers);
   const teams = useAppSelector(selectAllTeams);
+  const driversStatus = useAppSelector((state: RootState) => state.drivers.status);
+  const teamsStatus = useAppSelector((state: RootState) => state.teams.status);
 
   const sortedDrivers = [...drivers].sort((a, b) => a.id - b.id);
   const sortedTeams = [...teams].sort((a, b) => a.id - b.id);
 
   useEffect(() => {
-    dispatch(fetchDrivers());
-    dispatch(fetchTeams());
-  }, [dispatch]);
+    if (driversStatus === "idle") {
+      dispatch(fetchDrivers());
+    }
+    if (teamsStatus === "idle") {
+      dispatch(fetchTeams());
+    }
+  }, [dispatch, driversStatus, teamsStatus]);
 
-  if (isLoadingDrivers || isLoadingTeams) {
+  const isStoreLoading =
+    driversStatus === "idle" ||
+    driversStatus === "loading" ||
+    teamsStatus === "idle" ||
+    teamsStatus === "loading";
+
+  if (isLoadingDrivers || isLoadingTeams || isStoreLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />

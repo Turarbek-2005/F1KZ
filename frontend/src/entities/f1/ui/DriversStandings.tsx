@@ -12,7 +12,12 @@ import {
 } from "@/entities/f1/model/driversSlice";
 import { fetchTeams, selectAllTeams } from "@/entities/f1/model/teamsSlice";
 import { useGetStandingsDriversQuery } from "@/entities/f1api/f1api";
+import type {
+  DriverStanding,
+  DriversStandingsResponse as StandingsApiResponse,
+} from "@/entities/f1api/f1api.interfaces";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
+import type { RootState } from "@/shared/store";
 import {
   Table,
   TableBody,
@@ -24,25 +29,6 @@ import {
 
 import type { Driver } from "@/entities/f1/types/f1.types";
 
-type DriverStanding = {
-  driverId: string;
-  position?: number;
-  points?: number;
-  teamId: string;
-  driver: {
-    name: string;
-    surname: string;
-    shortName: string;
-  };
-  team?: {
-    teamName?: string;
-  };
-};
-
-type StandingsApiResponse = {
-  drivers_championship: DriverStanding[];
-};
-
 export default function DriversStandings() {
   const { data: driversApi = { drivers_championship: [] }, isLoading } =
     useGetStandingsDriversQuery(undefined, {
@@ -52,11 +38,17 @@ export default function DriversStandings() {
   const dispatch = useAppDispatch();
   const drivers = useAppSelector(selectAllDrivers);
   const teams = useAppSelector(selectAllTeams);
+  const driversStatus = useAppSelector((state: RootState) => state.drivers.status);
+  const teamsStatus = useAppSelector((state: RootState) => state.teams.status);
 
   useEffect(() => {
-    dispatch(fetchDrivers());
-    dispatch(fetchTeams());
-  }, [dispatch]);
+    if (driversStatus === "idle") {
+      dispatch(fetchDrivers());
+    }
+    if (teamsStatus === "idle") {
+      dispatch(fetchTeams());
+    }
+  }, [dispatch, driversStatus, teamsStatus]);
 
   const sortedDrivers = drivers
     .map((driver: Driver) => {
@@ -97,7 +89,13 @@ export default function DriversStandings() {
     })
     .sort((a, b) => a.position - b.position);
 
-  if (isLoading) {
+  const isStoreLoading =
+    driversStatus === "idle" ||
+    driversStatus === "loading" ||
+    teamsStatus === "idle" ||
+    teamsStatus === "loading";
+
+  if (isLoading || isStoreLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />
@@ -126,8 +124,14 @@ export default function DriversStandings() {
           {sortedDrivers.map(({ driver, stat, matchedTeam }) => {
             const position = stat.position ?? "-";
             const points = stat.points ?? 0;
+            const teamIdForColor = stat.teamId ?? "unknown";
             const teamName =
               stat.team?.teamName ?? stat.teamId ?? "Unknown";
+            const matchedTeamId = matchedTeam.teamId ?? teamIdForColor;
+            const matchedTeamImg = matchedTeam.teamImgUrl ?? "/placeholder.png";
+            const driverName = stat.driver?.name ?? "";
+            const driverSurname = stat.driver?.surname ?? "";
+            const driverShortName = stat.driver?.shortName ?? driver.driverId;
 
             return (
               <TableRow key={driver.driverId}>
@@ -141,7 +145,7 @@ export default function DriversStandings() {
                     <div
                       className="w-8 h-8 overflow-hidden rounded-full"
                       style={{
-                        background: `var(--team-${stat.teamId
+                        background: `var(--team-${teamIdForColor
                           .toLowerCase()
                           .replace(" ", "_")})`,
                       }}
@@ -157,13 +161,13 @@ export default function DriversStandings() {
 
                     <p className="text-sm font-bold">
                       <span className="hidden md:inline-block font-normal">
-                        {stat.driver.name}
+                        {driverName}
                       </span>{" "}
                       <span className="hidden md:inline-block font-bold uppercase">
-                        {stat.driver.surname}
+                        {driverSurname}
                       </span>
                       <span className="block md:hidden font-bold uppercase">
-                        {stat.driver.shortName}
+                        {driverShortName}
                       </span>
                     </p>
                   </Link>
@@ -186,20 +190,20 @@ export default function DriversStandings() {
 
                 <TableCell>
                   <Link
-                    href={`/teams/${matchedTeam.teamId}`}
+                    href={`/teams/${matchedTeamId}`}
                     className="flex items-center gap-2"
                   >
                     <div
                       className="w-8 h-8 overflow-hidden rounded-full flex items-center justify-center"
                       style={{
-                        background: `var(--team-${stat.teamId
+                        background: `var(--team-${teamIdForColor
                           .toLowerCase()
                           .replace(" ", "_")})`,
                       }}
                     >
                       <Image
-                        src={matchedTeam.teamImgUrl}
-                        alt={matchedTeam.teamId}
+                        src={matchedTeamImg}
+                        alt={matchedTeamId}
                         width={32}
                         height={32}
                         className="object-cover w-7 h-7"

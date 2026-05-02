@@ -1,6 +1,21 @@
 import { createApi, BaseQueryFn } from "@reduxjs/toolkit/query/react";
 import type { AxiosRequestConfig, AxiosError } from "axios";
 import { axiosClient } from "@/shared/api/axios";
+import type {
+  DriverByIdResponse,
+  DriversResponse,
+  DriversStandingsResponse,
+  LastNextRacesResponse,
+  RaceRoundResponse,
+  RacesListResponse,
+  SessionResultRow,
+  SessionResultsResponse,
+  TeamByIdResponse,
+  TeamDriversResponse,
+  TeamsResponse,
+  TeamsStandingsResponse,
+  YearRoundParams,
+} from "./f1api.interfaces";
 
 type AxiosBaseQueryArgs = {
   url: string;
@@ -50,19 +65,19 @@ export const f1Api = createApi({
   endpoints: (build) => ({
     /* ---------- Drivers ---------- */
 
-    getDrivers: build.query<unknown, void>({
+    getDrivers: build.query<DriversResponse, void>({
       query: () => ({ url: "/f1api/drivers" }),
       providesTags: ["Drivers"],
     }),
 
-    getDriverById: build.query<unknown, string>({
+    getDriverById: build.query<DriverByIdResponse, string>({
       query: (driverId) => ({
         url: `/f1api/drivers/${driverId}`,
       }),
       providesTags: (_r, _e, id) => [{ type: "Drivers", id }],
     }),
 
-    searchDrivers: build.query<unknown, string>({
+    searchDrivers: build.query<DriversResponse, string>({
       query: (q) => ({
         url: `/f1api/drivers/search`,
         params: { q },
@@ -72,26 +87,26 @@ export const f1Api = createApi({
 
     /* ---------- Teams ---------- */
 
-    getTeams: build.query<unknown, void>({
+    getTeams: build.query<TeamsResponse, void>({
       query: () => ({ url: "/f1api/teams" }),
       providesTags: ["Teams"],
     }),
 
-    getTeamById: build.query<unknown, string>({
+    getTeamById: build.query<TeamByIdResponse, string>({
       query: (teamId) => ({
         url: `/f1api/teams/${teamId}`,
       }),
       providesTags: (_r, _e, id) => [{ type: "Teams", id }],
     }),
 
-    getTeamDrivers: build.query<unknown, string>({
+    getTeamDrivers: build.query<TeamDriversResponse, string>({
       query: (teamId) => ({
         url: `/f1api/teams/${teamId}/drivers`,
       }),
       providesTags: ["Teams"],
     }),
 
-    searchTeams: build.query<unknown, string>({
+    searchTeams: build.query<TeamsResponse, string>({
       query: (q) => ({
         url: `/f1api/teams/search`,
         params: { q },
@@ -101,37 +116,37 @@ export const f1Api = createApi({
 
     /* ---------- Results ---------- */
 
-    getLastFp1: build.query<unknown, void>({
+    getLastFp1: build.query<SessionResultsResponse<SessionResultRow>, void>({
       query: () => ({ url: "/f1api/last/fp1" }),
       providesTags: ["Results"],
     }),
 
-    getLastFp2: build.query<unknown, void>({
+    getLastFp2: build.query<SessionResultsResponse<SessionResultRow>, void>({
       query: () => ({ url: "/f1api/last/fp2" }),
       providesTags: ["Results"],
     }),
 
-    getLastFp3: build.query<unknown, void>({
+    getLastFp3: build.query<SessionResultsResponse<SessionResultRow>, void>({
       query: () => ({ url: "/f1api/last/fp3" }),
       providesTags: ["Results"],
     }),
 
-    getLastQualy: build.query<unknown, void>({
+    getLastQualy: build.query<SessionResultsResponse<SessionResultRow>, void>({
       query: () => ({ url: "/f1api/last/qualy" }),
       providesTags: ["Results"],
     }),
 
-    getLastRace: build.query<unknown, void>({
+    getLastRace: build.query<SessionResultsResponse<SessionResultRow>, void>({
       query: () => ({ url: "/f1api/last/race" }),
       providesTags: ["Results"],
     }),
 
-    getLastSprintQualy: build.query<unknown, void>({
+    getLastSprintQualy: build.query<SessionResultsResponse<SessionResultRow>, void>({
       query: () => ({ url: "/f1api/last/sprint/qualy" }),
       providesTags: ["Results"],
     }),
 
-    getLastSprintRace: build.query<unknown, void>({
+    getLastSprintRace: build.query<SessionResultsResponse<SessionResultRow>, void>({
       query: () => ({ url: "/f1api/last/sprint/race" }),
       providesTags: ["Results"],
     }),
@@ -139,8 +154,8 @@ export const f1Api = createApi({
     /* ---------- Year / Round ---------- */
 
     getYearRoundFp1: build.query<
-      unknown,
-      { year: string | number; round: string | number }
+      SessionResultsResponse<SessionResultRow>,
+      YearRoundParams
     >({
       query: ({ year, round }) => ({
         url: `/f1api/${year}/${round}/fp1`,
@@ -149,8 +164,8 @@ export const f1Api = createApi({
     }),
 
     getYearRoundFp2: build.query<
-      unknown,
-      { year: string | number; round: string | number }
+      SessionResultsResponse<SessionResultRow>,
+      YearRoundParams
     >({
       query: ({ year, round }) => ({
         url: `/f1api/${year}/${round}/fp2`,
@@ -159,8 +174,8 @@ export const f1Api = createApi({
     }),
 
     getYearRoundFp3: build.query<
-      unknown,
-      { year: string | number; round: string | number }
+      SessionResultsResponse<SessionResultRow>,
+      YearRoundParams
     >({
       query: ({ year, round }) => ({
         url: `/f1api/${year}/${round}/fp3`,
@@ -169,8 +184,8 @@ export const f1Api = createApi({
     }),
 
     getYearRoundQualy: build.query<
-      unknown,
-      { year: string | number; round: string | number }
+      SessionResultsResponse<SessionResultRow>,
+      YearRoundParams
     >({
       query: ({ year, round }) => ({
         url: `/f1api/${year}/${round}/qualy`,
@@ -179,8 +194,8 @@ export const f1Api = createApi({
     }),
 
     getYearRoundRace: build.query<
-      unknown,
-      { year: string | number; round: string | number }
+      SessionResultsResponse<SessionResultRow>,
+      YearRoundParams
     >({
       query: ({ year, round }) => ({
         url: `/f1api/${year}/${round}/race`,
@@ -189,8 +204,8 @@ export const f1Api = createApi({
     }),
 
     getYearRoundSprintQualy: build.query<
-      unknown,
-      { year: string | number; round: string | number }
+      SessionResultsResponse<SessionResultRow>,
+      YearRoundParams
     >({
       query: ({ year, round }) => ({
         url: `/f1api/${year}/${round}/sprint/qualy`,
@@ -199,8 +214,8 @@ export const f1Api = createApi({
     }),
 
     getYearRoundSprintRace: build.query<
-      unknown,
-      { year: string | number; round: string | number }
+      SessionResultsResponse<SessionResultRow>,
+      YearRoundParams
     >({
       query: ({ year, round }) => ({
         url: `/f1api/${year}/${round}/sprint/race`,
@@ -210,44 +225,41 @@ export const f1Api = createApi({
 
     /* ---------- Standings ---------- */
 
-    getStandingsTeams: build.query<unknown, void>({
+    getStandingsTeams: build.query<TeamsStandingsResponse, void>({
       query: () => ({ url: "/f1api/standings/teams" }),
       providesTags: ["Standings"],
     }),
 
-    getStandingsDrivers: build.query<unknown, void>({
+    getStandingsDrivers: build.query<DriversStandingsResponse, void>({
       query: () => ({ url: "/f1api/standings/drivers" }),
       providesTags: ["Standings"],
     }),
 
     /* ---------- Races ---------- */
 
-    getRaces: build.query<unknown, void>({
+    getRaces: build.query<RacesListResponse, void>({
       query: () => ({ url: "/f1api/races" }),
       providesTags: ["Races"],
     }),
 
-    getRacesLast: build.query<unknown, void>({
+    getRacesLast: build.query<LastNextRacesResponse, void>({
       query: () => ({ url: "/f1api/races/last" }),
       providesTags: ["Races"],
     }),
 
-    getRacesNext: build.query<unknown, void>({
+    getRacesNext: build.query<LastNextRacesResponse, void>({
       query: () => ({ url: "/f1api/races/next" }),
       providesTags: ["Races"],
     }),
 
-    getRacesYear: build.query<unknown, string | number>({
+    getRacesYear: build.query<RacesListResponse, string | number>({
       query: (year) => ({
         url: `/f1api/races/${year}`,
       }),
       providesTags: ["Races"],
     }),
 
-    getRacesYearRound: build.query<
-      unknown,
-      { year: string | number; round: string | number }
-    >({
+    getRacesYearRound: build.query<RaceRoundResponse, YearRoundParams>({
       query: ({ year, round }) => ({
         url: `/f1api/races/${year}/${round}`,
       }),

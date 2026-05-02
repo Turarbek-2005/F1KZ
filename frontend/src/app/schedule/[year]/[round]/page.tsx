@@ -3,6 +3,7 @@
 import React from "react";
 import { useParams } from "next/navigation";
 import { useGetRacesYearRoundQuery } from "@/entities/f1api/f1api";
+import type { RaceRoundResponse } from "@/entities/f1api/f1api.interfaces";
 import {
   Table,
   TableBody,
@@ -21,37 +22,6 @@ import {
 import { Button } from "@/shared/ui/button";
 import { Calendar, Clock, Loader2, MoveLeft } from "lucide-react";
 import { motion } from "framer-motion";
-
-interface Session {
-  date?: string;
-  time?: string;
-}
-
-interface Schedule {
-  fp1?: Session;
-  fp2?: Session;
-  fp3?: Session;
-  sprintQualy?: Session;
-  sprintRace?: Session;
-  qualy?: Session;
-  race?: Session;
-}
-
-interface RaceEntry {
-  round?: string | number;
-  circuit?: {
-    name?: string;
-    country?: string;
-  };
-  raceName?: string;
-  date?: string;
-  raceId?: string;
-  schedule?: Schedule;
-}
-
-interface RaceRoundResponse {
-  race: RaceEntry[];
-}
 
 function toSingleString(v: string | string[] | undefined): string | undefined {
   if (v === undefined) return undefined;
