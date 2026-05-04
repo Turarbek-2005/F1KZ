@@ -25,17 +25,18 @@ import { Loader2 } from "lucide-react";
 
 export default function Drivers() {
   const user = useAppSelector((state) => state.auth.user);
+  const currentYear = new Date().getFullYear();
 
-  const { data: driversApi = { drivers: [] }, loading: driversLoading } = useGetDriversQuery(undefined, {
-    refetchOnMountOrArgChange: false,
-  }) as { data?: DriversResponse, loading?: boolean };
+  const { data: driversApi = { drivers: [] }, isLoading: driversLoading } = useGetDriversQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  }) as { data?: DriversResponse, isLoading?: boolean };
 
-  const { data: teamsApi = { teams: [] }, loading: teamsLoading } = useGetTeamsQuery(
+  const { data: teamsApi = { teams: [] }, isLoading: teamsLoading } = useGetTeamsQuery(
     undefined,
     {
-      refetchOnMountOrArgChange: false,
+      refetchOnMountOrArgChange: true,
     }
-  ) as { data?: TeamsResponse, loading?: boolean };
+  ) as { data?: TeamsResponse, isLoading?: boolean };
 
   const dispatch = useAppDispatch();
   const drivers = useAppSelector(selectAllDrivers);
@@ -68,7 +69,7 @@ export default function Drivers() {
         transition={{ duration: 0.6 }}
         className="text-4xl mt-3 mb-8"
       >
-        F1 Drivers 2025
+        F1 Drivers {currentYear}
       </motion.h2>
 
       {user ? (

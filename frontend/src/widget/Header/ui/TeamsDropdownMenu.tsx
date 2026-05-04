@@ -15,13 +15,14 @@ import {
 import { useGetTeamsQuery } from "@/entities/f1api/f1api";
 import type { ApiTeam as TeamApi, TeamsResponse } from "@/entities/f1api/f1api.interfaces";
 import { cn } from "@/shared/lib/utils";
+import { Loader2 } from "lucide-react";
 
 export default function TeamsDropdownMenu() {
   const pathname = usePathname();
 
   const { data: teamsApiData = { teams: [] }, isLoading: isTeamsApiLoading } = useGetTeamsQuery(
     undefined,
-    { refetchOnMountOrArgChange: false }
+    { refetchOnMountOrArgChange: true }
   ) as { data?: TeamsResponse; isLoading: boolean };
 
   const dispatch = useAppDispatch();
@@ -40,15 +41,18 @@ export default function TeamsDropdownMenu() {
 
   if (isDataLoading) {
     return (
-      <Link
-        className={cn(
-          "transition hover:text-red-500",
-          pathname === "/teams" && "text-red-500"
-        )}
-        href="/teams"
-      >
-        Teams
-      </Link>
+      <div className="flex items-center gap-2">
+        <Link
+          className={cn(
+            "transition hover:text-red-500",
+            pathname === "/teams" && "text-red-500"
+          )}
+          href="/teams"
+        >
+          Teams
+        </Link>
+        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+      </div>
     );
   }
 

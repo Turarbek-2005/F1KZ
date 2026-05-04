@@ -62,6 +62,7 @@ export const f1Api = createApi({
   reducerPath: "f1Api",
   baseQuery: axiosBaseQuery(),
   tagTypes: ["Drivers", "Teams", "Races", "Standings", "Results"],
+  keepUnusedDataFor: 0,
   endpoints: (build) => ({
     /* ---------- Drivers ---------- */
 

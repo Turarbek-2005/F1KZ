@@ -4,10 +4,11 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Card, CardHeader, CardTitle } from "@/shared/ui/card";
 export default function Home() {
+  const currentYear = new Date().getFullYear();
   const links = [
     { name: "News", href: "/news" },
     { name: "Schedule", href: "/schedule" },
-    { name: "Results", href: "/results/2025/1/race" },
+    { name: "Results", href: `/results/${currentYear}/1/race` },
     { name: "Standings", href: "/standings" },
     { name: "Drivers", href: "/drivers" },
     { name: "Teams", href: "/teams" },

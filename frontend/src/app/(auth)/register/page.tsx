@@ -34,12 +34,12 @@ export default function RegisterPage() {
 
   const { data: driversApi = { drivers: [] }, isLoading: isDriversLoading } =
     useGetDriversQuery(undefined, {
-      refetchOnMountOrArgChange: false,
+      refetchOnMountOrArgChange: true,
     }) as { data?: DriversResponse; isLoading: boolean };
 
   const { data: teamsApi = { teams: [] }, isLoading: isTeamsLoading } =
     useGetTeamsQuery(undefined, {
-      refetchOnMountOrArgChange: false,
+      refetchOnMountOrArgChange: true,
     }) as { data?: TeamsResponse; isLoading: boolean };
 
   function validate() {

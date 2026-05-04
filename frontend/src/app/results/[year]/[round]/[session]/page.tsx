@@ -37,7 +37,9 @@ function toSingleString(v: string | string[] | undefined): string | undefined {
 export default function ResultsYearRoundSessionPage() {
   const params = useParams();
 
-  const DEFAULT_YEAR = "2025";
+  const currentYear = new Date().getFullYear();
+
+  const DEFAULT_YEAR = currentYear.toString();
   const DEFAULT_ROUND = "1";
   const DEFAULT_SESSION = "race";
 
@@ -98,6 +100,7 @@ export default function ResultsYearRoundSessionPage() {
           </SelectTrigger>
 
           <SelectContent>
+            <SelectItem value={currentYear.toString()}>{currentYear}</SelectItem>
             <SelectItem value="2025">2025</SelectItem>
             <SelectItem value="2024">2024</SelectItem>
             <SelectItem value="2023">2023</SelectItem>

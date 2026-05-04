@@ -58,13 +58,13 @@ export default function Driver() {
     isLoading: driverApiLoading,
     isError: driverApiError,
   } = useGetDriverByIdQuery(driverId ?? skipToken, {
-    refetchOnMountOrArgChange: false,
+    refetchOnMountOrArgChange: true,
   });
 
   const {
     data: rawStandingsData,
   } = useGetStandingsDriversQuery(undefined, {
-    refetchOnMountOrArgChange: false,
+    refetchOnMountOrArgChange: true,
   });
 
   const driverApi = (rawDriverApi ?? undefined) as DriverApiData | undefined;
@@ -82,7 +82,7 @@ export default function Driver() {
     isLoading: topDriverLoading,
     isError: topDriverError,
   } = useGetDriverByIdQuery(topDriverId ?? skipToken, {
-    refetchOnMountOrArgChange: false,
+    refetchOnMountOrArgChange: true,
   });
 
   const topDriverApi = (rawTopDriverApi ?? undefined) as

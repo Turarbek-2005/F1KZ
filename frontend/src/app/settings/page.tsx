@@ -53,13 +53,13 @@ export default function SettingsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const { data: driversApi = { drivers: [] as ApiDriver[] }, isLoading: isDriversLoading } =
-    useGetDriversQuery(undefined, { refetchOnMountOrArgChange: false }) as {
+    useGetDriversQuery(undefined, { refetchOnMountOrArgChange: true }) as {
       data?: DriversResponse;
       isLoading: boolean;
     };
   const { data: teamsApi = { teams: [] as ApiTeam[] }, isLoading: isTeamsLoading } =
     useGetTeamsQuery(undefined, {
-      refetchOnMountOrArgChange: false,
+      refetchOnMountOrArgChange: true,
     }) as { data?: TeamsResponse; isLoading: boolean };
 
   useEffect(() => {

@@ -32,7 +32,7 @@ import type { Team } from "@/entities/f1/types/f1.types";
 export default function TeamsStandings() {
   const { data: teamsApi = { constructors_championship: [] }, isLoading } =
     useGetStandingsTeamsQuery(undefined, {
-      refetchOnMountOrArgChange: false,
+      refetchOnMountOrArgChange: true,
     }) as { data?: TeamsStandingsApiResponse; isLoading: boolean };
 
   const dispatch = useAppDispatch();

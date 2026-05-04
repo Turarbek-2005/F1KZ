@@ -27,20 +27,21 @@ export default function Teams() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
+  const currentYear = new Date().getFullYear();
 
-  const { data: driversApi, loading: isLoadingDrivers } = useGetDriversQuery(
+  const { data: driversApi, isLoading: isLoadingDrivers } = useGetDriversQuery(
     undefined,
     {
-      refetchOnMountOrArgChange: false,
+      refetchOnMountOrArgChange: true,
     }
-  ) as { data?: DriversResponse; loading?: boolean };
+  ) as { data?: DriversResponse; isLoading?: boolean };
 
-  const { data: teamsApi, loading: isLoadingTeams } = useGetTeamsQuery(
+  const { data: teamsApi, isLoading: isLoadingTeams } = useGetTeamsQuery(
     undefined,
     {
-      refetchOnMountOrArgChange: false,
+      refetchOnMountOrArgChange: true,
     }
-  ) as { data?: TeamsResponse; loading?: boolean };
+  ) as { data?: TeamsResponse; isLoading?: boolean };
 
   const drivers = useAppSelector(selectAllDrivers);
   const teams = useAppSelector(selectAllTeams);
@@ -81,7 +82,7 @@ export default function Teams() {
         transition={{ duration: 0.6 }}
         className="text-4xl mt-3 mb-8"
       >
-        F1 Teams 2025
+        F1 Teams {currentYear}
       </motion.h2>
 
       {user ? (

@@ -162,13 +162,21 @@ body {
     #6692ff5e,
     #6692ffbb
   );
-  --team-sauber: linear-gradient(
+  --team-audi: linear-gradient(
     135deg,
-    #52e252c2,
-    #52e2525e,
-    #52e252bb,
-    #52e2525e,
-    #52e252bb
+    #ff4141c2,
+    #c0333383,
+    #ff4141c2,
+    #c0333383,
+    #ff4141c2
+  );
+  --team-cadillac: linear-gradient(
+    135deg,
+    #c2baa4c2,
+    #1a1a1a5e,
+    #c2baa4c2,
+    #0d0d0d5e,
+    #c2baa4c2
   );
 }
 

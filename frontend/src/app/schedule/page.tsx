@@ -29,7 +29,8 @@ import {
 import { Loader2 } from "lucide-react";
 
 export default function Schedule() {
-  const [year, setYear] = useState("2025");
+  const currentYear = new Date().getFullYear();
+  const [year, setYear] = useState(currentYear.toString());
 
   const dispatch = useAppDispatch();
   const drivers = useAppSelector(selectAllDrivers);
@@ -138,7 +139,7 @@ export default function Schedule() {
 
           <SelectContent>
             <SelectItem value="2026">2026</SelectItem>
-            <SelectItem value="2025">2025</SelectItem>
+            <SelectItem value={currentYear.toString()}>{currentYear}</SelectItem>
             <SelectItem value="2024">2024</SelectItem>
             <SelectItem value="2023">2023</SelectItem>
             <SelectItem value="2022">2022</SelectItem>

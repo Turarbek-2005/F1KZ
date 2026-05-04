@@ -55,17 +55,17 @@ export default function Team() {
 
   const { data: teamApi, isLoading: teamApiLoading } = useGetTeamByIdQuery(
     teamId ?? skipToken,
-    { refetchOnMountOrArgChange: false }
+    { refetchOnMountOrArgChange: true }
   ) as { data?: TeamByIdResponse, isLoading: boolean };
 
   const { data: teamDriversApi, isLoading: teamDriversApiLoading } =
     useGetTeamDriversQuery(teamId ?? skipToken, {
-      refetchOnMountOrArgChange: false,
+      refetchOnMountOrArgChange: true,
     }) as { data?: TeamDriversResponse, isLoading: boolean };
 
   const { data: teamsStandings = { constructors_championship: [] } as TeamsStandings } =
     useGetStandingsTeamsQuery(undefined, {
-      refetchOnMountOrArgChange: false,
+      refetchOnMountOrArgChange: true,
     }) as { data?: TeamsStandings };
 
   const topTeamStat = teamsStandings.constructors_championship?.find(
@@ -74,7 +74,7 @@ export default function Team() {
   const topTeamId = topTeamStat?.teamId;
 
   const { data: topTeamApi } = useGetTeamByIdQuery(topTeamId ?? skipToken, {
-    refetchOnMountOrArgChange: false,
+    refetchOnMountOrArgChange: true,
   }) as { data?: TeamByIdResponse };
 
   const twoTeamIds = Array.from(

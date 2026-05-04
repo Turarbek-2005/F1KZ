@@ -32,7 +32,7 @@ import type { Driver } from "@/entities/f1/types/f1.types";
 export default function DriversStandings() {
   const { data: driversApi = { drivers_championship: [] }, isLoading } =
     useGetStandingsDriversQuery(undefined, {
-      refetchOnMountOrArgChange: false,
+      refetchOnMountOrArgChange: true,
     }) as { data?: StandingsApiResponse; isLoading: boolean };
 
   const dispatch = useAppDispatch();

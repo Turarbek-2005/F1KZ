@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
 import { fetchDrivers, selectAllDrivers } from "@/entities/f1/model/driversSlice";
 import { Driver } from "@/entities/f1/types/f1.types";
 import type { RootState } from "@/shared/store";
+import { Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +22,7 @@ export default function DriversDropdownMenu() {
 
   const { data: driversApiData = { drivers: [] }, isLoading: isDriversApiLoading } = useGetDriversQuery(
     undefined,
-    { refetchOnMountOrArgChange: false }
+    { refetchOnMountOrArgChange: true }
   ) as { data?: DriversResponse; isLoading: boolean };
 
 
@@ -45,15 +46,18 @@ export default function DriversDropdownMenu() {
 
   if (isDataLoading) {
     return (
-      <Link
-        className={cn(
-          "transition hover:text-red-500",
-          pathname === "/drivers" && "text-red-500"
-        )}
-        href="/drivers"
-      >
-        Drivers
-      </Link>
+      <div className="flex items-center gap-2">
+        <Link
+          className={cn(
+            "transition hover:text-red-500",
+            pathname === "/drivers" && "text-red-500"
+          )}
+          href="/drivers"
+        >
+          Drivers
+        </Link>
+        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+      </div>
     );
   }
 
