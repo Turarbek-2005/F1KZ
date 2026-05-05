@@ -7,7 +7,7 @@ const API_BASE = "https://f1api.dev/api/";
 
 const axiosClient = axios.create({
   baseURL: API_BASE,
-  timeout: 5000,
+  timeout: 10000,
 });
 
 async function fetchFromF1Api(path: string, res: Response, cacheName?: string) {
