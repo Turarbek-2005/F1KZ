@@ -10,15 +10,27 @@ interface AuthPayload extends JwtPayload {
   username: string;
 }
 
+function getTokenFromRequest(req: Request) {
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith("Bearer ")) {
+    return authHeader.split(" ")[1];
+  }
+
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader) return null;
+
+  const tokenCookie = cookieHeader
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith("token="));
+
+  if (!tokenCookie) return null;
+  return decodeURIComponent(tokenCookie.split("=").slice(1).join("="));
+}
+
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ message: "No Authorization header" });
-
-  const parts = auth.split(" ");
-  if (parts.length !== 2 || parts[0] !== "Bearer")
-    return res.status(401).json({ message: "Invalid Authorization format" });
-
-  const token = parts[1];
+  const token = getTokenFromRequest(req);
+  if (!token) return res.status(401).json({ message: "No auth token" });
 
   try {
     const payload = jwt.verify(token, JWT_SECRET) as AuthPayload;

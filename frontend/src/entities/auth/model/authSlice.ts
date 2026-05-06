@@ -1,19 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import type { AxiosError } from "axios";
 import { AuthState, UserInfo } from "../types/auth.types";
-import { axiosClient } from "@/shared/api/axios";
-
-const LOCAL_TOKEN_KEY = "f1kz_token";
-
-function saveToken(token: string | null) {
-  if (token) localStorage.setItem(LOCAL_TOKEN_KEY, token);
-  else localStorage.removeItem(LOCAL_TOKEN_KEY);
-}
-
-function loadToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem(LOCAL_TOKEN_KEY);
-}
+import { axiosAuthClient } from "@/shared/api/axios";
 
 function extractAxiosErrorMessage(error: unknown): string {
   if (!error) return "Unknown error";
@@ -42,7 +30,7 @@ export const registerUser = createAsyncThunk<
   { rejectValue: string }
 >("auth/register", async (payload, { rejectWithValue }) => {
   try {
-    const res = await axiosClient.post<UserInfo>("/auth/register", payload);
+    const res = await axiosAuthClient.post<UserInfo>("/auth/register", payload);
     return { user: res.data };
   } catch (err: unknown) {
     return rejectWithValue(extractAxiosErrorMessage(err));
@@ -50,50 +38,40 @@ export const registerUser = createAsyncThunk<
 });
 
 export const loginUser = createAsyncThunk<
-  { token: string; user: UserInfo },
+  { user: UserInfo },
   { usernameOrEmail: string; password: string },
   { rejectValue: string }
 >("auth/login", async (payload, { rejectWithValue }) => {
   try {
-    const res = await axiosClient.post<{ token: string; user: UserInfo }>(
-      "/auth/login",
-      payload
-    );
-
-    const { token, user } = res.data;
-
-    if (!token || !user) {
-      return rejectWithValue("Invalid server response: missing token or user");
-    }
-
-    saveToken(token);
-    return { token, user };
+    const res = await axiosAuthClient.post<{ user: UserInfo }>("/auth/login", payload);
+    return res.data;
   } catch (err: unknown) {
     return rejectWithValue(extractAxiosErrorMessage(err));
   }
 });
 
-export const fetchMe = createAsyncThunk<
-  { user: UserInfo },
-  void,
-  { state: { auth: AuthState }; rejectValue: string }
->("auth/fetchMe", async (_, { getState, rejectWithValue }) => {
-  try {
-    const token = getState().auth.token ?? loadToken();
-    if (!token) return rejectWithValue("No token");
-
-    const res = await axiosClient.get<UserInfo>("/user/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    return { user: res.data };
-  } catch (err: unknown) {
-    const msg = extractAxiosErrorMessage(err);
-    const axiosError = err as AxiosError;
-    if (axiosError.response?.status === 401) saveToken(null);
-    return rejectWithValue(msg);
+export const logoutUser = createAsyncThunk<void, void, { rejectValue: string }>(
+  "auth/logout",
+  async (_, { rejectWithValue }) => {
+    try {
+      await axiosAuthClient.post("/auth/logout");
+    } catch (err: unknown) {
+      return rejectWithValue(extractAxiosErrorMessage(err));
+    }
   }
-});
+);
+
+export const fetchMe = createAsyncThunk<{ user: UserInfo }, void, { rejectValue: string }>(
+  "auth/fetchMe",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await axiosAuthClient.get<UserInfo>("/user/me");
+      return { user: res.data };
+    } catch (err: unknown) {
+      return rejectWithValue(extractAxiosErrorMessage(err));
+    }
+  }
+);
 
 export const updateUser = createAsyncThunk<
   { user: UserInfo },
@@ -104,27 +82,18 @@ export const updateUser = createAsyncThunk<
     favoriteDriversIds?: string[];
     favoriteTeamsIds?: string[];
   },
-  { state: { auth: AuthState }; rejectValue: string }
->("auth/updateUser", async (payload, { getState, rejectWithValue }) => {
+  { rejectValue: string }
+>("auth/updateUser", async (payload, { rejectWithValue }) => {
   try {
-    const token = getState().auth.token;
-    if (!token) return rejectWithValue("Unauthorized");
-
-    const res = await axiosClient.patch<UserInfo>("/user/me", payload, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
+    const res = await axiosAuthClient.patch<UserInfo>("/user/me", payload);
     return { user: res.data };
   } catch (err: unknown) {
-    const msg = extractAxiosErrorMessage(err);
-    const axiosError = err as AxiosError;
-    if (axiosError.response?.status === 401) saveToken(null);
-    return rejectWithValue(msg);
+    return rejectWithValue(extractAxiosErrorMessage(err));
   }
 });
 
 const initialState: AuthState = {
-  token: typeof window !== "undefined" ? loadToken() : null,
+  token: null,
   user: null,
   status: "idle",
   error: null,
@@ -135,21 +104,15 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    setUser(
-      state,
-      action: PayloadAction<{ token: string | null; user: UserInfo | null }>
-    ) {
-      state.token = action.payload.token;
+    setUser(state, action: PayloadAction<{ user: UserInfo | null }>) {
       state.user = action.payload.user;
       state.error = null;
-      if (action.payload.token) saveToken(action.payload.token);
     },
     logout(state) {
       state.token = null;
       state.user = null;
       state.status = "idle";
       state.error = null;
-      saveToken(null);
     },
   },
   extraReducers: (builder) => {
@@ -171,12 +134,25 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.token = action.payload.token;
         state.user = action.payload.user;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload ?? action.error.message ?? "Login failed";
+        state.error = (action.payload ?? action.error.message ?? "Login failed") as string;
+      })
+      .addCase(logoutUser.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.status = "idle";
+        state.user = null;
+        state.error = null;
+      })
+      .addCase(logoutUser.rejected, (state, action) => {
+        state.status = "failed";
+        state.user = null;
+        state.error = action.payload ?? action.error.message ?? "Logout failed";
       })
       .addCase(fetchMe.pending, (state) => {
         state.status = "loading";
@@ -187,16 +163,18 @@ const authSlice = createSlice({
         state.user = action.payload.user;
       })
       .addCase(fetchMe.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload ?? action.error.message ?? "Fetch user failed";
+        const message = action.payload ?? action.error.message ?? "Fetch user failed";
         if (
-          action.payload &&
-          (action.payload.toLowerCase().includes("unauthorized") ||
-            action.payload.toLowerCase().includes("no token"))
+          typeof message === "string" &&
+          (message.toLowerCase().includes("unauthorized") || message.toLowerCase().includes("no auth token"))
         ) {
-          state.token = null;
+          state.status = "idle";
+          state.error = null;
           state.user = null;
-          saveToken(null);
+        } else {
+          state.status = "failed";
+          state.error = message;
+          state.user = null;
         }
       })
       .addCase(updateUser.pending, (state) => {
@@ -211,9 +189,7 @@ const authSlice = createSlice({
         state.status = "failed";
         state.error = action.payload ?? action.error.message ?? "Update user failed";
         if (action.payload?.toLowerCase().includes("unauthorized")) {
-          state.token = null;
           state.user = null;
-          saveToken(null);
         }
       });
   },

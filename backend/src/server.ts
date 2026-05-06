@@ -16,10 +16,28 @@ dotenv.config();
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  process.env.FRONTEND_URL ?? "https://f1-kz-frontend.vercel.app",
+];
+
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://f1-kz-frontend.vercel.app"],
-    // origin: true,
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+
+      try {
+        const originUrl = new URL(origin);
+        const hostname = originUrl.hostname;
+        if (allowedOrigins.includes(origin) || hostname.endsWith(".vercel.app")) {
+          return callback(null, true);
+        }
+      } catch (error) {
+        logger.error("CORS origin parse failed:", error);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
@@ -47,17 +65,17 @@ app.use((req, res, next) => {
   next();
 });
 // При пуше надо закомментировать код ниже, так как он не работает в среде Vercel, которая не позволяет открывать порты. В Vercel функция handler будет обрабатывать входящие запросы.
-// const PORT = process.env.PORT;
+const PORT = process.env.PORT;
 
-// const server = app.listen(PORT, () => {
-//   logger.info(`Server is running on port ${PORT}`);
-// });
+const server = app.listen(PORT, () => {
+  logger.info(`Server is running on port ${PORT}`);
+});
 
-// process.on("SIGINT", async () => {
-//   logger.info("Shutting down...");
-//   await prisma.$disconnect();
-//   server.close(() => process.exit(0));
-// });
+process.on("SIGINT", async () => {
+  logger.info("Shutting down...");
+  await prisma.$disconnect();
+  server.close(() => process.exit(0));
+});
 // До сюда
 export default function handler(req: Request, res: Response) {
   app(req, res);

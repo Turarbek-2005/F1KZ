@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import { logout } from "@/entities/auth/model/authSlice";
+import { logout, logoutUser } from "@/entities/auth/model/authSlice";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
 import { useRouter } from "next/navigation";
 import {
@@ -37,7 +37,13 @@ export function Header() {
   const auth = useAppSelector((s) => s.auth);
   const dispatch = useAppDispatch();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await dispatch(logoutUser()).unwrap();
+    } catch {
+      // ignore failure, still clear frontend auth state
+    }
+
     dispatch(logout());
     router.push("/login");
   };
