@@ -65,17 +65,17 @@ app.use((req, res, next) => {
   next();
 });
 // При пуше надо закомментировать код ниже, так как он не работает в среде Vercel, которая не позволяет открывать порты. В Vercel функция handler будет обрабатывать входящие запросы.
-const PORT = process.env.PORT;
+// const PORT = process.env.PORT;
 
-const server = app.listen(PORT, () => {
-  logger.info(`Server is running on port ${PORT}`);
-});
+// const server = app.listen(PORT, () => {
+//   logger.info(`Server is running on port ${PORT}`);
+// });
 
-process.on("SIGINT", async () => {
-  logger.info("Shutting down...");
-  await prisma.$disconnect();
-  server.close(() => process.exit(0));
-});
+// process.on("SIGINT", async () => {
+//   logger.info("Shutting down...");
+//   await prisma.$disconnect();
+//   server.close(() => process.exit(0));
+// });
 // До сюда
 export default function handler(req: Request, res: Response) {
   app(req, res);
