@@ -36,25 +36,44 @@ const axiosBaseQuery =
     AxiosBaseQueryError
   > =>
   async ({ url, method = "get", data, params }) => {
-    try {
-      const res = await axiosClient.request({
-        url,
-        method,
-        data,
-        params,
-      });
+    const maxAttempts = 2;
+    let attempt = 0;
 
-      return { data: res.data };
-    } catch (error) {
-      const err = error as AxiosError;
+    while (attempt <= maxAttempts) {
+      attempt += 1;
 
-      return {
-        error: {
-          status: err.response?.status ?? 500,
-          data: err.response?.data ?? err.message,
-        },
-      };
+      try {
+        const res = await axiosClient.request({
+          url,
+          method,
+          data,
+          params,
+        });
+
+        return { data: res.data };
+      } catch (error) {
+        const err = error as AxiosError;
+        const status = err.response?.status ?? 500;
+
+        if (attempt > maxAttempts) {
+          return {
+            error: {
+              status,
+              data: err.response?.data ?? err.message,
+            },
+          };
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 150 * attempt));
+      }
     }
+
+    return {
+      error: {
+        status: 500,
+        data: "Unknown error",
+      },
+    };
   };
 
 
