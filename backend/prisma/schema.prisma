@@ -1,10 +1,13 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["omitApi"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  // For Supabase, connection pooling is handled by the pooler
+  // Pool settings: max 4 connections for Session mode, 1-2 for serverless
 }
 
 model User {

@@ -2,6 +2,7 @@ import "dotenv/config";
 import bcrypt from "bcryptjs";
 import * as jwt from "jsonwebtoken";
 import { prisma } from "../prisma";
+import { withRetry } from "../utils/retry";
 import { RegisterDto } from "../dto/auth.dto";
 
 const JWT_SECRET: jwt.Secret = process.env.JWT_SECRET ?? "secret";
@@ -13,33 +14,55 @@ const JWT_EXPIRES_IN: jwt.SignOptions["expiresIn"] = process.env.JWT_EXPIRES_IN 
 
 export class AuthService {
   async register(data: RegisterDto) {
-    const existingEmail = await prisma.user.findUnique({ where: { email: data.email } });
+    const existingEmail = await withRetry(
+      () => prisma.user.findUnique({ where: { email: data.email } }),
+      { maxAttempts: 2, delayMs: 50 }
+    );
     if (existingEmail) throw { status: 409, message: "Email already in use" };
 
-    const existingUsername = await prisma.user.findUnique({ where: { username: data.username } });
+    const existingUsername = await withRetry(
+      () => prisma.user.findUnique({ where: { username: data.username } }),
+      { maxAttempts: 2, delayMs: 50 }
+    );
     if (existingUsername) throw { status: 409, message: "Username already in use" };
 
     const hash = await bcrypt.hash(data.password, 10);
-    const user = await prisma.user.create({
-      data: {
-        email: data.email,
-        username: data.username,
-        password: hash,
-        favoriteDriversIds: data.favoriteDriversIds,
-        favoriteTeamsIds: data.favoriteTeamsIds,
-      },
-      select: { id: true, email: true, username: true, favoriteDriversIds: true, favoriteTeamsIds: true, createdAt: true, updatedAt: true },
-    });
+    const user = await withRetry(
+      () =>
+        prisma.user.create({
+          data: {
+            email: data.email,
+            username: data.username,
+            password: hash,
+            favoriteDriversIds: data.favoriteDriversIds,
+            favoriteTeamsIds: data.favoriteTeamsIds,
+          },
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            favoriteDriversIds: true,
+            favoriteTeamsIds: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        }),
+      { maxAttempts: 3, delayMs: 100 }
+    );
 
     return user;
   }
 
   async login(usernameOrEmail: string, password: string) {
-    const user = await prisma.user.findFirst({
-      where: {
-        OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
-      },
-    });
+    const user = await withRetry(
+      () =>
+        prisma.user.findFirst({
+          where: {
+            OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
+          },
+        }),
+      { maxAttempts: 2, delayMs: 50 }
+    );
 
     if (!user) throw { status: 401, message: "Invalid credentials" };
 
