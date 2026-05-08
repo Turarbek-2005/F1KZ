@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../prisma";
 import { withRetry } from "../utils/retry";
+import { logger } from "../utils/log";
 
 export async function getDrivers(req: Request, res: Response) {
   try {
@@ -10,6 +11,7 @@ export async function getDrivers(req: Request, res: Response) {
     });
     res.json(drivers);
   } catch (error) {
+    logger.error("getDrivers failed:", error);
     res.status(500).json({ message: "Error fetching drivers" });
   }
 }
@@ -22,6 +24,7 @@ export async function getTeams(req: Request, res: Response) {
     });
     res.json(teams);
   } catch (error) {
+    logger.error("getTeams failed:", error);
     res.status(500).json({ message: "Error fetching teams" });
   }
 }
