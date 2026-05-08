@@ -39,6 +39,7 @@ export async function withRetry<T>(
         lastError.message.includes("P1001") ||
         lastError.message.includes("P1008") ||
         lastError.message.includes("P2024") ||
+        lastError.message.includes("42P05") ||
         ("code" in lastError &&
           ["P1001", "P1008", "P2024"].includes((lastError as any).code));
 
