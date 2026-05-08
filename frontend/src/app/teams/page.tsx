@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -47,24 +47,42 @@ export default function Teams() {
   const teams = useAppSelector(selectAllTeams);
   const driversStatus = useAppSelector((state: RootState) => state.drivers.status);
   const teamsStatus = useAppSelector((state: RootState) => state.teams.status);
+  const driversRetry = useRef(0);
+  const teamsRetry = useRef(0);
+  const MAX_RETRIES = 2;
 
   const sortedDrivers = [...drivers].sort((a, b) => a.id - b.id);
   const sortedTeams = [...teams].sort((a, b) => a.id - b.id);
 
   useEffect(() => {
     if (driversStatus === "idle") {
+      driversRetry.current = 0;
       dispatch(fetchDrivers());
+    } else if (driversStatus === "failed" && driversRetry.current < MAX_RETRIES) {
+      driversRetry.current += 1;
+      const timer = setTimeout(() => dispatch(fetchDrivers()), 1000 * driversRetry.current);
+      return () => clearTimeout(timer);
     }
+  }, [dispatch, driversStatus]);
+
+  useEffect(() => {
     if (teamsStatus === "idle") {
+      teamsRetry.current = 0;
       dispatch(fetchTeams());
+    } else if (teamsStatus === "failed" && teamsRetry.current < MAX_RETRIES) {
+      teamsRetry.current += 1;
+      const timer = setTimeout(() => dispatch(fetchTeams()), 1000 * teamsRetry.current);
+      return () => clearTimeout(timer);
     }
-  }, [dispatch, driversStatus, teamsStatus]);
+  }, [dispatch, teamsStatus]);
 
   const isStoreLoading =
     driversStatus === "idle" ||
     driversStatus === "loading" ||
+    (driversStatus === "failed" && driversRetry.current < MAX_RETRIES) ||
     teamsStatus === "idle" ||
-    teamsStatus === "loading";
+    teamsStatus === "loading" ||
+    (teamsStatus === "failed" && teamsRetry.current < MAX_RETRIES);
 
   if (isLoadingDrivers || isLoadingTeams || isStoreLoading) {
     return (

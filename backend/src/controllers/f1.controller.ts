@@ -5,8 +5,8 @@ import { withRetry } from "../utils/retry";
 export async function getDrivers(req: Request, res: Response) {
   try {
     const drivers = await withRetry(() => prisma.driver.findMany(), {
-      maxAttempts: 3,
-      delayMs: 100,
+      maxAttempts: 4,
+      delayMs: 500,
     });
     res.json(drivers);
   } catch (error) {
@@ -17,8 +17,8 @@ export async function getDrivers(req: Request, res: Response) {
 export async function getTeams(req: Request, res: Response) {
   try {
     const teams = await withRetry(() => prisma.team.findMany(), {
-      maxAttempts: 3,
-      delayMs: 100,
+      maxAttempts: 4,
+      delayMs: 500,
     });
     res.json(teams);
   } catch (error) {

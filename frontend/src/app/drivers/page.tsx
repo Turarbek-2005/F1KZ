@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -41,17 +41,26 @@ export default function Drivers() {
   const dispatch = useAppDispatch();
   const drivers = useAppSelector(selectAllDrivers);
   const driversStatus = useAppSelector((state: RootState) => state.drivers.status);
+  const retryCount = useRef(0);
+  const MAX_RETRIES = 2;
 
   const sortedDrivers = [...drivers].sort((a, b) => a.id - b.id);
 
   useEffect(() => {
     if (driversStatus === "idle") {
+      retryCount.current = 0;
       dispatch(fetchDrivers());
+    } else if (driversStatus === "failed" && retryCount.current < MAX_RETRIES) {
+      retryCount.current += 1;
+      const delay = 1000 * retryCount.current;
+      const timer = setTimeout(() => dispatch(fetchDrivers()), delay);
+      return () => clearTimeout(timer);
     }
   }, [dispatch, driversStatus]);
 
   const isStoreLoading =
-    driversStatus === "idle" || driversStatus === "loading";
+    driversStatus === "idle" || driversStatus === "loading" ||
+    (driversStatus === "failed" && retryCount.current < MAX_RETRIES);
 
   if (driversLoading || teamsLoading || isStoreLoading) {
     return (

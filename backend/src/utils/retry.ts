@@ -35,7 +35,12 @@ export async function withRetry<T>(
         lastError.message.includes("ECONNREFUSED") ||
         lastError.message.includes("ETIMEDOUT") ||
         lastError.message.includes("connection") ||
-        lastError.message.includes("timeout");
+        lastError.message.includes("timeout") ||
+        lastError.message.includes("P1001") ||
+        lastError.message.includes("P1008") ||
+        lastError.message.includes("P2024") ||
+        ("code" in lastError &&
+          ["P1001", "P1008", "P2024"].includes((lastError as any).code));
 
       if (attempt === maxAttempts || !isTransient) {
         throw error;
