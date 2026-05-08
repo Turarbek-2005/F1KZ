@@ -29,7 +29,10 @@ app.use(
       try {
         const originUrl = new URL(origin);
         const hostname = originUrl.hostname;
-        if (allowedOrigins.includes(origin) || hostname.endsWith(".vercel.app")) {
+        if (
+          allowedOrigins.includes(origin) ||
+          hostname.endsWith(".vercel.app")
+        ) {
           return callback(null, true);
         }
       } catch (error) {
@@ -39,14 +42,14 @@ app.use(
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
-  })
+  }),
 );
 
 app.use(helmet());
 app.use(compression());
 app.use(express.json());
 
-app.use("/api/f1api",  f1apiRouter);
+app.use("/api/f1api", f1apiRouter);
 app.use("/api/f1", f1Router);
 app.use("/api/auth", authRouter);
 app.use("/api/user", authMiddleware, userRouter);
@@ -61,21 +64,21 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).send({ message: "Something went wrong!" });
 });
 app.use((req, res, next) => {
-  console.log('Origin:', req.headers.origin);
+  console.log("Origin:", req.headers.origin);
   next();
 });
 // При пуше надо закомментировать код ниже, так как он не работает в среде Vercel, которая не позволяет открывать порты. В Vercel функция handler будет обрабатывать входящие запросы.
-const PORT = process.env.PORT;
+// const PORT = process.env.PORT;
 
-const server = app.listen(PORT, () => {
-  logger.info(`Server is running on port ${PORT}`);
-});
+// const server = app.listen(PORT, () => {
+//   logger.info(`Server is running on port ${PORT}`);
+// });
 
-process.on("SIGINT", async () => {
-  logger.info("Shutting down...");
-  await prisma.$disconnect();
-  server.close(() => process.exit(0));
-});
+// process.on("SIGINT", async () => {
+//   logger.info("Shutting down...");
+//   await prisma.$disconnect();
+//   server.close(() => process.exit(0));
+// });
 // До сюда
 export default function handler(req: Request, res: Response) {
   app(req, res);
