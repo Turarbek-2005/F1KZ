@@ -36,26 +36,17 @@ export const generateNews = createAsyncThunk<
   { rejectValue: string }
 >("ai/generateNews", async (payload, { rejectWithValue }) => {
   try {
-    console.log("[AI] generateNews payload:", payload);
-
     const res = await axiosClient.post<{ news: string | NewsItem[] }>(
       "/ai/generate-news",
       { prompt: payload.prompt }
     );
 
-    console.log("[AI] Raw axios response:", res);
-    console.log("[AI] res.data:", res.data);
-    console.log("[AI] res.data.news (raw):", res.data.news);
-
     const raw = res.data.news;
     let newsArr: NewsItem[] | null = null;
 
     if (typeof raw === "string") {
-      console.log("[AI] news is STRING, trying JSON.parse");
-
       try {
         const parsed = JSON.parse(raw);
-        console.log("[AI] Parsed JSON:", parsed);
 
         if (Array.isArray(parsed)) {
           newsArr = parsed;
@@ -66,12 +57,9 @@ export const generateNews = createAsyncThunk<
         ) {
           newsArr = (parsed as any).news as NewsItem[];
         } else {
-          console.error("[AI] Invalid JSON structure:", parsed);
           return rejectWithValue("Invalid JSON structure in response");
         }
-      } catch (e) {
-        console.warn("[AI] JSON.parse failed, using fallback", e);
-
+      } catch {
         newsArr = [
           {
             title: payload.prompt || "AI Generated News",
@@ -82,41 +70,30 @@ export const generateNews = createAsyncThunk<
         ];
       }
     } else if (Array.isArray(raw)) {
-      console.log("[AI] news is ARRAY");
       newsArr = raw;
     } else if (
       raw &&
       typeof raw === "object" &&
       Array.isArray((raw as any).news)
     ) {
-      console.log("[AI] news is OBJECT with news[]");
       newsArr = (raw as any).news as NewsItem[];
     } else {
-      console.error("[AI] Unexpected response format:", raw);
       return rejectWithValue("Unexpected response format from server");
     }
 
-    console.log("[AI] Final parsed newsArr:", newsArr);
-
     if (!newsArr || newsArr.length === 0) {
-      console.error("[AI] newsArr empty or null");
       return rejectWithValue("No news items returned");
     }
 
     for (const item of newsArr) {
       if (!item.title || !item.date) {
-        console.error("[AI] Malformed news item:", item);
         return rejectWithValue("Malformed news item in response");
       }
     }
 
-    console.log("[AI] generateNews SUCCESS");
     return newsArr;
   } catch (err: unknown) {
-    console.error("[AI] generateNews ERROR:", err);
-
     if (axios.isAxiosError<ApiErrorResponse>(err)) {
-      console.error("[AI] Axios error response:", err.response);
       const msg =
         err.response?.data?.error ||
         err.response?.data?.message ||

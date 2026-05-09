@@ -86,11 +86,6 @@ export default function Schedule() {
   const nextRaceFirst = racesNext?.race?.[0];
   const racesList = races?.races;
 
-  useEffect(() => {
-    console.log("Races:", races);
-    console.log("Last Race:", racesLast);
-    console.log("Next Race:", racesNext);
-  }, [races, racesLast, racesNext]);
 
   const isStoreLoading =
     driversStatus === "idle" || driversStatus === "loading";

@@ -27,7 +27,6 @@ export default function GenerateNews() {
           'Ты — спортивный новостной редактор сайта о Formula 1. Сгенерируй актуальные новости Формулы-1 2026 в нейтральном журналистском стиле.\n\nТребования:\n- Пиши КРАТКО и по делу\n- Без художественных вступлений и рассуждений\n- Без Markdown\n- Только факты\n- Дата считается текущей\n\nФормат ответа СТРОГО JSON:\n{\n  "news": [\n    {\n      "title": "Заголовок новости",\n      "summary": "Краткое описание (2–3 предложения)",\n      "category": "race | transfers | teams | drivers | technical",\n      "date": "YYYY-MM-DD"\n    }\n  ]\n}\n\nКоличество новостей: 5',
       }),
     );
-    console.log(news, status, error);
   };
 
   return (

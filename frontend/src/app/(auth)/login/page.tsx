@@ -24,7 +24,6 @@ export default function Login() {
   const loading = auth.status === "loading";
 
   useEffect(() => {
-    console.log("Auth user:", user); 
     if (user) {
       router.push("/");
     }
@@ -44,7 +43,6 @@ export default function Login() {
     );
 
     if (loginUser.fulfilled.match(res)) {
-      console.log(res);
       router.push("/");
     } else {
       const msg = (res.payload as string) || res.error?.message || "Login failed";
