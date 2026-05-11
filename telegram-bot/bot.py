@@ -1,7 +1,7 @@
 import os
 import logging
 from collections import defaultdict
-from anthropic import Anthropic
+import google.generativeai as genai
 from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
@@ -17,26 +17,32 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-ANTHROPIC_KEY = os.environ["ANTHROPIC_API_KEY"]
+GEMINI_KEY = os.environ["GEMINI_API_KEY"]
 BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 MAX_HISTORY = int(os.getenv("MAX_HISTORY", "20"))
-MODEL = os.getenv("CLAUDE_MODEL", "claude-opus-4-7")
-MAX_TOKENS = int(os.getenv("MAX_TOKENS", "2048"))
+MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
 SYSTEM_PROMPT = os.getenv(
     "SYSTEM_PROMPT",
     "You are a helpful assistant. Answer concisely and clearly.",
 )
 
-client = Anthropic(api_key=ANTHROPIC_KEY)
+genai.configure(api_key=GEMINI_KEY)
+model = genai.GenerativeModel(model_name=MODEL, system_instruction=SYSTEM_PROMPT)
+
+# history per chat_id: list of {"role": "user"|"model", "parts": [str]}
 histories: dict[int, list[dict]] = defaultdict(list)
+
+
+def build_chat(chat_id: int) -> genai.ChatSession:
+    return model.start_chat(history=histories[chat_id])
 
 
 async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
-        "👋 Hi! I'm powered by Claude.\n\n"
+        "👋 Hi! I'm powered by Google Gemini.\n\n"
         "Just send me any message and I'll respond.\n"
         "/reset — clear conversation history\n"
-        "/info — show current settings"
+        "/info  — show current settings"
     )
 
 
@@ -52,8 +58,7 @@ async def info(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
         f"🤖 Model: `{MODEL}`\n"
         f"💬 History: {turns} messages\n"
-        f"📏 Max history: {MAX_HISTORY} messages\n"
-        f"🔢 Max tokens: {MAX_TOKENS}",
+        f"📏 Max history: {MAX_HISTORY} messages",
         parse_mode="Markdown",
     )
 
@@ -64,29 +69,23 @@ async def handle_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None
 
     await ctx.bot.send_chat_action(chat_id=chat_id, action="typing")
 
-    history = histories[chat_id]
-    history.append({"role": "user", "content": user_text})
-
-    # Keep history within limit
-    if len(history) > MAX_HISTORY:
-        histories[chat_id] = history[-MAX_HISTORY:]
-
     try:
-        response = client.messages.create(
-            model=MODEL,
-            max_tokens=MAX_TOKENS,
-            system=SYSTEM_PROMPT,
-            messages=histories[chat_id],
-        )
-        reply = response.content[0].text
-        history.append({"role": "assistant", "content": reply})
+        chat = build_chat(chat_id)
+        response = chat.send_message(user_text)
+        reply = response.text
 
-        # Telegram message limit is 4096 chars — split if needed
+        # Update stored history from the chat session
+        histories[chat_id] = list(chat.history)
+        # Trim to limit
+        if len(histories[chat_id]) > MAX_HISTORY:
+            histories[chat_id] = histories[chat_id][-MAX_HISTORY:]
+
+        # Telegram message limit is 4096 chars
         for i in range(0, len(reply), 4096):
             await update.message.reply_text(reply[i : i + 4096])
 
     except Exception as e:
-        logger.error("Claude API error: %s", e)
+        logger.error("Gemini API error: %s", e)
         await update.message.reply_text(
             "⚠️ Something went wrong. Please try again."
         )
@@ -99,7 +98,7 @@ def main() -> None:
     app.add_handler(CommandHandler("info", info))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    logger.info("Bot started. Polling...")
+    logger.info("Bot started with model: %s", MODEL)
     app.run_polling(drop_pending_updates=True)
 
 
