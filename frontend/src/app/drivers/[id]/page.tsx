@@ -31,9 +31,9 @@ import {
   TableRow,
   TableHead,
 } from "@/shared/ui/table";
+import { DriverPointsChart } from "@/features/charts/ui/DriverPointsChart";
 import { cn } from "@/shared/lib/utils";
 import { grapeNuts } from "@/app/fonts";
-
 
 export default function Driver() {
   const params = useParams();
@@ -351,6 +351,13 @@ export default function Driver() {
               </TableBody>
             </Table>
           </div>
+
+          {(driverApi?.results ?? []).length > 0 && (
+            <div className="mb-6">
+              <h4 className="text-lg font-medium mb-3">Points Progression</h4>
+              <DriverPointsChart results={driverApi?.results ?? []} />
+            </div>
+          )}
 
           <h4 className="text-lg font-medium mb-2">All Round Results</h4>
           <div className="overflow-x-auto rounded-md">

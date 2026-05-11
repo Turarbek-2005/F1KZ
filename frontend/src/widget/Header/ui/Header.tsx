@@ -21,6 +21,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/shared/ui/sheet";
+import { GlobalSearch } from "@/features/search/ui/GlobalSearch";
+
 export function Header() {
   const currentYear = new Date().getFullYear();
   const links = [
@@ -61,7 +63,8 @@ export function Header() {
           />
         </Link>
         <Navbar />
-        <div className="hidden md:flex gap-3">
+        <div className="hidden md:flex gap-3 items-center">
+          <GlobalSearch />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon">
@@ -105,7 +108,8 @@ export function Header() {
             </Link>
           )}
         </div>
-        <div className="md:hidden">
+        <div className="md:hidden flex items-center gap-2">
+          <GlobalSearch />
   <Sheet>
     <SheetTrigger asChild>
       <button className="h-6 w-6">
@@ -176,7 +180,7 @@ export function Header() {
       </div>
     </SheetContent>
   </Sheet>
-</div>
+        </div>
 
       </div>
     </header>
