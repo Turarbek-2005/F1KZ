@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import { cn } from "@/shared/lib/utils";
+import { grapeNuts } from "@/app/fonts";
 
 function safeTeamVar(teamId?: string) {
   if (!teamId) return undefined;
@@ -39,18 +40,16 @@ function calcStats(results: DriverResultEntry[]) {
       Number(r.result?.finishingPosition) <= 3
   ).length;
   const dnfs = results.filter(
-    (r) => r.result?.finishingPosition === "DNF" || r.result?.finishingPosition === "DNS"
+    (r) =>
+      r.result?.finishingPosition === "DNF" ||
+      r.result?.finishingPosition === "DNS"
   ).length;
-  const totalPoints = results.reduce(
-    (acc, r) => acc + (r.result?.pointsObtained ?? 0),
-    0
-  );
   const bestFinish = results.reduce<number | null>((best, r) => {
     const pos = Number(r.result?.finishingPosition);
     if (!isNaN(pos) && pos > 0 && (best === null || pos < best)) return pos;
     return best;
   }, null);
-  return { races, wins, podiums, dnfs, totalPoints, bestFinish };
+  return { races, wins, podiums, dnfs, bestFinish };
 }
 
 interface StatRowProps {
@@ -63,25 +62,25 @@ interface StatRowProps {
 function StatRow({ label, valA, valB, higherIsBetter = true }: StatRowProps) {
   const a = Number(valA);
   const b = Number(valB);
-  const aWins = !isNaN(a) && !isNaN(b) && (higherIsBetter ? a > b : a < b);
-  const bWins = !isNaN(a) && !isNaN(b) && (higherIsBetter ? b > a : b < a);
+  const aWins = !isNaN(a) && !isNaN(b) && a !== b && (higherIsBetter ? a > b : a < b);
+  const bWins = !isNaN(a) && !isNaN(b) && a !== b && (higherIsBetter ? b > a : b < a);
 
   return (
     <div className="grid grid-cols-3 items-center py-3 border-b border-white/8 last:border-0">
       <span
         className={cn(
-          "text-sm sm:text-base font-semibold text-right pr-4",
+          "text-sm sm:text-base font-bold text-right pr-3 sm:pr-6 tabular-nums",
           aWins && "text-red-400"
         )}
       >
         {valA}
       </span>
-      <span className="text-xs text-center text-gray-400 uppercase tracking-wide">
+      <span className="text-[10px] sm:text-xs text-center text-gray-400 uppercase tracking-wide px-1">
         {label}
       </span>
       <span
         className={cn(
-          "text-sm sm:text-base font-semibold text-left pl-4",
+          "text-sm sm:text-base font-bold text-left pl-3 sm:pl-6 tabular-nums",
           bWins && "text-red-400"
         )}
       >
@@ -92,10 +91,10 @@ function StatRow({ label, valA, valB, higherIsBetter = true }: StatRowProps) {
 }
 
 interface DriverCardProps {
-  driverId: string;
   apiData: DriverByIdResponse;
   imgUrl?: string;
   nationalityImgUrl?: string;
+  nationality?: string;
   standing?: { position?: number; points?: number };
 }
 
@@ -103,49 +102,70 @@ function DriverCard({
   apiData,
   imgUrl,
   nationalityImgUrl,
+  nationality,
   standing,
 }: DriverCardProps) {
   const teamId = apiData.team?.teamId ?? apiData.driver?.teamId ?? "";
+
   return (
     <div
-      className="relative rounded-2xl overflow-hidden h-52 flex flex-col justify-end p-4"
+      className="relative rounded-xl overflow-hidden h-52 sm:h-64 md:h-72 cursor-default p-4 flex flex-col justify-between"
       style={{ background: safeTeamVar(teamId) ?? "rgba(255,255,255,0.05)" }}
     >
+      {/* Text content */}
+      <div className="flex flex-col z-10 relative">
+        <span className="text-lg sm:text-2xl font-bold leading-tight text-white drop-shadow">
+          {apiData.driver?.name}
+        </span>
+        <span className="text-lg sm:text-2xl font-bold leading-tight text-white drop-shadow">
+          {apiData.driver?.surname}
+        </span>
+        <span className="text-xs sm:text-sm text-white/70 mt-0.5">
+          {apiData.team?.teamName}
+        </span>
+        <span
+          className={cn(
+            grapeNuts.className,
+            "text-3xl sm:text-4xl font-medium mt-1 text-white"
+          )}
+        >
+          {apiData.driver?.number}
+        </span>
+      </div>
+
+      {/* Bottom: flag + standing */}
+      <div className="flex items-center gap-2 z-10 relative">
+        {nationalityImgUrl && (
+          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full overflow-hidden border-2 border-white/60 shrink-0">
+            <Image
+              src={nationalityImgUrl}
+              alt="flag"
+              width={28}
+              height={28}
+              className="object-cover w-full h-full"
+            />
+          </div>
+        )}
+        <span className="text-xs text-white/70">{nationality}</span>
+        {standing?.position && (
+          <span className="ml-auto text-xs text-white/60">
+            P{standing.position} · {standing.points} pts
+          </span>
+        )}
+      </div>
+
+      {/* Driver photo — same style as /drivers page */}
       {imgUrl && (
-        <div className="absolute bottom-0 right-4 w-32 h-44 pointer-events-none">
+        <div className="w-28 sm:w-36 md:w-44 h-44 sm:h-56 md:h-68 overflow-hidden absolute bottom-0 right-[10%] sm:right-[8%]">
           <Image
             src={imgUrl}
-            alt={apiData.driver?.driverId ?? "driver"}
-            fill
-            className="object-cover object-top"
+            alt={apiData.driver?.surname ?? "driver"}
+            width={176}
+            height={272}
+            className="object-cover object-top w-full h-full"
           />
         </div>
       )}
-      <div className="relative z-10">
-        <div className="flex items-center gap-2 mb-1">
-          {nationalityImgUrl && (
-            <div className="w-5 h-5 rounded-full overflow-hidden border border-white/40">
-              <Image
-                src={nationalityImgUrl}
-                alt="flag"
-                width={20}
-                height={20}
-                className="object-cover w-full h-full"
-              />
-            </div>
-          )}
-          <span className="text-xs text-white/70">{apiData.driver?.nationality}</span>
-        </div>
-        <p className="text-xl font-extrabold leading-tight text-white drop-shadow">
-          {apiData.driver?.name} {apiData.driver?.surname}
-        </p>
-        <p className="text-sm text-white/70">{apiData.team?.teamName}</p>
-        {standing?.position && (
-          <p className="text-xs text-white/50 mt-1">
-            P{standing.position} · {standing.points} pts
-          </p>
-        )}
-      </div>
     </div>
   );
 }
@@ -175,8 +195,8 @@ export default function ComparePage() {
   const standingA = standings.find((s) => s.driverId === driverAId);
   const standingB = standings.find((s) => s.driverId === driverBId);
 
-  const driverAImg = drivers.find((d) => d.driverId === driverAId);
-  const driverBImg = drivers.find((d) => d.driverId === driverBId);
+  const driverAMeta = drivers.find((d) => d.driverId === driverAId);
+  const driverBMeta = drivers.find((d) => d.driverId === driverBId);
 
   const statsA = driverAData ? calcStats(driverAData.results ?? []) : null;
   const statsB = driverBData ? calcStats(driverBData.results ?? []) : null;
@@ -190,7 +210,7 @@ export default function ComparePage() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="text-4xl font-extrabold mt-4 mb-8"
+        className="text-3xl sm:text-4xl font-extrabold mt-4 mb-6 sm:mb-8"
       >
         Driver Comparison
       </motion.h2>
@@ -204,14 +224,14 @@ export default function ComparePage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="grid grid-cols-2 gap-4 mb-8"
+          className="grid grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8"
         >
           <div>
-            <p className="text-xs uppercase tracking-widest text-gray-400 mb-2">
+            <p className="text-[10px] sm:text-xs uppercase tracking-widest text-gray-400 mb-1.5">
               Driver A
             </p>
             <Select value={driverAId} onValueChange={setDriverAId}>
-              <SelectTrigger>
+              <SelectTrigger className="text-xs sm:text-sm">
                 <SelectValue placeholder="Select driver..." />
               </SelectTrigger>
               <SelectContent>
@@ -229,11 +249,11 @@ export default function ComparePage() {
           </div>
 
           <div>
-            <p className="text-xs uppercase tracking-widest text-gray-400 mb-2">
+            <p className="text-[10px] sm:text-xs uppercase tracking-widest text-gray-400 mb-1.5">
               Driver B
             </p>
             <Select value={driverBId} onValueChange={setDriverBId}>
-              <SelectTrigger>
+              <SelectTrigger className="text-xs sm:text-sm">
                 <SelectValue placeholder="Select driver..." />
               </SelectTrigger>
               <SelectContent>
@@ -252,8 +272,8 @@ export default function ComparePage() {
         </motion.div>
       )}
 
-      {!driverAId && !driverBId && (
-        <p className="text-center text-gray-400 mt-16 text-lg">
+      {!driverAId && !driverBId && !driversLoading && (
+        <p className="text-center text-gray-400 mt-16 text-base sm:text-lg">
           Select two drivers to compare their stats
         </p>
       )}
@@ -269,26 +289,27 @@ export default function ComparePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
+          className="space-y-4 sm:space-y-6"
         >
-          <div className="grid grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <DriverCard
-              driverId={driverAId}
               apiData={driverAData!}
-              imgUrl={driverAImg?.imgUrl}
-              nationalityImgUrl={driverAImg?.nationalityImgUrl}
+              imgUrl={driverAMeta?.imgUrl}
+              nationalityImgUrl={driverAMeta?.nationalityImgUrl}
+              nationality={driverAMeta?.nationality}
               standing={standingA}
             />
             <DriverCard
-              driverId={driverBId}
               apiData={driverBData!}
-              imgUrl={driverBImg?.imgUrl}
-              nationalityImgUrl={driverBImg?.nationalityImgUrl}
+              imgUrl={driverBMeta?.imgUrl}
+              nationalityImgUrl={driverBMeta?.nationalityImgUrl}
+              nationality={driverBMeta?.nationality}
               standing={standingB}
             />
           </div>
 
-          <div className="bg-white/5 backdrop-blur rounded-2xl px-6 py-4 shadow-lg">
-            <h3 className="text-center text-xs uppercase tracking-widest text-gray-400 mb-4">
+          <div className="bg-white/5 backdrop-blur rounded-2xl px-4 sm:px-6 py-4 shadow-lg">
+            <h3 className="text-center text-[10px] sm:text-xs uppercase tracking-widest text-gray-400 mb-2">
               Season {driverAData!.season} Stats
             </h3>
 
@@ -316,7 +337,12 @@ export default function ComparePage() {
               valB={statsB!.bestFinish ?? "—"}
               higherIsBetter={false}
             />
-            <StatRow label="DNFs" valA={statsA!.dnfs} valB={statsB!.dnfs} higherIsBetter={false} />
+            <StatRow
+              label="DNFs"
+              valA={statsA!.dnfs}
+              valB={statsB!.dnfs}
+              higherIsBetter={false}
+            />
             <StatRow
               label="Number"
               valA={driverAData!.driver?.number ?? "—"}
