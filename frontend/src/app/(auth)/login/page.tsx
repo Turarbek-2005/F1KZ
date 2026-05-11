@@ -15,6 +15,7 @@ export default function Login() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const auth = useAppSelector((s) => s.auth);
+  const { user } = auth;
 
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,11 +24,10 @@ export default function Login() {
   const loading = auth.status === "loading";
 
   useEffect(() => {
-    console.log("Auth state:", auth);
-    if (auth.user) {
+    if (user) {
       router.push("/");
     }
-  }, [auth.user, router]);
+  }, [user, router]); 
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +43,6 @@ export default function Login() {
     );
 
     if (loginUser.fulfilled.match(res)) {
-      console.log(res)
       router.push("/");
     } else {
       const msg = (res.payload as string) || res.error?.message || "Login failed";
@@ -52,14 +51,14 @@ export default function Login() {
   };
 
   return (
-    <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-gradient-to-tr from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-colors">
+    <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-linear-to-tr from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-colors">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="flex flex-col md:flex-row h-80 md:h-100 bg-white/80 dark:bg-gray-900/60 backdrop-blur-lg rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700"
+        className="flex flex-col md:flex-row min-h-80 md:min-h-100 bg-white/80 dark:bg-gray-900/60 backdrop-blur-lg rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700"
       >
-        <div className="hidden md:flex bg-gradient-to-tr from-indigo-500 to-blue-600 w-80 relative">
+        <div className="hidden md:flex bg-linear-to-tr from-indigo-500 to-blue-600 w-80 relative">
           <motion.div
             initial={{ opacity: 0, scale: 1.05 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -123,7 +122,7 @@ export default function Login() {
           </Button>
 
           <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-2">
-            Don't have an account yet?{" "}
+            Don&apos;t have an account yet?{" "}
             <Link href="/register" className="text-blue-600 hover:underline">
               Register
             </Link>

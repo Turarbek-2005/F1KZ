@@ -7,8 +7,11 @@ const API_BASE = "https://f1api.dev/api/";
 
 const axiosClient = axios.create({
   baseURL: API_BASE,
-  timeout: 5000,
+  timeout: 10000,
 });
+
+const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 async function fetchFromF1Api(path: string, res: Response, cacheName?: string) {
   logger.info(`[F1 API] Fetching data from path: ${path}`);
@@ -23,15 +26,28 @@ async function fetchFromF1Api(path: string, res: Response, cacheName?: string) {
   const fullUrlForLog = `${base}${cleanPath}`;
   logger.info(`[F1 API] request -> ${fullUrlForLog}`);
 
-  try {
-    const { data } = await axiosClient.get(cleanPath);
-    return res.json(data);
-  } catch (error: any) {
-    logger.error(` [F1 API] ${cleanPath} — ${error.message}`);
-    return res
-      .status(502)
-      .json({ message: "Error fetching data from external F1 API" });
+  const maxRetries = 2;
+
+  for (let attempt = 1; attempt <= maxRetries + 1; attempt += 1) {
+    try {
+      const { data } = await axiosClient.get(cleanPath);
+      return res.json(data);
+    } catch (error: any) {
+      logger.error(` [F1 API] attempt ${attempt} ${cleanPath} — ${error.message}`);
+
+      if (attempt > maxRetries) {
+        return res
+          .status(502)
+          .json({ message: "Error fetching data from external F1 API" });
+      }
+
+      await sleep(200 * attempt);
+    }
   }
+
+  return res
+    .status(502)
+    .json({ message: "Error fetching data from external F1 API" });
 }
 
 //////////////////////////* Drivers *////////////////////////////

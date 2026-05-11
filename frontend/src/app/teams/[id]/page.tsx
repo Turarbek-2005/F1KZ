@@ -7,6 +7,7 @@ import { useParams } from "next/navigation";
 import { skipToken } from "@reduxjs/toolkit/query/react";
 import { Loader2, MoveLeft } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
+import type { RootState } from "@/shared/store";
 import {
   fetchDrivers,
   selectTeamDrivers,
@@ -18,6 +19,13 @@ import {
   useGetTeamDriversQuery,
   useGetStandingsTeamsQuery,
 } from "@/entities/f1api/f1api";
+import type {
+  ApiTeam,
+  TeamDriversResponse,
+  TeamStanding as ConstructorStanding,
+  TeamByIdResponse,
+  TeamsStandingsResponse as TeamsStandings,
+} from "@/entities/f1api/f1api.interfaces";
 import {
   Table,
   TableBody,
@@ -32,80 +40,75 @@ import { grapeNuts } from "@/app/fonts";
 export default function Team() {
   const params = useParams();
   const rawId = params?.id;
-  const teamId =
-    typeof rawId === "string" && rawId.length > 0 ? rawId : undefined;
+  const teamId = typeof rawId === "string" && rawId.length > 0 ? rawId : undefined;
   const dispatch = useAppDispatch();
+
   const team = useAppSelector((state) =>
     teamId ? selectTeamById(state, teamId) : undefined
   );
 
   const teamDrivers = useAppSelector((state) =>
-    selectTeamDrivers(state, teamId!)
+    teamId ? selectTeamDrivers(state, teamId) : []
   );
+  const driversStatus = useAppSelector((state: RootState) => state.drivers.status);
+  const teamsStatus = useAppSelector((state: RootState) => state.teams.status);
 
-  const {
-    data: teamApi,
-    isLoading: teamApiLoading,
-    isError: teamApiError,
-  } = useGetTeamByIdQuery(teamId ?? skipToken, {
-    refetchOnMountOrArgChange: false,
-  });
-  const {
-    data: teamDriversApi,
-    isLoading: teamDriversApiLoading,
-    isError: teamDriversApiError,
-  } = useGetTeamDriversQuery(teamId ?? skipToken, {
-    refetchOnMountOrArgChange: false,
-  });
+  const { data: teamApi, isLoading: teamApiLoading } = useGetTeamByIdQuery(
+    teamId ?? skipToken,
+    { refetchOnMountOrArgChange: true }
+  ) as { data?: TeamByIdResponse, isLoading: boolean };
 
-  const { data: teamsStandings = { constructors_championship: [] } } =
+  const { data: teamDriversApi, isLoading: teamDriversApiLoading } =
+    useGetTeamDriversQuery(teamId ?? skipToken, {
+      refetchOnMountOrArgChange: true,
+    }) as { data?: TeamDriversResponse, isLoading: boolean };
+
+  const { data: teamsStandings = { constructors_championship: [] } as TeamsStandings } =
     useGetStandingsTeamsQuery(undefined, {
-      refetchOnMountOrArgChange: false,
-    });
+      refetchOnMountOrArgChange: true,
+    }) as { data?: TeamsStandings };
 
   const topTeamStat = teamsStandings.constructors_championship?.find(
-    (t: any) => t.position === 1
+    (t: ConstructorStanding) => Number(t.position) === 1
   );
   const topTeamId = topTeamStat?.teamId;
 
-  const myTeamStat = teamsStandings.constructors_championship?.find(
-    (t: any) => t.teamId === teamId
+  const { data: topTeamApi } = useGetTeamByIdQuery(topTeamId ?? skipToken, {
+    refetchOnMountOrArgChange: true,
+  }) as { data?: TeamByIdResponse };
+
+  const twoTeamIds = Array.from(
+    new Set([topTeamId, teamId].filter(Boolean) as string[])
   );
 
-  const {
-    data: topTeamApi,
-    isLoading: topTeamLoading,
-    isError: topTeamError,
-  } = useGetTeamByIdQuery(topTeamId ?? skipToken, {
-    refetchOnMountOrArgChange: false,
-  });
-
-  const twoTeamIds = Array.from(new Set([topTeamId, teamId].filter(Boolean)));
-
   const twoTeamsData = twoTeamIds.map((id) => {
-    const apiData = id === teamId ? team : topTeamApi;
+    const apiData: ApiTeam | undefined =
+  id === teamId
+    ? teamApi?.team?.[0]
+    : topTeamApi?.team?.[0];
+
     const stat = teamsStandings.constructors_championship?.find(
-      (t: any) => t.teamId === id
+      (t: ConstructorStanding) => t.teamId === id
     );
     return { id, apiData, stat };
   });
 
   useEffect(() => {
-    dispatch(fetchDrivers());
-    dispatch(fetchTeams());
-  }, [dispatch]);
+    if (driversStatus === "idle") {
+      dispatch(fetchDrivers());
+    }
+    if (teamsStatus === "idle") {
+      dispatch(fetchTeams());
+    }
+  }, [dispatch, driversStatus, teamsStatus]);
 
-  // useEffect(() => {
-  //   console.log("Redux team:", team);
-  //   console.log("API team:", teamApi);
-  //   console.log("Redux team drivers:", teamDrivers);
-  //   console.log("API team drivers:", teamDriversApi);
-  //   console.log("Teams standings:", teamsStandings);
-  //   console.log("Top team stat:", topTeamStat);
-  // }, [team, teamApi, teamDriversApi, teamDrivers, teamsStandings, topTeamStat]);
+  const isStoreLoading =
+    driversStatus === "idle" ||
+    driversStatus === "loading" ||
+    teamsStatus === "idle" ||
+    teamsStatus === "loading";
 
-  if (teamApiLoading || teamDriversApiLoading) {
-
+  if (teamApiLoading || teamDriversApiLoading || isStoreLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />
@@ -119,7 +122,7 @@ export default function Team() {
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="container mx-auto mb-2"
+        className="container px-4 sm:px-0 mx-auto mb-2"
       >
         <Link href="/teams" className="hover:underline flex gap-2">
           <MoveLeft className="w-4" /> Back to Teams
@@ -128,9 +131,7 @@ export default function Team() {
       <div
         className="w-full h-140 flex relative flex-col items-center justify-center mb-14 text-center"
         style={{
-          background: `var(--team-${team?.teamId
-            ?.toLowerCase()
-            .replace(" ", "_")})`,
+          background: `var(--team-${team?.teamId?.toLowerCase().replace(" ", "_")})`,
         }}
       >
         <div className="w-full h-45 mb-5">
@@ -146,17 +147,11 @@ export default function Team() {
           {teamApi?.team?.[0]?.teamName ?? team?.teamId}
         </h1>
         <div className="flex gap-3 mb-3">
-          {teamDriversApi?.drivers?.map(
-            ({
-              driver,
-            }: {
-              driver: { driverId: string; name: string; surname: string };
-            }) => (
-              <p key={driver.driverId}>
-                {driver.name} {driver.surname}
-              </p>
-            )
-          )}
+          {teamDriversApi?.drivers?.map(({ driver }) => (
+            <p key={driver.driverId}>
+              {driver.name} {driver.surname}
+            </p>
+          ))}
         </div>
         <div className="w-10 h-10">
           <Image
@@ -168,12 +163,12 @@ export default function Team() {
           />
         </div>
       </div>
-      <div className="container mx-auto">
+      <div className="container px-4 sm:px-0 mx-auto">
         <h3 className="text-4xl font-black uppercase mb-5">Drivers</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {teamDrivers?.map((driver: Driver) => {
             const matchedDriver = teamDriversApi?.drivers?.find(
-              ({ driver: apiDriver }: { driver: any }) =>
+              ({ driver: apiDriver }) =>
                 apiDriver.driverId === driver.driverId
             )?.driver;
 
@@ -186,9 +181,7 @@ export default function Team() {
                   key={driver.id}
                   className="p-4 rounded-lg relative h-70 cursor-pointer"
                   style={{
-                    background: `var(--team-${driver?.teamId
-                      ?.toLowerCase()
-                      .replace(" ", "_")})`,
+                    background: `var(--team-${driver?.teamId?.toLowerCase().replace(" ", "_")})`,
                   }}
                 >
                   <div className="flex flex-col justify-between h-full">
@@ -199,7 +192,7 @@ export default function Team() {
                             {matchedDriver?.name} {matchedDriver?.surname}
                           </span>{" "}
                           <span className="text-sm">
-                            {teamDriversApi?.team?.teamName!}
+                            {teamDriversApi?.team?.teamName ?? ""}
                           </span>
                           <span
                             className={cn(
@@ -241,9 +234,7 @@ export default function Team() {
         </div>
 
         <div className="mt-10">
-          <h4 className="text-lg font-medium mb-2">
-            My Team vs Championship Leader
-          </h4>
+          <h4 className="text-lg font-medium mb-2">My Team vs Championship Leader</h4>
           <div className="overflow-x-auto rounded-md mb-6">
             <Table>
               <TableHeader>
@@ -258,8 +249,7 @@ export default function Team() {
                 {twoTeamsData.map(({ id, apiData, stat }) => {
                   const position = stat?.position ?? "—";
                   const points = stat?.points ?? 0;
-                  const teamName =
-                    apiData?.teamName ?? stat?.team?.teamName ?? id;
+                  const teamName = apiData?.teamName ?? stat?.team?.teamName ?? id;
 
                   return (
                     <TableRow key={id} className="border-t border-white/6">
@@ -277,10 +267,7 @@ export default function Team() {
                           id == teamId && "text-red-500"
                         )}
                       >
-                        <Link
-                          href={`/teams/${id}`}
-                          className="flex items-center gap-3"
-                        >
+                        <Link href={`/teams/${id}`} className="flex items-center gap-3">
                           <span>{teamName}</span>
                         </Link>
                       </TableCell>

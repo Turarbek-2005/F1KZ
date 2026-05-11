@@ -16,6 +16,11 @@ import {
   useGetRacesYearQuery,
   useGetRacesYearRoundQuery,
 } from "@/entities/f1api/f1api";
+import type {
+  RaceEntry,
+  RaceRoundResponse,
+  RacesListResponse,
+} from "@/entities/f1api/f1api.interfaces";
 import Fp1Table from "@/features/results/ui/Fp1Table";
 import Fp2Table from "@/features/results/ui/Fp2Table";
 import Fp3Table from "@/features/results/ui/Fp3Table";
@@ -28,10 +33,13 @@ function toSingleString(v: string | string[] | undefined): string | undefined {
   if (v === undefined) return undefined;
   return Array.isArray(v) ? v[0] : v;
 }
+
 export default function ResultsYearRoundSessionPage() {
   const params = useParams();
 
-  const DEFAULT_YEAR = "2025";
+  const currentYear = new Date().getFullYear();
+
+  const DEFAULT_YEAR = currentYear.toString();
   const DEFAULT_ROUND = "1";
   const DEFAULT_SESSION = "race";
 
@@ -45,13 +53,24 @@ export default function ResultsYearRoundSessionPage() {
     toSingleString(params?.session) ?? DEFAULT_SESSION
   );
 
-  const { data: races, error, isLoading } = useGetRacesYearQuery(year!);
+  const { data: races, error, isLoading, isFetching } = useGetRacesYearQuery(
+    year!
+  );
   const queryArgs = year && round ? { year, round } : skipToken;
 
-  const { data: race, isLoading: isLoadingRace } =
-    useGetRacesYearRoundQuery(queryArgs);
+  const {
+    data: race,
+    isLoading: isLoadingRace,
+    isFetching: isFetchingRace,
+  } = useGetRacesYearRoundQuery(queryArgs) as {
+    data?: RaceRoundResponse;
+    isLoading: boolean;
+    isFetching: boolean;
+  };
 
-  if (isLoading) {
+  const racesData = (races ?? undefined) as RacesListResponse | undefined;
+
+  if (isLoading || isLoadingRace || isFetching || isFetchingRace) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />
@@ -59,8 +78,16 @@ export default function ResultsYearRoundSessionPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="container px-4 sm:px-0 mx-auto">
+        <p>Error loading races.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto pb-6">
+    <div className="container px-4 sm:px-0 mx-auto pb-6">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -73,6 +100,7 @@ export default function ResultsYearRoundSessionPage() {
           </SelectTrigger>
 
           <SelectContent>
+            <SelectItem value={currentYear.toString()}>{currentYear}</SelectItem>
             <SelectItem value="2025">2025</SelectItem>
             <SelectItem value="2024">2024</SelectItem>
             <SelectItem value="2023">2023</SelectItem>
@@ -81,18 +109,23 @@ export default function ResultsYearRoundSessionPage() {
             <SelectItem value="2020">2020</SelectItem>
           </SelectContent>
         </Select>
+
         <Select value={round} onValueChange={setRound}>
           <SelectTrigger>
             <SelectValue placeholder="Выбери этап" />
           </SelectTrigger>
           <SelectContent>
-            {races?.races?.map((race: any) => (
-              <SelectItem key={race?.round} value={race?.round?.toString()}>
-                {race?.circuit?.country}
+            {racesData?.races?.map((raceEntry) => (
+              <SelectItem
+                key={String(raceEntry?.round ?? Math.random())}
+                value={String(raceEntry?.round ?? "")}
+              >
+                {raceEntry?.circuit?.country ?? `Round ${raceEntry?.round}`}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+
         <Select value={session} onValueChange={setSession}>
           <SelectTrigger>
             <SelectValue placeholder="Выбери сессию" />
@@ -108,14 +141,16 @@ export default function ResultsYearRoundSessionPage() {
           </SelectContent>
         </Select>
       </motion.div>
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
         <h1 className="text-3xl font-bold mb-4">
-          {race?.race[0]?.raceName} - {session?.toUpperCase()} Results
+          {race?.race?.[0]?.raceName} - {session?.toUpperCase()} Results
         </h1>
+
         {session === "fp1" && year && round && (
           <Fp1Table year={year} round={round} />
         )}
@@ -125,7 +160,6 @@ export default function ResultsYearRoundSessionPage() {
         {session === "fp3" && year && round && (
           <Fp3Table year={year} round={round} />
         )}
-
         {session === "sprintQualyfying" && year && round && (
           <SprintQualyTable year={year} round={round} />
         )}

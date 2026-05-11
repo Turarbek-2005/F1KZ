@@ -1,18 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
-import { UserPlus } from "lucide-react";
+import { Loader2, UserPlus } from "lucide-react";
 import { useAppDispatch } from "@/shared/lib/hooks";
 import { registerUser } from "@/entities/auth/model/authSlice";
 import { useGetTeamsQuery } from "@/entities/f1api/f1api";
 import { useGetDriversQuery } from "@/entities/f1api/f1api";
+import type {
+  ApiDriver as Driver,
+  ApiTeam as Team,
+  DriversResponse,
+  TeamsResponse,
+} from "@/entities/f1api/f1api.interfaces";
 import Link from "next/link";
-
 export default function RegisterPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -27,15 +32,15 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const { data: driversApi = { drivers: [] } } = useGetDriversQuery(undefined, {
-    refetchOnMountOrArgChange: false,
-  });
-  const { data: teamsApi = { teams: [] } } = useGetTeamsQuery(undefined, {
-    refetchOnMountOrArgChange: false,
-  });
+  const { data: driversApi = { drivers: [] }, isLoading: isDriversLoading } =
+    useGetDriversQuery(undefined, {
+      refetchOnMountOrArgChange: true,
+    }) as { data?: DriversResponse; isLoading: boolean };
 
-  useEffect(() => {
-  }, [favoriteDriversIds, favoriteTeamsIds]);
+  const { data: teamsApi = { teams: [] }, isLoading: isTeamsLoading } =
+    useGetTeamsQuery(undefined, {
+      refetchOnMountOrArgChange: true,
+    }) as { data?: TeamsResponse; isLoading: boolean };
 
   function validate() {
     if (!username.trim() || !email.trim() || !password) {
@@ -45,8 +50,10 @@ export default function RegisterPage() {
     if (!emailRe.test(email)) return "Invalid email address.";
     if (password.length < 6) return "Password must be at least 6 characters.";
     if (password !== confirm) return "Passwords do not match.";
-    if (favoriteDriversIds.length === 0) return "Please select at least one favorite driver.";
-    if (favoriteTeamsIds.length === 0) return "Please select at least one favorite team.";
+    if (favoriteDriversIds.length === 0)
+      return "Please select at least one favorite driver.";
+    if (favoriteTeamsIds.length === 0)
+      return "Please select at least one favorite team.";
     return null;
   }
 
@@ -63,13 +70,17 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      const result = await dispatch(
+      await dispatch(
         registerUser({
           username: username.trim(),
           email: email.trim(),
           password,
-          favoriteDriversIds: favoriteDriversIds.length ? favoriteDriversIds : undefined,
-          favoriteTeamsIds: favoriteTeamsIds.length ? favoriteTeamsIds : undefined,
+          favoriteDriversIds: favoriteDriversIds.length
+            ? favoriteDriversIds
+            : undefined,
+          favoriteTeamsIds: favoriteTeamsIds.length
+            ? favoriteTeamsIds
+            : undefined,
         })
       ).unwrap();
 
@@ -77,11 +88,20 @@ export default function RegisterPage() {
       setTimeout(() => {
         router.push("/login");
       }, 900);
-    } catch (e: any) {
-      setError(e || "Registration failed");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(msg || "Registration failed");
     } finally {
       setLoading(false);
     }
+  }
+
+  if (isDriversLoading || isTeamsLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin h-16 w-16" />
+      </div>
+    );
   }
 
   return (
@@ -130,7 +150,9 @@ export default function RegisterPage() {
             id="username"
             name="username"
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setUsername(e.target.value)
+            }
             placeholder="Your username"
             className="focus:ring-2 focus:ring-blue-500"
             autoComplete="username"
@@ -147,7 +169,9 @@ export default function RegisterPage() {
             id="email"
             name="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setEmail(e.target.value)
+            }
             placeholder="you@example.com"
             type="email"
             className="focus:ring-2 focus:ring-blue-500"
@@ -165,7 +189,9 @@ export default function RegisterPage() {
             id="password"
             name="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setPassword(e.target.value)
+            }
             placeholder="At least 6 characters"
             type="password"
             className="focus:ring-2 focus:ring-blue-500"
@@ -184,7 +210,9 @@ export default function RegisterPage() {
             id="confirm"
             name="confirm"
             value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setConfirm(e.target.value)
+            }
             placeholder="Repeat your password"
             type="password"
             className="focus:ring-2 focus:ring-blue-500"
@@ -192,46 +220,50 @@ export default function RegisterPage() {
             minLength={6}
             required
           />
-          <label
-            className="text-sm text-gray-600 dark:text-gray-300"
-          >
+
+          <label className="text-sm text-gray-600 dark:text-gray-300">
             Select your favorite drivers
           </label>
           <div className="grid grid-cols-2 gap-2 max-h-15 overflow-auto p-2 border rounded">
-            {driversApi?.drivers.map((driver: any) => (
+            {driversApi?.drivers.map((driver: Driver) => (
               <label key={driver.driverId} className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   value={driver.driverId}
                   checked={favoriteDriversIds.includes(driver.driverId)}
-                  onChange={(e) => {
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const id = driver.driverId;
                     setFavoriteDriversIds((prev) =>
-                      e.target.checked ? [...prev, id] : prev.filter((x) => x !== id)
+                      e.target.checked
+                        ? [...prev, id]
+                        : prev.filter((x) => x !== id)
                     );
                   }}
                   className="accent-blue-600"
                 />
-                <span>{driver.name} {driver.surname}</span>
+                <span>
+                  {driver.name} {driver.surname}
+                </span>
               </label>
             ))}
           </div>
-          <label
-            className="text-sm text-gray-600 dark:text-gray-300"
-          >
+
+          <label className="text-sm text-gray-600 dark:text-gray-300">
             Select your favorite teams
           </label>
           <div className="grid grid-cols-2 gap-2 max-h-15 overflow-auto p-2 border rounded">
-            {teamsApi?.teams.map((team: any) => (
+            {teamsApi?.teams.map((team: Team) => (
               <label key={team.teamId} className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   value={team.teamId}
                   checked={favoriteTeamsIds.includes(team.teamId)}
-                  onChange={(e) => {
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const id = team.teamId;
                     setFavoriteTeamsIds((prev) =>
-                      e.target.checked ? [...prev, id] : prev.filter((x) => x !== id)
+                      e.target.checked
+                        ? [...prev, id]
+                        : prev.filter((x) => x !== id)
                     );
                   }}
                   className="accent-blue-600"

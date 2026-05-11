@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
-import { prisma } from "@/prisma";
-import { logger } from "@/utils/log";
+import { prisma } from "../prisma";
+import { withRetry } from "../utils/retry";
+import { logger } from "../utils/log";
 
 export async function getMe(req: Request, res: Response) {
   try {
@@ -10,18 +11,22 @@ export async function getMe(req: Request, res: Response) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        favoriteDriversIds: true,
-        favoriteTeamsIds: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    const user = await withRetry(
+      () =>
+        prisma.user.findUnique({
+          where: { id: userId },
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            favoriteDriversIds: true,
+            favoriteTeamsIds: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        }),
+      { maxAttempts: 2, delayMs: 50 }
+    );
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -43,14 +48,20 @@ export async function updateUser(req: Request, res: Response) {
     const { email, username, favoriteDriversIds, favoriteTeamsIds, password } = req.body;
 
     if (email) {
-      const existingEmail = await prisma.user.findUnique({ where: { email } });
+      const existingEmail = await withRetry(
+        () => prisma.user.findUnique({ where: { email } }),
+        { maxAttempts: 2, delayMs: 50 }
+      );
       if (existingEmail && existingEmail.id !== userId) {
         return res.status(409).json({ message: "Email already in use" });
       }
     }
 
     if (username) {
-      const existingUsername = await prisma.user.findUnique({ where: { username } });
+      const existingUsername = await withRetry(
+        () => prisma.user.findUnique({ where: { username } }),
+        { maxAttempts: 2, delayMs: 50 }
+      );
       if (existingUsername && existingUsername.id !== userId) {
         return res.status(409).json({ message: "Username already in use" });
       }
@@ -66,19 +77,23 @@ export async function updateUser(req: Request, res: Response) {
       data.password = hash;
     }
 
-    const updated = await prisma.user.update({
-      where: { id: userId },
-      data,
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        favoriteDriversIds: true,
-        favoriteTeamsIds: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    const updated = await withRetry(
+      () =>
+        prisma.user.update({
+          where: { id: userId },
+          data,
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            favoriteDriversIds: true,
+            favoriteTeamsIds: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        }),
+      { maxAttempts: 3, delayMs: 100 }
+    );
 
     return res.status(200).json(updated);
   } catch (error) {

@@ -1,93 +1,104 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { skipToken } from "@reduxjs/toolkit/query/react";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
 import {
   fetchDrivers,
   selectAllDrivers,
-  selectDriverById,
 } from "@/entities/f1/model/driversSlice";
-// import { fetchMe } from "@/entities/auth/model/authSlice";
 import {
   useGetDriversQuery,
   useGetTeamsQuery,
-  useGetDriverByIdQuery,
-  useGetTeamByIdQuery,
 } from "@/entities/f1api/f1api";
+import type { RootState } from "@/shared/store";
+import type {
+  ApiDriver,
+  ApiTeam,
+  DriversResponse,
+  TeamsResponse,
+} from "@/entities/f1api/f1api.interfaces";
 import { cn } from "@/shared/lib/utils";
 import { grapeNuts } from "../fonts";
 import { Loader2 } from "lucide-react";
 
 export default function Drivers() {
   const user = useAppSelector((state) => state.auth.user);
+  const currentYear = new Date().getFullYear();
 
-  const { data: driversApi, isLoading = [] } = useGetDriversQuery(undefined, {
-    refetchOnMountOrArgChange: false,
-  });
-  const { data: teamsApi = [] } = useGetTeamsQuery(undefined, {
-    refetchOnMountOrArgChange: false,
-  });
-  const driverArg = user?.favoriteDriversIds?.[0] ?? skipToken;
-  const teamArg = user?.favoriteTeamsIds?.[0] ?? skipToken;
+  const { data: driversApi = { drivers: [] }, isLoading: driversLoading } = useGetDriversQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  }) as { data?: DriversResponse, isLoading?: boolean };
 
-  const { data: driverByIdApi } = useGetDriverByIdQuery(driverArg, {
-    refetchOnMountOrArgChange: false,
-  });
-  const { data: teamByIdApi } = useGetTeamByIdQuery(teamArg, {
-    refetchOnMountOrArgChange: false,
-  });
+  const { data: teamsApi = { teams: [] }, isLoading: teamsLoading } = useGetTeamsQuery(
+    undefined,
+    {
+      refetchOnMountOrArgChange: true,
+    }
+  ) as { data?: TeamsResponse, isLoading?: boolean };
 
   const dispatch = useAppDispatch();
   const drivers = useAppSelector(selectAllDrivers);
-
-  const favoriteDriver = useAppSelector((state) =>
-    user?.favoriteDriversIds && user.favoriteDriversIds.length ? selectDriverById(state, user.favoriteDriversIds[0]) : undefined
-  );
+  const driversStatus = useAppSelector((state: RootState) => state.drivers.status);
+  const retryCount = useRef(0);
+  const MAX_RETRIES = 2;
 
   const sortedDrivers = [...drivers].sort((a, b) => a.id - b.id);
 
   useEffect(() => {
-    dispatch(fetchDrivers());
-  }, [dispatch]);
+    if (driversStatus === "idle") {
+      retryCount.current = 0;
+      dispatch(fetchDrivers());
+    } else if (driversStatus === "failed" && retryCount.current < MAX_RETRIES) {
+      retryCount.current += 1;
+      const delay = 1000 * retryCount.current;
+      const timer = setTimeout(() => dispatch(fetchDrivers()), delay);
+      return () => clearTimeout(timer);
+    }
+  }, [dispatch, driversStatus]);
 
-  const favTeamId =
-    favoriteDriver?.teamId ?? teamByIdApi?.team?.[0]?.teamId ?? "";
+  const isStoreLoading =
+    driversStatus === "idle" || driversStatus === "loading" ||
+    (driversStatus === "failed" && retryCount.current < MAX_RETRIES);
 
-  const favDriverId =
-    favoriteDriver?.driverId ?? driverByIdApi?.driver?.driverId ?? "";
+  if (driversLoading || teamsLoading || isStoreLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin h-16 w-16" />
+      </div>
+    );
+  }
 
-    if (isLoading) {
-        return (
-          <div className="flex justify-center items-center h-screen">
-            <Loader2 className="animate-spin h-16 w-16" />
-          </div>
-        );
-      }
   return (
-    <div className="container mx-auto pb-6">
+    <div className="container px-4 sm:px-0 mx-auto pb-6">
       <motion.h2
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         className="text-4xl mt-3 mb-8"
       >
-        F1 Drivers 2025
+        F1 Drivers {currentYear}
       </motion.h2>
 
       {user ? (
         <>
           <h3 className="text-2xl mb-6">Your Favorite Drivers</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
             {user.favoriteDriversIds && user.favoriteDriversIds.length ? (
               user.favoriteDriversIds.map((favId: string) => {
                 const favDriver = drivers.find((d) => d.driverId === favId);
-                const favDriverApi = driversApi?.drivers?.find((d: any) => d.driverId === favId);
-                const favTeamIdLocal = favDriver?.teamId ?? favDriverApi?.teamId ?? "";
-                const favTeam = teamsApi?.teams?.find((t: any) => t.teamId === favTeamIdLocal) || undefined;
-                const favDriverDisplayId = favDriver?.driverId ?? favDriverApi?.driverId ?? favId;
+                const favDriverApi = (driversApi.drivers as ApiDriver[]).find(
+                  (d) => d.driverId === favId
+                );
+                const favTeamIdLocal =
+                  favDriver?.teamId ?? favDriverApi?.teamId ?? "";
+                const favTeam =
+                  (teamsApi.teams as ApiTeam[]).find(
+                    (t) => t.teamId === favTeamIdLocal
+                  ) || undefined;
+                const favDriverDisplayId =
+                  favDriver?.driverId ?? favDriverApi?.driverId ?? favId;
 
                 return (
                   <motion.div
@@ -97,7 +108,9 @@ export default function Drivers() {
                     key={favId}
                     className="p-4 rounded-lg relative h-70 cursor-pointer"
                     style={{
-                      background: `var(--team-${favTeamIdLocal.toLowerCase().replace(" ", "_")})`,
+                      background: `var(--team-${favTeamIdLocal
+                        .toLowerCase()
+                        .replace(" ", "_")})`,
                     }}
                   >
                     <Link key={favId} href={`/drivers/${favDriverDisplayId}`}>
@@ -108,14 +121,23 @@ export default function Drivers() {
                               <span className="text-2xl font-bold">
                                 {favDriverApi?.name} {favDriverApi?.surname}
                               </span>{" "}
-                              <span className="text-sm">{favTeam?.teamName}</span>
-                              <span className={cn(grapeNuts.className, "text-4xl font-medium font mt-2")}>
+                              <span className="text-sm">
+                                {favTeam?.teamName}
+                              </span>
+                              <span
+                                className={cn(
+                                  grapeNuts.className,
+                                  "text-4xl font-medium font mt-2"
+                                )}
+                              >
                                 {favDriverApi?.number}
                               </span>
                             </>
                           ) : favDriver ? (
                             <>
-                              <span className="text-2xl font-bold">{favDriver?.driverId}</span>
+                              <span className="text-2xl font-bold">
+                                {favDriver?.driverId}
+                              </span>
                               <span className="text-sm">{favDriver?.teamId}</span>
                             </>
                           ) : (
@@ -138,11 +160,23 @@ export default function Drivers() {
 
                       {favDriver?.imgUrl ? (
                         <div className="w-50 h-60 overflow-hidden absolute bottom-0 right-1/5 md:right-[10%] lg:right-1/5 2xl:right-[10%] ">
-                          <Image src={favDriver.imgUrl} alt={favDriver.driverId} width={160} height={240} className="object-cover object-top w-full h-full" />
+                          <Image
+                            src={favDriver.imgUrl}
+                            alt={favDriver.driverId}
+                            width={160}
+                            height={240}
+                            className="object-cover object-top w-full h-full"
+                          />
                         </div>
                       ) : favDriverApi?.imgUrl ? (
                         <div className="w-50 h-60 overflow-hidden absolute bottom-0 right-1/5 md:right-[10%] lg:right-1/5 2xl:right-[10%] ">
-                          <Image src={favDriverApi.imgUrl} alt={favDriverApi.driverId} width={160} height={240} className="object-cover object-top w-full h-full" />
+                          <Image
+                            src={favDriverApi.imgUrl}
+                            alt={favDriverApi.driverId}
+                            width={160}
+                            height={240}
+                            className="object-cover object-top w-full h-full"
+                          />
                         </div>
                       ) : null}
                     </Link>
@@ -150,21 +184,21 @@ export default function Drivers() {
                 );
               })
             ) : (
-              <p className="text-sm">You don't have a favorite driver set.</p>
+              <p className="text-sm">You don&apos;t have a favorite driver set.</p>
             )}
           </div>
         </>
       ) : null}
 
       {user ? <h3 className="text-2xl mb-6">All Drivers</h3> : null}
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-5 ">
         {sortedDrivers.map((driver) => {
-          const matchedDriver = driversApi?.drivers?.find(
-            (driverApi: any) => driverApi.driverId === driver.driverId
+          const matchedDriver = (driversApi.drivers as ApiDriver[]).find(
+            (driverApi) => driverApi.driverId === driver.driverId
           );
-          const matchedTeam = teamsApi?.teams?.find(
-            (teamApi: any) => teamApi.teamId === driver.teamId
+          const matchedTeam = (teamsApi.teams as ApiTeam[]).find(
+            (teamApi) => teamApi.teamId === driver.teamId
           );
           return (
             <motion.div

@@ -9,14 +9,17 @@ import { cn } from "@/shared/lib/utils";
 export default function Navbar() {
   const pathname = usePathname();
 
+  const currentYear = new Date().getFullYear();
+
   const links = [
+    { href: "/news", label: "News" },
     { href: "/schedule", label: "Schedule" },
-    { href: "/results/2025/1/race", label: "Results" },
+    { href: `/results/${currentYear}/1/race`, label: "Results" },
     { href: "/standings", label: "Standings" },
   ];
 
   return (
-    <nav className="flex gap-6">
+    <nav className=" gap-6 hidden md:flex">
       {links.map((link) => (
         <Link
           key={link.href}

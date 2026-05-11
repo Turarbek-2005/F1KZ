@@ -1,5 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import driversReducer from "@/entities/f1/model/driversSlice";
+import aiReducer from "@/entities/ai/aiSlice";
 import teamsReducer from "@/entities/f1/model/teamsSlice";
 import authReducer from '@/entities/auth/model/authSlice';
 import { f1Api } from '@/entities/f1api/f1api';
@@ -9,6 +10,7 @@ export const store = configureStore({
     drivers: driversReducer,
     teams: teamsReducer,
     auth: authReducer,
+    ai: aiReducer,
     [f1Api.reducerPath]: f1Api.reducer,
   },
   middleware: (getDefaultMiddleware) =>

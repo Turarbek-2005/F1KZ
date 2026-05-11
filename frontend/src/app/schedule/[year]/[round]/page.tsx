@@ -3,6 +3,7 @@
 import React from "react";
 import { useParams } from "next/navigation";
 import { useGetRacesYearRoundQuery } from "@/entities/f1api/f1api";
+import type { RaceRoundResponse } from "@/entities/f1api/f1api.interfaces";
 import {
   Table,
   TableBody,
@@ -19,7 +20,8 @@ import {
   CardTitle,
 } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
-import { Calendar, Clock, Loader2 } from "lucide-react";
+import { Calendar, Clock, Loader2, MoveLeft } from "lucide-react";
+import { motion } from "framer-motion";
 
 function toSingleString(v: string | string[] | undefined): string | undefined {
   if (v === undefined) return undefined;
@@ -56,7 +58,11 @@ export default function ScheduleYearRoundPage() {
     data: race,
     isLoading,
     error,
-  } = useGetRacesYearRoundQuery({ year: year!, round: round! }, { skip });
+  } = useGetRacesYearRoundQuery({ year: year!, round: round! }, { skip })as {
+    data?: RaceRoundResponse;
+    isLoading: boolean;
+    error: Error;
+  };
 
   if (isLoading) {
     return (
@@ -95,13 +101,23 @@ export default function ScheduleYearRoundPage() {
   }
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container px-4 sm:px-0 mx-auto pt-5">
+      <motion.div
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="mb-5"
+      >
+        <Link href="/schedule" className="hover:underline flex gap-2">
+          <MoveLeft className="w-4" /> Back to Schedule
+        </Link>
+      </motion.div>
       <Card>
         <CardHeader>
           <CardTitle className="text-3xl font-bold mb-2">
             {race?.race[0]?.raceName}
           </CardTitle>
-          <p className="text-muted-foreground">{race?.race[0]?.circuit.name}</p>
+          <p className="text-muted-foreground">{race?.race[0]?.circuit?.name}</p>
         </CardHeader>
         <CardContent>
           <h3 className="text-2xl font-semibold mb-4">Schedule</h3>
@@ -249,7 +265,7 @@ export default function ScheduleYearRoundPage() {
                   </TableCell>
                   <TableCell>
                     <Button variant="outline" asChild>
-                      <Link href={`/results/${year}/${round}/qualy`}>
+                      <Link href={`/results/${year}/${round}/qualyfying`}>
                         Results
                       </Link>
                     </Button>

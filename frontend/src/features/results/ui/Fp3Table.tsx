@@ -2,26 +2,53 @@ import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { skipToken } from "@reduxjs/toolkit/query";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/shared/ui/table";
-import {
-    Card,
-  CardContent,
-} from "@/shared/ui/card";
+import { Card, CardContent } from "@/shared/ui/card";
 import { useGetYearRoundFp3Query } from "@/entities/f1api/f1api";
 
-type Props = { year?: string; round?: string | number; };
+type DriverResult = {
+  driverId: string;
+  name: string;
+  surname: string;
+};
+
+type TeamResult = {
+  teamId: string;
+  teamName: string;
+};
+
+type Fp3Result = {
+  fp3Id: string;
+  driver: DriverResult;
+  team: TeamResult;
+  time?: string;
+};
+
+type RaceData = {
+  fp3Results: Fp3Result[];
+};
+
+type Fp3ApiResponse = {
+  races?: RaceData;
+};
+
+type Props = { year?: string; round?: string | number };
 
 export default function Fp3Table({ year, round }: Props) {
-   const args = year && round ? { year, round } : skipToken;
-    const { data, isLoading } = useGetYearRoundFp3Query(args!);
+  const args = year && round ? { year, round } : skipToken;
+  const { data, isLoading, isFetching } = useGetYearRoundFp3Query(args) as {
+    data?: Fp3ApiResponse;
+    isLoading: boolean;
+    isFetching: boolean;
+  };
 
-    if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />
@@ -29,7 +56,7 @@ export default function Fp3Table({ year, round }: Props) {
     );
   }
 
-  if (!data || !data.races?.fp3Results || data.races.fp3Results.length === 0) {
+  if (!data?.races?.fp3Results || data.races.fp3Results.length === 0) {
     return (
       <Card>
         <CardContent className="pt-6">
@@ -40,19 +67,21 @@ export default function Fp3Table({ year, round }: Props) {
   }
 
   return (
-      <Card>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[50px]">Pos</TableHead>
-                <TableHead>Driver</TableHead>
-                <TableHead>Team</TableHead>
-                <TableHead>Time</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data?.races?.fp3Results.filter((result: any) => result.time).map((result:any, index:any) => (
+    <Card>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[50px]">Pos</TableHead>
+              <TableHead>Driver</TableHead>
+              <TableHead>Team</TableHead>
+              <TableHead>Time</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.races.fp3Results
+              .filter((result) => result.time)
+              .map((result, index) => (
                 <TableRow key={result.fp3Id}>
                   <TableCell className="font-bold">{index + 1}</TableCell>
                   <TableCell>
@@ -71,12 +100,12 @@ export default function Fp3Table({ year, round }: Props) {
                       {result.team.teamName}
                     </Link>
                   </TableCell>
-                  <TableCell>{result.time}</TableCell>
+                  <TableCell>{result.time || "No time set"}</TableCell>
                 </TableRow>
               ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }

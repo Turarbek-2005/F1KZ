@@ -16,6 +16,13 @@ import {
   useGetDriverByIdQuery,
   useGetStandingsDriversQuery,
 } from "@/entities/f1api/f1api";
+import type { RootState } from "@/shared/store";
+import type {
+  DriverByIdResponse as DriverApiData,
+  DriverResultEntry as ResultEntry,
+  DriverStanding,
+  DriversStandingsResponse,
+} from "@/entities/f1api/f1api.interfaces";
 import {
   Table,
   TableBody,
@@ -26,6 +33,7 @@ import {
 } from "@/shared/ui/table";
 import { cn } from "@/shared/lib/utils";
 import { grapeNuts } from "@/app/fonts";
+
 
 export default function Driver() {
   const params = useParams();
@@ -42,72 +50,85 @@ export default function Driver() {
   const team = useAppSelector((state) =>
     teamIdFromDriver ? selectTeamById(state, teamIdFromDriver) : undefined
   );
+  const driversStatus = useAppSelector((state: RootState) => state.drivers.status);
+  const teamsStatus = useAppSelector((state: RootState) => state.teams.status);
 
   const {
-    data: driverApi,
+    data: rawDriverApi,
     isLoading: driverApiLoading,
     isError: driverApiError,
   } = useGetDriverByIdQuery(driverId ?? skipToken, {
-    refetchOnMountOrArgChange: false,
+    refetchOnMountOrArgChange: true,
   });
 
-  const { data: driversStandings = { drivers_championship: [] } } =
-    useGetStandingsDriversQuery(undefined, {
-      refetchOnMountOrArgChange: false,
-    });
+  const {
+    data: rawStandingsData,
+  } = useGetStandingsDriversQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
+
+  const driverApi = (rawDriverApi ?? undefined) as DriverApiData | undefined;
+  const driversStandings = (rawStandingsData ?? {
+    drivers_championship: [],
+  }) as DriversStandingsResponse;
 
   const topDriverStat = driversStandings.drivers_championship?.find(
-    (d: any) => d.position === 1
+    (d: DriverStanding) => d.position === 1
   );
   const topDriverId = topDriverStat?.driverId;
 
-  const myDriverStat = driversStandings.drivers_championship?.find(
-    (d: any) => d.driverId === driverId
-  );
-
   const {
-    data: topDriverApi,
+    data: rawTopDriverApi,
     isLoading: topDriverLoading,
     isError: topDriverError,
   } = useGetDriverByIdQuery(topDriverId ?? skipToken, {
-    refetchOnMountOrArgChange: false,
+    refetchOnMountOrArgChange: true,
   });
+
+  const topDriverApi = (rawTopDriverApi ?? undefined) as
+    | DriverApiData
+    | undefined;
 
   const twoDriverIds = Array.from(
     new Set([topDriverId, driverId].filter(Boolean))
   );
 
-  const twoDriversData = twoDriverIds.map((id) => {
+  const twoDriversData: {
+    id?: string;
+    apiData?: DriverApiData | undefined;
+    stat?: DriverStanding | undefined;
+  }[] = twoDriverIds.map((id) => {
     const apiData = id === driverId ? driverApi : topDriverApi;
     const stat = driversStandings.drivers_championship?.find(
-      (d: any) => d.driverId === id
+      (d) => d.driverId === id
     );
     return { id, apiData, stat };
   });
 
   useEffect(() => {
-    dispatch(fetchDrivers());
-    dispatch(fetchTeams());
-  }, [dispatch]);
-
-  // useEffect(() => {
-  //   console.log("Redux driver:", driver);
-  //   console.log("Redux team:", team);
-  //   console.log("API driver:", driverApi);
-  //   console.log("Top Driver Stat:", topDriverStat);
-  //   console.log("My Driver Stat:", myDriverStat);
-  //   console.log("Top Driver API:", topDriverApi);
-  // }, [driver, team, driverApi, topDriverStat, myDriverStat, topDriverApi]);
+    if (driversStatus === "idle") {
+      dispatch(fetchDrivers());
+    }
+    if (teamsStatus === "idle") {
+      dispatch(fetchTeams());
+    }
+  }, [dispatch, driversStatus, teamsStatus]);
 
   if (!driverId) {
     return (
-      <div className="container mx-auto">
+      <div className="container px-4 sm:px-0 mx-auto">
         <p>Driver ID is missing in URL</p>
       </div>
     );
   }
 
-  if (driverApiLoading || topDriverLoading) {
+  const isStoreLoading =
+    driversStatus === "idle" ||
+    driversStatus === "loading" ||
+    teamsStatus === "idle" ||
+    teamsStatus === "loading";
+
+  if (driverApiLoading || topDriverLoading || isStoreLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin h-16 w-16" />
@@ -117,7 +138,7 @@ export default function Driver() {
 
   if (driverApiError || topDriverError) {
     return (
-      <div className="container mx-auto">
+      <div className="container px-4 sm:px-0 mx-auto">
         <p>Error loading driver data.</p>
       </div>
     );
@@ -129,7 +150,7 @@ export default function Driver() {
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="container mx-auto mb-2"
+        className="container px-4 sm:px-0 mx-auto mb-2"
       >
         <Link href="/drivers" className="hover:underline flex gap-2">
           <MoveLeft className="w-4" /> Back to Drivers
@@ -155,7 +176,7 @@ export default function Driver() {
           </div>
           <div className="flex items-center">
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full border-2 border-white">
+              <div className="hidden sm:block w-5 h-5 rounded-full border-2 border-white">
                 <Image
                   src={driver?.nationalityImgUrl ?? ""}
                   alt={driver?.nationality ?? ""}
@@ -166,7 +187,7 @@ export default function Driver() {
               </div>
               <p>{driver?.nationality}</p>
             </div>
-            <span className="mx-3">|</span>
+            <span className="mx-1 sm:mx-3">|</span>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6">
                 <Image
@@ -177,9 +198,9 @@ export default function Driver() {
                   className="object-cover object-top w-full h-full rounded-full"
                 />
               </div>
-            <p>{driverApi?.team?.teamName}</p>
+              <p>{driverApi?.team?.teamName}</p>
             </div>
-            <span className="mx-3">|</span>
+            <span className="mx-1 sm:mx-3">|</span>
             <p>{driverApi?.driver?.number}</p>
           </div>
         </div>
@@ -196,7 +217,7 @@ export default function Driver() {
         </div>
       </div>
 
-      <section className="container mx-auto mt-8">
+      <section className="container px-4 sm:px-0 mx-auto mt-8">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -279,8 +300,8 @@ export default function Driver() {
 
               <TableBody>
                 {twoDriversData.map(({ id, apiData, stat }) => {
-                  const position = stat?.position ?? apiData?.position ?? "—";
-                  const points = stat?.points ?? apiData?.points ?? 0;
+                  const position = stat?.position ?? apiData?.driver?.number ?? "—";
+                  const points = stat?.points ?? 0;
                   const name = apiData?.driver
                     ? `${apiData.driver.name} ${apiData.driver.surname}`
                     : id;
@@ -347,7 +368,7 @@ export default function Driver() {
               </TableHeader>
 
               <TableBody>
-                {(driverApi?.results ?? []).map((r: any) => {
+                {(driverApi?.results ?? []).map((r: ResultEntry) => {
                   const round = r.race?.round ?? "—";
                   const name = r.race?.name ?? "—";
                   const date = r.race?.date ?? "—";
@@ -368,22 +389,14 @@ export default function Driver() {
                       <TableCell className="whitespace-nowrap px-3 py-3 text-sm">
                         {round}
                       </TableCell>
-                      <TableCell className="px-3 py-3 text-sm">
-                        {name}
-                      </TableCell>
+                      <TableCell className="px-3 py-3 text-sm">{name}</TableCell>
                       <TableCell className="whitespace-nowrap px-3 py-3 text-sm">
                         {date}
                       </TableCell>
-                      <TableCell className="px-3 py-3 text-sm">
-                        {grid}
-                      </TableCell>
-                      <TableCell className="px-3 py-3 text-sm">
-                        {finish}
-                      </TableCell>
+                      <TableCell className="px-3 py-3 text-sm">{grid}</TableCell>
+                      <TableCell className="px-3 py-3 text-sm">{finish}</TableCell>
                       <TableCell className="px-3 py-3 text-sm">{pts}</TableCell>
-                      <TableCell className="px-3 py-3 text-sm">
-                        {sprint}
-                      </TableCell>
+                      <TableCell className="px-3 py-3 text-sm">{sprint}</TableCell>
                     </TableRow>
                   );
                 })}

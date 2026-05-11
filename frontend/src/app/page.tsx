@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Card, CardHeader, CardTitle } from "@/shared/ui/card";
+import { NextRaceCountdown } from "@/features/countdown/ui/NextRaceCountdown";
 export default function Home() {
+  const currentYear = new Date().getFullYear();
   const links = [
+    { name: "News", href: "/news" },
     { name: "Schedule", href: "/schedule" },
-    { name: "Results", href: "/results/2025/1/race" },
+    { name: "Results", href: `/results/${currentYear}/1/race` },
     { name: "Standings", href: "/standings" },
     { name: "Drivers", href: "/drivers" },
     { name: "Teams", href: "/teams" },
@@ -23,11 +26,13 @@ export default function Home() {
         Welcome to <span className="text-red-500">F1KZ</span>
       </motion.h1>
 
+      <NextRaceCountdown />
+
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.7 }}
-        className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 max-w-4xl w-full"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 max-w-4xl w-full mt-6"
       >
         {links.map((link, i) => (
           <motion.div
@@ -35,10 +40,10 @@ export default function Home() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", stiffness: 300 }}
-            className={i === links.length - 1 ? "sm:col-span-2 mx-auto w-full sm:w-1/2" : ""}
+            // className={i === links.length - 1 ? "sm:col-span-2 mx-auto w-full sm:w-1/2" : ""}
           >
             <Link href={link.href}>
-              <Card className="bg-black/70 hover:bg-red-600 border border-gray-800 hover:border-red-400 transition-all duration-300 text-white backdrop-blur-sm shadow-xl">
+              <Card className="bg-black/70 h-16 sm:h-20 p-4 sm:p-6 hover:bg-red-600 border border-gray-800 hover:border-red-400 transition-all duration-300 text-white backdrop-blur-sm shadow-xl">
                 <CardHeader>
                   <CardTitle className="text-center text-xl font-semibold">
                     {link.name}

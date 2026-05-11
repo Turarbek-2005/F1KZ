@@ -18,14 +18,30 @@ export const fetchTeams = createAsyncThunk<
   try {
     const res = await axiosClient.get<Team[]>("/f1/teams");
     return res.data;
-  } catch (err: any) {
-    if (err.response) {
+  } catch (err) {
+    if (typeof err === "object" && err !== null && "response" in err) {
+      const axiosErr = err as {
+        response?: {
+          data?: { message?: string };
+          status?: number;
+          statusText?: string;
+        };
+      };
+
       return rejectWithValue({
-        message: err.response.data?.message || err.response.statusText,
-        status: err.response.status,
+        message:
+          axiosErr.response?.data?.message ??
+          axiosErr.response?.statusText ??
+          "Request failed",
+        status: axiosErr.response?.status,
       });
     }
-    return rejectWithValue({ message: err.message || "Network error" });
+
+    if (err instanceof Error) {
+      return rejectWithValue({ message: err.message });
+    }
+
+    return rejectWithValue({ message: "Network error" });
   }
 });
 
@@ -35,10 +51,13 @@ const teamsSlice = createSlice({
   reducers: {
     setTeams(state, action: PayloadAction<Team[]>) {
       state.items = action.payload;
-      state.byId = action.payload.reduce((acc: Record<string, Team>, t: Team) => {
-        acc[t.teamId] = t;
-        return acc;
-      }, {} as Record<string, Team>);
+      state.byId = action.payload.reduce(
+        (acc: Record<string, Team>, t: Team) => {
+          acc[t.teamId] = t;
+          return acc;
+        },
+        {} as Record<string, Team>
+      );
       state.status = "succeeded";
       state.error = null;
     },
@@ -65,7 +84,7 @@ const teamsSlice = createSlice({
       })
       .addCase(fetchTeams.rejected, (s, a) => {
         s.status = "failed";
-        s.error = (a.payload as any)?.message ?? a.error.message ?? "Error";
+        s.error = a.payload?.message ?? a.error.message ?? "Error";
       });
   },
 });
@@ -75,5 +94,7 @@ export default teamsSlice.reducer;
 
 export const selectAllTeams = (state: RootState) => state.teams.items;
 
-export const selectTeamById = (state: RootState, teamId?: string): Team | undefined =>
-  teamId ? state.teams.byId[teamId] : undefined;
+export const selectTeamById = (
+  state: RootState,
+  teamId?: string
+): Team | undefined => (teamId ? state.teams.byId[teamId] : undefined);
