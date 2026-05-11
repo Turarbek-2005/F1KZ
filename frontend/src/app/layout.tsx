@@ -3,6 +3,7 @@ import { cn } from "@/shared/lib/utils";
 import { Header } from "@/widget/Header";
 import { Providers } from "@/app/providers/Providers";
 import { InitAuth } from "@/app/providers/InitAuth";
+import { ScrollToTop } from "@/shared/ui/ScrollToTop";
 import { grapeNuts, montserrat } from "./fonts";
 import "./globals.css";
 
@@ -31,6 +32,7 @@ export default function RootLayout({
       <body className={cn(montserrat.className, "antialiased")}>
         <Providers>
           <InitAuth />
+          <ScrollToTop />
           <Header />
           <main className="pt-16">{children}</main>
         </Providers>

@@ -1,24 +1,39 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Search, X } from "lucide-react";
+import { Search, X, User, Users, Flag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { useSearchDriversQuery, useSearchTeamsQuery } from "@/entities/f1api/f1api";
-import type { DriversResponse, TeamsResponse } from "@/entities/f1api/f1api.interfaces";
+import {
+  useGetDriversQuery,
+  useGetTeamsQuery,
+  useGetRacesYearQuery,
+} from "@/entities/f1api/f1api";
+import type {
+  ApiDriver,
+  ApiTeam,
+  DriversResponse,
+  TeamsResponse,
+  RacesListResponse,
+  RaceEntry,
+} from "@/entities/f1api/f1api.interfaces";
 
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [debounced, setDebounced] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const t = setTimeout(() => setDebounced(query.trim()), 300);
-    return () => clearTimeout(t);
-  }, [query]);
+  const currentYear = new Date().getFullYear();
+
+  const { data: driversData } = useGetDriversQuery() as {
+    data?: DriversResponse;
+  };
+  const { data: teamsData } = useGetTeamsQuery() as { data?: TeamsResponse };
+  const { data: racesData } = useGetRacesYearQuery(currentYear) as {
+    data?: RacesListResponse;
+  };
 
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 50);
@@ -39,7 +54,6 @@ export function GlobalSearch() {
   function close() {
     setOpen(false);
     setQuery("");
-    setDebounced("");
   }
 
   function go(href: string) {
@@ -47,23 +61,55 @@ export function GlobalSearch() {
     close();
   }
 
-  const skip = debounced.length < 2;
+  const q = query.trim().toLowerCase();
 
-  const { data: driversData, isFetching: fetchingDrivers } =
-    useSearchDriversQuery(debounced, { skip }) as {
-      data?: DriversResponse;
-      isFetching: boolean;
+  const { drivers, teams, races } = useMemo(() => {
+    if (q.length < 1) {
+      return { drivers: [] as ApiDriver[], teams: [] as ApiTeam[], races: [] as RaceEntry[] };
+    }
+    const allDrivers = driversData?.drivers ?? [];
+    const allTeams = teamsData?.teams ?? [];
+    const allRaces = racesData?.races ?? [];
+
+    const filteredDrivers = allDrivers
+      .filter((d) => {
+        const full = `${d.name ?? ""} ${d.surname ?? ""}`.toLowerCase();
+        return (
+          full.includes(q) ||
+          (d.shortName ?? "").toLowerCase().includes(q) ||
+          (d.driverId ?? "").toLowerCase().includes(q) ||
+          (d.teamId ?? "").toLowerCase().includes(q) ||
+          String(d.number ?? "").includes(q)
+        );
+      })
+      .slice(0, 6);
+
+    const filteredTeams = allTeams
+      .filter(
+        (t) =>
+          (t.teamName ?? "").toLowerCase().includes(q) ||
+          (t.teamId ?? "").toLowerCase().includes(q)
+      )
+      .slice(0, 5);
+
+    const filteredRaces = allRaces
+      .filter(
+        (r) =>
+          (r.raceName ?? "").toLowerCase().includes(q) ||
+          (r.circuit?.country ?? "").toLowerCase().includes(q) ||
+          (r.circuit?.city ?? "").toLowerCase().includes(q) ||
+          (r.circuit?.name ?? "").toLowerCase().includes(q)
+      )
+      .slice(0, 5);
+
+    return {
+      drivers: filteredDrivers,
+      teams: filteredTeams,
+      races: filteredRaces,
     };
+  }, [q, driversData, teamsData, racesData]);
 
-  const { data: teamsData, isFetching: fetchingTeams } = useSearchTeamsQuery(
-    debounced,
-    { skip }
-  ) as { data?: TeamsResponse; isFetching: boolean };
-
-  const drivers = driversData?.drivers ?? [];
-  const teams = teamsData?.teams ?? [];
-  const loading = fetchingDrivers || fetchingTeams;
-  const hasResults = drivers.length > 0 || teams.length > 0;
+  const hasResults = drivers.length > 0 || teams.length > 0 || races.length > 0;
 
   return (
     <>
@@ -95,14 +141,13 @@ export function GlobalSearch() {
               className="fixed top-20 left-1/2 -translate-x-1/2 z-[101] w-full max-w-lg px-4"
             >
               <div className="bg-background border border-border rounded-2xl shadow-2xl overflow-hidden">
-                {/* Input */}
                 <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
                   <Search className="w-4 h-4 text-muted-foreground shrink-0" />
                   <input
                     ref={inputRef}
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search drivers, teams..."
+                    placeholder="Search drivers, teams, races..."
                     className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                   />
                   {query && (
@@ -112,34 +157,29 @@ export function GlobalSearch() {
                   )}
                 </div>
 
-                {/* Results */}
-                <div className="max-h-80 overflow-y-auto">
-                  {!debounced || debounced.length < 2 ? (
+                <div className="max-h-96 overflow-y-auto">
+                  {q.length < 1 ? (
                     <p className="text-xs text-muted-foreground text-center py-8">
-                      Type at least 2 characters
-                    </p>
-                  ) : loading ? (
-                    <p className="text-xs text-muted-foreground text-center py-8">
-                      Searching...
+                      Start typing to search...
                     </p>
                   ) : !hasResults ? (
                     <p className="text-xs text-muted-foreground text-center py-8">
-                      No results for &quot;{debounced}&quot;
+                      No results for &quot;{query}&quot;
                     </p>
                   ) : (
                     <div className="py-2">
                       {drivers.length > 0 && (
                         <div>
-                          <p className="text-[10px] uppercase tracking-widest text-muted-foreground px-4 py-1.5">
-                            Drivers
+                          <p className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground px-4 py-1.5">
+                            <User className="w-3 h-3" /> Drivers
                           </p>
-                          {drivers.slice(0, 5).map((d) => (
+                          {drivers.map((d) => (
                             <button
                               key={d.driverId}
                               onClick={() => go(`/drivers/${d.driverId}`)}
                               className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition text-left"
                             >
-                              {d.imgUrl && (
+                              {d.imgUrl ? (
                                 <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-white/10">
                                   <Image
                                     src={d.imgUrl}
@@ -149,14 +189,17 @@ export function GlobalSearch() {
                                     className="object-cover object-top w-full h-full"
                                   />
                                 </div>
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-white/10 shrink-0" />
                               )}
-                              <div>
-                                <p className="text-sm font-semibold">
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold truncate">
                                   {d.name} {d.surname}
                                 </p>
                                 {d.teamId && (
-                                  <p className="text-xs text-muted-foreground capitalize">
+                                  <p className="text-xs text-muted-foreground capitalize truncate">
                                     {d.teamId.replace("_", " ")}
+                                    {d.number ? ` · #${d.number}` : ""}
                                   </p>
                                 )}
                               </div>
@@ -167,16 +210,16 @@ export function GlobalSearch() {
 
                       {teams.length > 0 && (
                         <div>
-                          <p className="text-[10px] uppercase tracking-widest text-muted-foreground px-4 py-1.5 mt-1">
-                            Teams
+                          <p className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground px-4 py-1.5 mt-1">
+                            <Users className="w-3 h-3" /> Teams
                           </p>
-                          {teams.slice(0, 4).map((t) => (
+                          {teams.map((t) => (
                             <button
                               key={t.teamId}
                               onClick={() => go(`/teams/${t.teamId}`)}
                               className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition text-left"
                             >
-                              {t.teamImgUrl && (
+                              {t.teamImgUrl ? (
                                 <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-white/10 flex items-center justify-center">
                                   <Image
                                     src={t.teamImgUrl}
@@ -186,10 +229,44 @@ export function GlobalSearch() {
                                     className="object-contain w-6 h-6"
                                   />
                                 </div>
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-white/10 shrink-0" />
                               )}
-                              <p className="text-sm font-semibold">
+                              <p className="text-sm font-semibold truncate">
                                 {t.teamName ?? t.teamId}
                               </p>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {races.length > 0 && (
+                        <div>
+                          <p className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground px-4 py-1.5 mt-1">
+                            <Flag className="w-3 h-3" /> Races
+                          </p>
+                          {races.map((r) => (
+                            <button
+                              key={r.raceId ?? `${r.round}`}
+                              onClick={() =>
+                                go(`/schedule/${currentYear}/${r.round}`)
+                              }
+                              className="w-full flex items-start gap-3 px-4 py-2.5 hover:bg-accent transition text-left"
+                            >
+                              <div className="w-8 h-8 rounded-full bg-white/10 shrink-0 flex items-center justify-center text-xs font-bold">
+                                {r.round}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold truncate">
+                                  {r.raceName ?? r.circuit?.country}
+                                </p>
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {r.circuit?.country}
+                                  {r.circuit?.city && r.circuit.city !== r.circuit.country
+                                    ? ` · ${r.circuit.city}`
+                                    : ""}
+                                </p>
+                              </div>
                             </button>
                           ))}
                         </div>
