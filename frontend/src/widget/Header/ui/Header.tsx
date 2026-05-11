@@ -28,6 +28,7 @@ export function Header() {
     { href: "/schedule", label: "Schedule" },
     { href: `/results/${currentYear}/1/race`, label: "Results" },
     { href: "/standings", label: "Standings" },
+    { href: "/compare", label: "Compare" },
     { href: "/teams", label: "Teams" },
     { href: "/drivers", label: "Drivers" },
   ];
