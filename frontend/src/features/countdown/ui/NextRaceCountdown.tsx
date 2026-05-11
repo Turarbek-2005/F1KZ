@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useGetRacesNextQuery } from "@/entities/f1api/f1api";
 import type { LastNextRacesResponse } from "@/entities/f1api/f1api.interfaces";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 interface TimeLeft {
   days: number;
@@ -26,6 +27,35 @@ function calcTimeLeft(targetDate: Date): TimeLeft {
 
 function pad(n: number) {
   return String(n).padStart(2, "0");
+}
+
+function CountdownSkeleton() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.6, duration: 0.6 }}
+      className="w-full max-w-4xl"
+    >
+      <div className="bg-black/60 backdrop-blur-sm border border-white/10 rounded-2xl px-6 py-4 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-3 w-32" />
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-4 w-52" />
+          </div>
+          <div className="flex gap-3">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex flex-col items-center gap-1">
+                <Skeleton className="h-9 w-10" />
+                <Skeleton className="h-2 w-7" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
 }
 
 export function NextRaceCountdown() {
@@ -53,7 +83,8 @@ export function NextRaceCountdown() {
     return () => clearInterval(id);
   }, [raceDate, raceTime]);
 
-  if (isLoading || !nextRace || !target || !timeLeft) return null;
+  if (isLoading) return <CountdownSkeleton />;
+  if (!nextRace || !target || !timeLeft) return null;
 
   const isOver = Object.values(timeLeft).every((v) => v === 0);
   const country = nextRace.circuit?.country ?? "";

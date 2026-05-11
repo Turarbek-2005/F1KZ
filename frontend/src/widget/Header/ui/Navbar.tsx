@@ -16,6 +16,7 @@ export default function Navbar() {
     { href: "/schedule", label: "Schedule" },
     { href: `/results/${currentYear}/1/race`, label: "Results" },
     { href: "/standings", label: "Standings" },
+    { href: "/compare", label: "Compare" },
   ];
 
   return (
