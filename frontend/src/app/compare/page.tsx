@@ -102,7 +102,7 @@ function StatRow({ label, valA, valB, higherIsBetter = true }: StatRowProps) {
 
 function DriverCardSkeleton() {
   return (
-    <div className="relative rounded-xl overflow-hidden h-52 sm:h-64 md:h-72 p-4 flex flex-col justify-between bg-white/5">
+    <div className="relative rounded-xl overflow-hidden h-64 sm:h-64 md:h-72 p-4 flex flex-col justify-between bg-white/5">
       <div className="flex flex-col gap-2 z-10 relative">
         <Skeleton className="h-5 sm:h-7 w-24 sm:w-32" />
         <Skeleton className="h-5 sm:h-7 w-32 sm:w-40" />
@@ -113,7 +113,7 @@ function DriverCardSkeleton() {
         <Skeleton className="h-6 w-6 sm:h-7 sm:w-7 rounded-full" />
         <Skeleton className="h-3 w-20" />
       </div>
-      <div className="absolute bottom-0 right-[10%] sm:right-[8%] w-28 sm:w-36 md:w-44 h-44 sm:h-56 md:h-68">
+      <div className="absolute bottom-0 right-[10%] sm:right-[8%] w-40 sm:w-36 md:w-44 h-56 sm:h-56 md:h-68">
         <Skeleton className="w-full h-full rounded-none" />
       </div>
     </div>
@@ -134,7 +134,7 @@ function DriverCard({ apiData, meta, standing }: DriverCardProps) {
 
   return (
     <div
-      className="relative rounded-xl overflow-hidden h-52 sm:h-64 md:h-72 cursor-default p-4 flex flex-col justify-between"
+      className="relative rounded-xl overflow-hidden h-64 sm:h-64 md:h-72 cursor-default p-4 flex flex-col justify-between"
       style={{ background: safeTeamVar(teamId) ?? "rgba(255,255,255,0.05)" }}
     >
       <div className="flex flex-col z-10 relative">
@@ -178,7 +178,7 @@ function DriverCard({ apiData, meta, standing }: DriverCardProps) {
       </div>
 
       {imgUrl && (
-        <div className="w-28 sm:w-36 md:w-44 h-44 sm:h-56 md:h-68 overflow-hidden absolute bottom-0 right-[10%] sm:right-[8%]">
+        <div className="w-40 sm:w-36 md:w-44 h-56 sm:h-56 md:h-68 overflow-hidden absolute bottom-0 right-[10%] sm:right-[8%]">
           <Image
             src={imgUrl}
             alt={apiData.driver?.surname ?? "driver"}
@@ -368,7 +368,7 @@ export default function ComparePage() {
 
       {(showACard || showBCard) && (
         <div className="space-y-4 sm:space-y-6">
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {showACard ? (
               cardALoading ? (
                 <DriverCardSkeleton />
@@ -380,7 +380,7 @@ export default function ComparePage() {
                 />
               )
             ) : (
-              <div className="rounded-xl border border-dashed border-white/15 h-52 sm:h-64 md:h-72 flex items-center justify-center text-xs sm:text-sm text-gray-500">
+              <div className="rounded-xl border border-dashed border-white/15 h-64 sm:h-64 md:h-72 flex items-center justify-center text-xs sm:text-sm text-gray-500">
                 Pick driver A
               </div>
             )}
@@ -396,7 +396,7 @@ export default function ComparePage() {
                 />
               )
             ) : (
-              <div className="rounded-xl border border-dashed border-white/15 h-52 sm:h-64 md:h-72 flex items-center justify-center text-xs sm:text-sm text-gray-500">
+              <div className="rounded-xl border border-dashed border-white/15 h-64 sm:h-64 md:h-72 flex items-center justify-center text-xs sm:text-sm text-gray-500">
                 Pick driver B
               </div>
             )}
