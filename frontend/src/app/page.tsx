@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Card, CardHeader, CardTitle } from "@/shared/ui/card";
+import { NextRaceCountdown } from "@/features/countdown/ui/NextRaceCountdown";
 export default function Home() {
   const currentYear = new Date().getFullYear();
   const links = [
@@ -25,11 +26,13 @@ export default function Home() {
         Welcome to <span className="text-red-500">F1KZ</span>
       </motion.h1>
 
+      <NextRaceCountdown />
+
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.7 }}
-        className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 max-w-4xl w-full"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 max-w-4xl w-full mt-6"
       >
         {links.map((link, i) => (
           <motion.div
