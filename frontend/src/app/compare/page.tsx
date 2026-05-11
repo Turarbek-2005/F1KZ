@@ -6,10 +6,13 @@ import { motion } from "framer-motion";
 import { skipToken } from "@reduxjs/toolkit/query/react";
 import {
   useGetDriverByIdQuery,
+  useGetDriversQuery,
   useGetStandingsDriversQuery,
 } from "@/entities/f1api/f1api";
 import type {
+  ApiDriver,
   DriverByIdResponse,
+  DriversResponse,
   DriversStandingsResponse,
   DriverResultEntry,
 } from "@/entities/f1api/f1api.interfaces";
@@ -227,6 +230,11 @@ export default function ComparePage() {
     if (driversStatus === "idle") dispatch(fetchDrivers());
   }, [dispatch, driversStatus]);
 
+  const { data: driversApi } = useGetDriversQuery() as {
+    data?: DriversResponse;
+  };
+  const apiDrivers: ApiDriver[] = driversApi?.drivers ?? [];
+
   const { data: standingsData } = useGetStandingsDriversQuery() as {
     data?: DriversStandingsResponse;
   };
@@ -295,15 +303,23 @@ export default function ComparePage() {
                 <SelectValue placeholder="Select driver..." />
               </SelectTrigger>
               <SelectContent>
-                {drivers.map((d) => (
-                  <SelectItem
-                    key={d.driverId}
-                    value={d.driverId}
-                    disabled={d.driverId === driverBId}
-                  >
-                    {d.name} {d.surname}
-                  </SelectItem>
-                ))}
+                {drivers.map((d) => {
+                  const apiD = apiDrivers.find(
+                    (a) => a.driverId === d.driverId
+                  );
+                  const label = apiD
+                    ? `${apiD.name ?? ""} ${apiD.surname ?? ""}`.trim()
+                    : d.driverId;
+                  return (
+                    <SelectItem
+                      key={d.driverId}
+                      value={d.driverId}
+                      disabled={d.driverId === driverBId}
+                    >
+                      {label}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           )}
@@ -321,15 +337,23 @@ export default function ComparePage() {
                 <SelectValue placeholder="Select driver..." />
               </SelectTrigger>
               <SelectContent>
-                {drivers.map((d) => (
-                  <SelectItem
-                    key={d.driverId}
-                    value={d.driverId}
-                    disabled={d.driverId === driverAId}
-                  >
-                    {d.name} {d.surname}
-                  </SelectItem>
-                ))}
+                {drivers.map((d) => {
+                  const apiD = apiDrivers.find(
+                    (a) => a.driverId === d.driverId
+                  );
+                  const label = apiD
+                    ? `${apiD.name ?? ""} ${apiD.surname ?? ""}`.trim()
+                    : d.driverId;
+                  return (
+                    <SelectItem
+                      key={d.driverId}
+                      value={d.driverId}
+                      disabled={d.driverId === driverAId}
+                    >
+                      {label}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           )}
