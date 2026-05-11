@@ -33,6 +33,7 @@ import {
 import { Skeleton } from "@/shared/ui/skeleton";
 import { cn } from "@/shared/lib/utils";
 import { grapeNuts } from "@/app/fonts";
+import Link from "next/link";
 
 function safeTeamVar(teamId?: string) {
   if (!teamId) return undefined;
@@ -45,12 +46,12 @@ function calcStats(results: DriverResultEntry[]) {
   const podiums = results.filter(
     (r) =>
       Number(r.result?.finishingPosition) >= 1 &&
-      Number(r.result?.finishingPosition) <= 3
+      Number(r.result?.finishingPosition) <= 3,
   ).length;
   const dnfs = results.filter(
     (r) =>
       r.result?.finishingPosition === "DNF" ||
-      r.result?.finishingPosition === "DNS"
+      r.result?.finishingPosition === "DNS",
   ).length;
   const bestFinish = results.reduce<number | null>((best, r) => {
     const pos = Number(r.result?.finishingPosition);
@@ -80,7 +81,7 @@ function StatRow({ label, valA, valB, higherIsBetter = true }: StatRowProps) {
       <span
         className={cn(
           "text-sm sm:text-base font-bold text-right pr-3 sm:pr-6 tabular-nums",
-          aWins && "text-red-400"
+          aWins && "text-red-400",
         )}
       >
         {valA}
@@ -91,7 +92,7 @@ function StatRow({ label, valA, valB, higherIsBetter = true }: StatRowProps) {
       <span
         className={cn(
           "text-sm sm:text-base font-bold text-left pl-3 sm:pl-6 tabular-nums",
-          bWins && "text-red-400"
+          bWins && "text-red-400",
         )}
       >
         {valB}
@@ -127,22 +128,22 @@ interface DriverCardProps {
 }
 
 function DriverCard({ apiData, meta, standing }: DriverCardProps) {
-  const teamId = apiData.team?.teamId ?? apiData.driver?.teamId ?? meta?.teamId ?? "";
+  const teamId =
+    apiData.team?.teamId ?? apiData.driver?.teamId ?? meta?.teamId ?? "";
   const imgUrl = meta?.imgUrl ?? apiData.driver?.imgUrl;
-  const nationalityImgUrl = meta?.nationalityImgUrl ?? apiData.driver?.nationalityImgUrl;
+  const nationalityImgUrl =
+    meta?.nationalityImgUrl ?? apiData.driver?.nationalityImgUrl;
   const nationality = meta?.nationality ?? apiData.driver?.nationality;
 
   return (
-    <div
-      className="relative rounded-xl overflow-hidden h-64 sm:h-64 md:h-72 cursor-default p-4 flex flex-col justify-between"
+    <Link
+      href={`/drivers/${apiData.driver?.driverId}`}
+      className="relative rounded-xl overflow-hidden h-64 sm:h-64 md:h-72 cursor-pointer p-4 flex flex-col justify-between"
       style={{ background: safeTeamVar(teamId) ?? "rgba(255,255,255,0.05)" }}
     >
       <div className="flex flex-col z-10 relative">
         <span className="text-lg sm:text-2xl font-bold leading-tight text-white drop-shadow">
-          {apiData.driver?.name}
-        </span>
-        <span className="text-lg sm:text-2xl font-bold leading-tight text-white drop-shadow">
-          {apiData.driver?.surname}
+          {apiData.driver?.name} {apiData.driver?.surname}
         </span>
         <span className="text-xs sm:text-sm text-white/70 mt-0.5">
           {apiData.team?.teamName}
@@ -150,7 +151,7 @@ function DriverCard({ apiData, meta, standing }: DriverCardProps) {
         <span
           className={cn(
             grapeNuts.className,
-            "text-3xl sm:text-4xl font-medium mt-1 text-white"
+            "text-3xl sm:text-4xl font-medium mt-1 text-white",
           )}
         >
           {apiData.driver?.number}
@@ -188,7 +189,7 @@ function DriverCard({ apiData, meta, standing }: DriverCardProps) {
           />
         </div>
       )}
-    </div>
+    </Link>
   );
 }
 
@@ -240,11 +241,11 @@ export default function ComparePage() {
   };
 
   const { data: driverAData, isFetching: fetchingA } = useGetDriverByIdQuery(
-    driverAId || skipToken
+    driverAId || skipToken,
   ) as { data?: DriverByIdResponse; isFetching: boolean };
 
   const { data: driverBData, isFetching: fetchingB } = useGetDriverByIdQuery(
-    driverBId || skipToken
+    driverBId || skipToken,
   ) as { data?: DriverByIdResponse; isFetching: boolean };
 
   const standings = standingsData?.drivers_championship ?? [];
@@ -271,8 +272,7 @@ export default function ComparePage() {
     !cardBLoading &&
     statsA &&
     statsB;
-  const statsLoading =
-    showACard && showBCard && (cardALoading || cardBLoading);
+  const statsLoading = showACard && showBCard && (cardALoading || cardBLoading);
 
   return (
     <div className="container px-4 sm:px-0 mx-auto pb-10">
@@ -305,7 +305,7 @@ export default function ComparePage() {
               <SelectContent>
                 {drivers.map((d) => {
                   const apiD = apiDrivers.find(
-                    (a) => a.driverId === d.driverId
+                    (a) => a.driverId === d.driverId,
                   );
                   const label = apiD
                     ? `${apiD.name ?? ""} ${apiD.surname ?? ""}`.trim()
@@ -339,7 +339,7 @@ export default function ComparePage() {
               <SelectContent>
                 {drivers.map((d) => {
                   const apiD = apiDrivers.find(
-                    (a) => a.driverId === d.driverId
+                    (a) => a.driverId === d.driverId,
                   );
                   const label = apiD
                     ? `${apiD.name ?? ""} ${apiD.surname ?? ""}`.trim()

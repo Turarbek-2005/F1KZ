@@ -33,19 +33,21 @@ export default function Teams() {
     undefined,
     {
       refetchOnMountOrArgChange: true,
-    }
+    },
   ) as { data?: DriversResponse; isLoading?: boolean };
 
   const { data: teamsApi, isLoading: isLoadingTeams } = useGetTeamsQuery(
     undefined,
     {
       refetchOnMountOrArgChange: true,
-    }
+    },
   ) as { data?: TeamsResponse; isLoading?: boolean };
 
   const drivers = useAppSelector(selectAllDrivers);
   const teams = useAppSelector(selectAllTeams);
-  const driversStatus = useAppSelector((state: RootState) => state.drivers.status);
+  const driversStatus = useAppSelector(
+    (state: RootState) => state.drivers.status,
+  );
   const teamsStatus = useAppSelector((state: RootState) => state.teams.status);
   const driversRetry = useRef(0);
   const teamsRetry = useRef(0);
@@ -58,9 +60,15 @@ export default function Teams() {
     if (driversStatus === "idle") {
       driversRetry.current = 0;
       dispatch(fetchDrivers());
-    } else if (driversStatus === "failed" && driversRetry.current < MAX_RETRIES) {
+    } else if (
+      driversStatus === "failed" &&
+      driversRetry.current < MAX_RETRIES
+    ) {
       driversRetry.current += 1;
-      const timer = setTimeout(() => dispatch(fetchDrivers()), 1000 * driversRetry.current);
+      const timer = setTimeout(
+        () => dispatch(fetchDrivers()),
+        1000 * driversRetry.current,
+      );
       return () => clearTimeout(timer);
     }
   }, [dispatch, driversStatus]);
@@ -71,7 +79,10 @@ export default function Teams() {
       dispatch(fetchTeams());
     } else if (teamsStatus === "failed" && teamsRetry.current < MAX_RETRIES) {
       teamsRetry.current += 1;
-      const timer = setTimeout(() => dispatch(fetchTeams()), 1000 * teamsRetry.current);
+      const timer = setTimeout(
+        () => dispatch(fetchTeams()),
+        1000 * teamsRetry.current,
+      );
       return () => clearTimeout(timer);
     }
   }, [dispatch, teamsStatus]);
@@ -111,7 +122,7 @@ export default function Teams() {
               user.favoriteTeamsIds.map((favTeamId: string) => {
                 const favTeam = teams.find((t) => t.teamId === favTeamId);
                 const favTeamApi = teamsApi?.teams?.find(
-                  (t: ApiTeam) => t.teamId === favTeamId
+                  (t: ApiTeam) => t.teamId === favTeamId,
                 );
 
                 const displayTeamId =
@@ -127,7 +138,7 @@ export default function Teams() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
                     key={favTeamId}
-                    className="p-4 rounded-lg relative h-70 cursor-pointer overflow-hidden"
+                    className="p-4 rounded-lg relative h-70 cursor-pointer overflow-hidden z-0"
                     style={{
                       background: `var(--team-${displayTeamId
                         .toLowerCase()
@@ -145,14 +156,14 @@ export default function Teams() {
                       ) : (
                         teamDrivers.map((d) => {
                           const matchedDriverApi = driversApi?.drivers?.find(
-                            (da: ApiDriver) => da.driverId === d.driverId
+                            (da: ApiDriver) => da.driverId === d.driverId,
                           );
 
                           return (
                             <Link
                               key={d.id ?? d.driverId}
                               href={`/drivers/${d.driverId}`}
-                              className="flex items-center gap-2"
+                              className="flex items-center gap-2 z-100"
                             >
                               <div
                                 className="w-8 h-8 overflow-hidden rounded-full"
@@ -235,11 +246,11 @@ export default function Teams() {
       <div className="grid md:grid-cols-2 gap-5">
         {sortedTeams.map((team) => {
           const matchedTeam = teamsApi?.teams?.find(
-            (teamApi: ApiTeam) => teamApi.teamId === team.teamId
+            (teamApi: ApiTeam) => teamApi.teamId === team.teamId,
           );
 
           const matchedDrivers = sortedDrivers.filter(
-            (d) => d.teamId === team.teamId
+            (d) => d.teamId === team.teamId,
           );
 
           return (
@@ -266,7 +277,7 @@ export default function Teams() {
                 ) : (
                   matchedDrivers.map((driver) => {
                     const matchedDriverApi = driversApi?.drivers?.find(
-                      (da: ApiDriver) => da.driverId === driver.driverId
+                      (da: ApiDriver) => da.driverId === driver.driverId,
                     );
 
                     return (

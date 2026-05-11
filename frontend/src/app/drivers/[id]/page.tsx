@@ -44,13 +44,15 @@ export default function Driver() {
   const dispatch = useAppDispatch();
 
   const driver = useAppSelector((state) =>
-    driverId ? selectDriverById(state, driverId) : undefined
+    driverId ? selectDriverById(state, driverId) : undefined,
   );
   const teamIdFromDriver = driver ? driver.teamId : undefined;
   const team = useAppSelector((state) =>
-    teamIdFromDriver ? selectTeamById(state, teamIdFromDriver) : undefined
+    teamIdFromDriver ? selectTeamById(state, teamIdFromDriver) : undefined,
   );
-  const driversStatus = useAppSelector((state: RootState) => state.drivers.status);
+  const driversStatus = useAppSelector(
+    (state: RootState) => state.drivers.status,
+  );
   const teamsStatus = useAppSelector((state: RootState) => state.teams.status);
 
   const {
@@ -61,9 +63,7 @@ export default function Driver() {
     refetchOnMountOrArgChange: true,
   });
 
-  const {
-    data: rawStandingsData,
-  } = useGetStandingsDriversQuery(undefined, {
+  const { data: rawStandingsData } = useGetStandingsDriversQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
 
@@ -73,7 +73,7 @@ export default function Driver() {
   }) as DriversStandingsResponse;
 
   const topDriverStat = driversStandings.drivers_championship?.find(
-    (d: DriverStanding) => d.position === 1
+    (d: DriverStanding) => d.position === 1,
   );
   const topDriverId = topDriverStat?.driverId;
 
@@ -90,7 +90,7 @@ export default function Driver() {
     | undefined;
 
   const twoDriverIds = Array.from(
-    new Set([topDriverId, driverId].filter(Boolean))
+    new Set([topDriverId, driverId].filter(Boolean)),
   );
 
   const twoDriversData: {
@@ -100,7 +100,7 @@ export default function Driver() {
   }[] = twoDriverIds.map((id) => {
     const apiData = id === driverId ? driverApi : topDriverApi;
     const stat = driversStandings.drivers_championship?.find(
-      (d) => d.driverId === id
+      (d) => d.driverId === id,
     );
     return { id, apiData, stat };
   });
@@ -188,7 +188,10 @@ export default function Driver() {
               <p>{driver?.nationality}</p>
             </div>
             <span className="mx-1 sm:mx-3">|</span>
-            <div className="flex items-center gap-2">
+            <Link
+              href={`/teams/${team?.teamId}`}
+              className="flex items-center gap-2"
+            >
               <div className="w-6 h-6">
                 <Image
                   src={team?.teamImgUrl ?? ""}
@@ -199,7 +202,7 @@ export default function Driver() {
                 />
               </div>
               <p>{driverApi?.team?.teamName}</p>
-            </div>
+            </Link>
             <span className="mx-1 sm:mx-3">|</span>
             <p>{driverApi?.driver?.number}</p>
           </div>
@@ -300,7 +303,8 @@ export default function Driver() {
 
               <TableBody>
                 {twoDriversData.map(({ id, apiData, stat }) => {
-                  const position = stat?.position ?? apiData?.driver?.number ?? "—";
+                  const position =
+                    stat?.position ?? apiData?.driver?.number ?? "—";
                   const points = stat?.points ?? 0;
                   const name = apiData?.driver
                     ? `${apiData.driver.name} ${apiData.driver.surname}`
@@ -313,7 +317,7 @@ export default function Driver() {
                       <TableCell
                         className={cn(
                           "whitespace-nowrap px-3 py-3 text-sm",
-                          id == driverId && "text-red-500"
+                          id == driverId && "text-red-500",
                         )}
                       >
                         {position}
@@ -322,7 +326,7 @@ export default function Driver() {
                       <TableCell
                         className={cn(
                           "px-3 py-3 text-sm",
-                          id == driverId && "text-red-500"
+                          id == driverId && "text-red-500",
                         )}
                       >
                         {name}
@@ -331,7 +335,7 @@ export default function Driver() {
                       <TableCell
                         className={cn(
                           "px-3 py-3 text-sm",
-                          id == driverId && "text-red-500"
+                          id == driverId && "text-red-500",
                         )}
                       >
                         {teamName}
@@ -340,7 +344,7 @@ export default function Driver() {
                       <TableCell
                         className={cn(
                           "px-3 py-3 text-sm",
-                          id == driverId && "text-red-500"
+                          id == driverId && "text-red-500",
                         )}
                       >
                         {points}
@@ -396,14 +400,22 @@ export default function Driver() {
                       <TableCell className="whitespace-nowrap px-3 py-3 text-sm">
                         {round}
                       </TableCell>
-                      <TableCell className="px-3 py-3 text-sm">{name}</TableCell>
+                      <TableCell className="px-3 py-3 text-sm">
+                        {name}
+                      </TableCell>
                       <TableCell className="whitespace-nowrap px-3 py-3 text-sm">
                         {date}
                       </TableCell>
-                      <TableCell className="px-3 py-3 text-sm">{grid}</TableCell>
-                      <TableCell className="px-3 py-3 text-sm">{finish}</TableCell>
+                      <TableCell className="px-3 py-3 text-sm">
+                        {grid}
+                      </TableCell>
+                      <TableCell className="px-3 py-3 text-sm">
+                        {finish}
+                      </TableCell>
                       <TableCell className="px-3 py-3 text-sm">{pts}</TableCell>
-                      <TableCell className="px-3 py-3 text-sm">{sprint}</TableCell>
+                      <TableCell className="px-3 py-3 text-sm">
+                        {sprint}
+                      </TableCell>
                     </TableRow>
                   );
                 })}

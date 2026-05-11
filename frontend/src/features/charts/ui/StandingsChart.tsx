@@ -9,7 +9,10 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import type { DriverStanding, TeamStanding } from "@/entities/f1api/f1api.interfaces";
+import type {
+  DriverStanding,
+  TeamStanding,
+} from "@/entities/f1api/f1api.interfaces";
 
 const TEAM_COLORS: Record<string, string> = {
   mercedes: "#00d2bd",
@@ -46,7 +49,7 @@ export function DriverStandingsChart({ standings }: DriverChartProps) {
     }));
 
   return (
-    <ResponsiveContainer width="100%" height={400}>
+    <ResponsiveContainer width="100%" height={500}>
       <BarChart
         data={data}
         layout="vertical"
@@ -72,8 +75,11 @@ export function DriverStandingsChart({ standings }: DriverChartProps) {
             background: "#1a1a2e",
             border: "1px solid rgba(255,255,255,0.1)",
             borderRadius: 8,
-            color: "#fff",
+            color: "#ffffff",
             fontSize: 12,
+          }}
+          itemStyle={{
+            color: "#ffffff",
           }}
           formatter={(v: unknown) => [`${v} pts`, "Points"] as [string, string]}
         />
@@ -102,7 +108,7 @@ export function TeamStandingsChart({ standings }: TeamChartProps) {
     }));
 
   return (
-    <ResponsiveContainer width="100%" height={320}>
+    <ResponsiveContainer width="100%" height={350}>
       <BarChart
         data={data}
         layout="vertical"
@@ -117,7 +123,7 @@ export function TeamStandingsChart({ standings }: TeamChartProps) {
         <YAxis
           type="category"
           dataKey="name"
-          width={80}
+          width={150}
           tick={{ fill: "#e5e7eb", fontSize: 11 }}
           axisLine={false}
           tickLine={false}
@@ -128,8 +134,11 @@ export function TeamStandingsChart({ standings }: TeamChartProps) {
             background: "#1a1a2e",
             border: "1px solid rgba(255,255,255,0.1)",
             borderRadius: 8,
-            color: "#fff",
+            color: "#ffffff",
             fontSize: 12,
+          }}
+          itemStyle={{
+            color: "#ffffff",
           }}
           formatter={(v: unknown) => [`${v} pts`, "Points"] as [string, string]}
         />
