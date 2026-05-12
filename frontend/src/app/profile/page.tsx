@@ -113,7 +113,9 @@ export default function ProfilePage() {
         <Initials name={user.username} />
 
         <div className="flex-1 text-center sm:text-left">
-          <h1 className="text-3xl sm:text-4xl font-extrabold">{user.username}</h1>
+          <h1 className="text-3xl sm:text-4xl font-extrabold">
+            {user.username}
+          </h1>
           <p className="text-muted-foreground text-sm mt-1">{user.email}</p>
           <div className="flex items-center justify-center sm:justify-start gap-4 mt-2 text-xs text-muted-foreground">
             <span>{favDriverIds.length} favourite drivers</span>
@@ -151,10 +153,14 @@ export default function ProfilePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {favDrivers.map(({ id, meta, api }) => {
               const teamId = meta?.teamId ?? api?.teamId ?? "";
-              const name = api ? `${api.name ?? ""} ${api.surname ?? ""}`.trim() : id;
+              const name = api
+                ? `${api.name ?? ""} ${api.surname ?? ""}`.trim()
+                : id;
               const number = api?.number;
               const imgUrl = meta?.imgUrl ?? api?.imgUrl;
-              const teamName = teamsApi?.teams.find((t) => t.teamId === teamId)?.teamName;
+              const teamName = teamsApi?.teams.find(
+                (t) => t.teamId === teamId,
+              )?.teamName;
 
               return (
                 <Link key={id} href={`/drivers/${id}`}>
@@ -162,15 +168,24 @@ export default function ProfilePage() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className="relative h-52 rounded-xl overflow-hidden p-4 flex flex-col justify-between cursor-pointer"
-                    style={{ background: teamVar(teamId) ?? "rgba(255,255,255,0.05)" }}
+                    style={{
+                      background: teamVar(teamId) ?? "rgba(255,255,255,0.05)",
+                    }}
                   >
                     <div className="z-10 relative">
-                      <p className="text-lg font-bold text-white leading-tight">{name}</p>
+                      <p className="text-lg font-bold text-white leading-tight">
+                        {name}
+                      </p>
                       {teamName && (
                         <p className="text-xs text-white/70">{teamName}</p>
                       )}
                       {number && (
-                        <p className={cn(grapeNuts.className, "text-4xl text-white mt-1")}>
+                        <p
+                          className={cn(
+                            grapeNuts.className,
+                            "text-4xl text-white mt-1",
+                          )}
+                        >
                           {number}
                         </p>
                       )}
@@ -188,7 +203,9 @@ export default function ProfilePage() {
                           />
                         </div>
                       )}
-                      <span className="text-xs text-white/70">{meta?.nationality}</span>
+                      <span className="text-xs text-white/70">
+                        {meta?.nationality}
+                      </span>
                     </div>
 
                     {imgUrl && (
@@ -231,7 +248,9 @@ export default function ProfilePage() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className="relative h-40 rounded-xl overflow-hidden p-4 flex flex-col justify-between cursor-pointer"
-                    style={{ background: teamVar(id) ?? "rgba(255,255,255,0.05)" }}
+                    style={{
+                      background: teamVar(id) ?? "rgba(255,255,255,0.05)",
+                    }}
                   >
                     <div className="z-10 relative flex items-center gap-3">
                       {teamImgUrl && (
@@ -249,12 +268,12 @@ export default function ProfilePage() {
                     </div>
 
                     {bolidImgUrl && (
-                      <div className="absolute bottom-0 right-2 h-20 w-40 overflow-hidden opacity-80">
+                      <div className="absolute bottom-0 right-2 w-64 h-28 overflow-hidden opacity-80">
                         <Image
                           src={bolidImgUrl}
                           alt={`${id} car`}
-                          width={160}
-                          height={80}
+                          width={256}
+                          height={100}
                           className="object-contain w-full h-full"
                         />
                       </div>

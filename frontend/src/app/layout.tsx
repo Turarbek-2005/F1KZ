@@ -4,6 +4,7 @@ import { Header } from "@/widget/Header";
 import { Providers } from "@/app/providers/Providers";
 import { InitAuth } from "@/app/providers/InitAuth";
 import { ScrollToTop } from "@/shared/ui/ScrollToTop";
+import { Footer } from "@/widget/Footer";
 import { grapeNuts, montserrat } from "./fonts";
 import "./globals.css";
 
@@ -35,6 +36,7 @@ export default function RootLayout({
           <ScrollToTop />
           <Header />
           <main className="pt-16">{children}</main>
+          <Footer />
         </Providers>
       </body>
     </html>

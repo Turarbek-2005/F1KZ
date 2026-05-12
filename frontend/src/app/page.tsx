@@ -16,7 +16,7 @@ export default function Home() {
   ];
 
   return (
-    <main className="h-[calc(100vh-4rem)] bg-[url('/bg-home.jpg')] bg-cover bg-center flex flex-col items-center justify-center text-white px-6">
+    <main className="h-full sm:h-[calc(100vh-4rem)] bg-[url('/bg-home.jpg')] bg-cover bg-center flex flex-col items-center justify-center text-white px-6">
       <motion.h1
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -40,7 +40,6 @@ export default function Home() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", stiffness: 300 }}
-            // className={i === links.length - 1 ? "sm:col-span-2 mx-auto w-full sm:w-1/2" : ""}
           >
             <Link href={link.href}>
               <Card className="bg-black/70 h-16 sm:h-20 p-4 sm:p-6 hover:bg-red-600 border border-gray-800 hover:border-red-400 transition-all duration-300 text-white backdrop-blur-sm shadow-xl">
