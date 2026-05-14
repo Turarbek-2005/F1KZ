@@ -38,7 +38,9 @@ export default function DriversStandings() {
   const dispatch = useAppDispatch();
   const drivers = useAppSelector(selectAllDrivers);
   const teams = useAppSelector(selectAllTeams);
-  const driversStatus = useAppSelector((state: RootState) => state.drivers.status);
+  const driversStatus = useAppSelector(
+    (state: RootState) => state.drivers.status,
+  );
   const teamsStatus = useAppSelector((state: RootState) => state.teams.status);
 
   useEffect(() => {
@@ -53,7 +55,7 @@ export default function DriversStandings() {
   const sortedDrivers = drivers
     .map((driver: Driver) => {
       const stat = driversApi.drivers_championship.find(
-        (d) => d.driverId === driver.driverId
+        (d) => d.driverId === driver.driverId,
       );
 
       if (!stat) {
@@ -74,11 +76,10 @@ export default function DriversStandings() {
         };
       }
 
-      const matchedTeam =
-        teams.find((t) => t.teamId === stat.teamId) ?? {
-          teamImgUrl: "/placeholder.png",
-          teamId: stat.teamId,
-        };
+      const matchedTeam = teams.find((t) => t.teamId === stat.teamId) ?? {
+        teamImgUrl: "/placeholder.png",
+        teamId: stat.teamId,
+      };
 
       return {
         driver,
@@ -125,8 +126,7 @@ export default function DriversStandings() {
             const position = stat.position ?? "-";
             const points = stat.points ?? 0;
             const teamIdForColor = stat.teamId ?? "unknown";
-            const teamName =
-              stat.team?.teamName ?? stat.teamId ?? "Unknown";
+            const teamName = stat.team?.teamName ?? stat.teamId ?? "Unknown";
             const matchedTeamId = matchedTeam.teamId ?? teamIdForColor;
             const matchedTeamImg = matchedTeam.teamImgUrl ?? "/placeholder.png";
             const driverName = stat.driver?.name ?? "";
@@ -175,12 +175,12 @@ export default function DriversStandings() {
 
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full border-2 border-white">
+                    <div className="w-6 h-6 rounded-full border border-gray-200">
                       <Image
                         src={driver.nationalityImgUrl}
                         alt={driver.nationality}
-                        width={32}
-                        height={32}
+                        width={24}
+                        height={24}
                         className="object-cover w-full h-full rounded-full"
                       />
                     </div>

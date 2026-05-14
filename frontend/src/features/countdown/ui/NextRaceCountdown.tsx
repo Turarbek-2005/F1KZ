@@ -73,7 +73,7 @@ export function NextRaceCountdown() {
     : null;
 
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(
-    target ? calcTimeLeft(target) : null
+    target ? calcTimeLeft(target) : null,
   );
 
   useEffect(() => {
@@ -104,10 +104,10 @@ export function NextRaceCountdown() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.6, duration: 0.6 }}
-      className="w-full max-w-4xl"
+      initial={{ opacity: 0, y: 0 }}
+      animate={{ opacity: 1, y: 20 }}
+      transition={{ delay: 0.2, duration: 0.3 }}
+      className="w-full max-w-4xl mb-3"
     >
       <Link href={`/schedule/${new Date(raceDate!).getFullYear()}/${round}`}>
         <div className="bg-black/60 backdrop-blur-sm border border-white/10 hover:border-red-500/50 transition-colors duration-300 rounded-2xl px-6 py-4 shadow-xl">

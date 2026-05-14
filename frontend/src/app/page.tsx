@@ -16,12 +16,12 @@ export default function Home() {
   ];
 
   return (
-    <main className="h-full sm:h-[calc(100vh-4rem)] bg-[url('/bg-home.jpg')] bg-cover bg-center flex flex-col items-center justify-center text-white px-6">
+    <main className="pt-6 sm:pt-0 h-full sm:h-[calc(100vh-4rem)] bg-[url('/bg-home-white.jpg')]  dark:bg-[url('/bg-home.jpg')] bg-cover bg-center flex flex-col items-center justify-center px-6">
       <motion.h1
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="text-5xl md:text-6xl font-extrabold tracking-tight mb-12 text-center drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
+        className="text-5xl md:text-6xl font-extrabold tracking-tight mb-12 text-neutral-600 dark:text-white text-center dark:drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
       >
         Welcome to <span className="text-red-500">F1KZ</span>
       </motion.h1>

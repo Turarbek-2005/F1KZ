@@ -44,18 +44,21 @@ export default function ResultsYearRoundSessionPage() {
   const DEFAULT_SESSION = "race";
 
   const [year, setYear] = useState(
-    toSingleString(params?.year) ?? DEFAULT_YEAR
+    toSingleString(params?.year) ?? DEFAULT_YEAR,
   );
   const [round, setRound] = useState(
-    toSingleString(params?.round) ?? DEFAULT_ROUND
+    toSingleString(params?.round) ?? DEFAULT_ROUND,
   );
   const [session, setSession] = useState(
-    toSingleString(params?.session) ?? DEFAULT_SESSION
+    toSingleString(params?.session) ?? DEFAULT_SESSION,
   );
 
-  const { data: races, error, isLoading, isFetching } = useGetRacesYearQuery(
-    year!
-  );
+  const {
+    data: races,
+    error,
+    isLoading,
+    isFetching,
+  } = useGetRacesYearQuery(year!);
   const queryArgs = year && round ? { year, round } : skipToken;
 
   const {
@@ -87,7 +90,7 @@ export default function ResultsYearRoundSessionPage() {
   }
 
   return (
-    <div className="container px-4 sm:px-0 mx-auto pb-6">
+    <div className="container px-4 sm:px-0 mx-auto pt-4 pb-6">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -100,7 +103,9 @@ export default function ResultsYearRoundSessionPage() {
           </SelectTrigger>
 
           <SelectContent>
-            <SelectItem value={currentYear.toString()}>{currentYear}</SelectItem>
+            <SelectItem value={currentYear.toString()}>
+              {currentYear}
+            </SelectItem>
             <SelectItem value="2025">2025</SelectItem>
             <SelectItem value="2024">2024</SelectItem>
             <SelectItem value="2023">2023</SelectItem>

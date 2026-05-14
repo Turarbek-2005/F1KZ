@@ -77,7 +77,7 @@ function StatRow({ label, valA, valB, higherIsBetter = true }: StatRowProps) {
     !isNaN(a) && !isNaN(b) && a !== b && (higherIsBetter ? b > a : b < a);
 
   return (
-    <div className="grid grid-cols-3 items-center py-3 border-b border-white/8 last:border-0">
+    <div className="grid grid-cols-3 items-center py-3 border-b border-border last:border-0">
       <span
         className={cn(
           "text-sm sm:text-base font-bold text-right pr-3 sm:pr-6 tabular-nums",
@@ -86,7 +86,7 @@ function StatRow({ label, valA, valB, higherIsBetter = true }: StatRowProps) {
       >
         {valA}
       </span>
-      <span className="text-[10px] sm:text-xs text-center text-gray-400 uppercase tracking-wide px-1">
+      <span className="text-[10px] sm:text-xs text-center text-muted-foreground uppercase tracking-wide px-1">
         {label}
       </span>
       <span
@@ -103,7 +103,7 @@ function StatRow({ label, valA, valB, higherIsBetter = true }: StatRowProps) {
 
 function DriverCardSkeleton() {
   return (
-    <div className="relative rounded-xl overflow-hidden h-64 sm:h-64 md:h-72 p-4 flex flex-col justify-between bg-white/5">
+    <div className="relative rounded-xl overflow-hidden h-64 sm:h-64 md:h-72 p-4 flex flex-col justify-between bg-muted/40">
       <div className="flex flex-col gap-2 z-10 relative">
         <Skeleton className="h-5 sm:h-7 w-24 sm:w-32" />
         <Skeleton className="h-5 sm:h-7 w-32 sm:w-40" />
@@ -195,14 +195,14 @@ function DriverCard({ apiData, meta, standing }: DriverCardProps) {
 
 function StatsSkeleton() {
   return (
-    <div className="bg-white/5 backdrop-blur rounded-2xl px-4 sm:px-6 py-4 shadow-lg">
+    <div className="bg-muted/30 backdrop-blur rounded-2xl px-4 sm:px-6 py-4 shadow-lg">
       <div className="flex justify-center mb-2">
         <Skeleton className="h-3 w-32" />
       </div>
       {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
-          className="grid grid-cols-3 items-center py-3 border-b border-white/8 last:border-0"
+          className="grid grid-cols-3 items-center py-3 border-b border-border last:border-0"
         >
           <div className="flex justify-end pr-3 sm:pr-6">
             <Skeleton className="h-4 sm:h-5 w-8" />
@@ -292,7 +292,7 @@ export default function ComparePage() {
         className="grid grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8"
       >
         <div>
-          <p className="text-[10px] sm:text-xs uppercase tracking-widest text-gray-400 mb-1.5">
+          <p className="text-[10px] sm:text-xs uppercase tracking-widest text-muted-foreground mb-1.5">
             Driver A
           </p>
           {driversListLoading ? (
@@ -326,7 +326,7 @@ export default function ComparePage() {
         </div>
 
         <div>
-          <p className="text-[10px] sm:text-xs uppercase tracking-widest text-gray-400 mb-1.5">
+          <p className="text-[10px] sm:text-xs uppercase tracking-widest text-muted-foreground mb-1.5">
             Driver B
           </p>
           {driversListLoading ? (
@@ -361,7 +361,7 @@ export default function ComparePage() {
       </motion.div>
 
       {!showACard && !showBCard && !driversListLoading && (
-        <p className="text-center text-gray-400 mt-16 text-base sm:text-lg">
+        <p className="text-center text-muted-foreground mt-16 text-base sm:text-lg">
           Select two drivers to compare their stats
         </p>
       )}
@@ -380,7 +380,7 @@ export default function ComparePage() {
                 />
               )
             ) : (
-              <div className="rounded-xl border border-dashed border-white/15 h-64 sm:h-64 md:h-72 flex items-center justify-center text-xs sm:text-sm text-gray-500">
+              <div className="rounded-xl border border-dashed border-border h-64 sm:h-64 md:h-72 flex items-center justify-center text-xs sm:text-sm text-muted-foreground">
                 Pick driver A
               </div>
             )}
@@ -396,7 +396,7 @@ export default function ComparePage() {
                 />
               )
             ) : (
-              <div className="rounded-xl border border-dashed border-white/15 h-64 sm:h-64 md:h-72 flex items-center justify-center text-xs sm:text-sm text-gray-500">
+              <div className="rounded-xl border border-dashed border-border h-64 sm:h-64 md:h-72 flex items-center justify-center text-xs sm:text-sm text-muted-foreground">
                 Pick driver B
               </div>
             )}
@@ -409,9 +409,9 @@ export default function ComparePage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="bg-white/5 backdrop-blur rounded-2xl px-4 sm:px-6 py-4 shadow-lg"
+              className="bg-muted/30 backdrop-blur rounded-2xl px-4 sm:px-6 py-4 shadow-lg"
             >
-              <h3 className="text-center text-[10px] sm:text-xs uppercase tracking-widest text-gray-400 mb-2">
+              <h3 className="text-center text-[10px] sm:text-xs uppercase tracking-widest text-muted-foreground mb-2">
                 Season {driverAData!.season} Stats
               </h3>
 

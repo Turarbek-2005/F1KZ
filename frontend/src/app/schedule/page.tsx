@@ -34,7 +34,9 @@ export default function Schedule() {
 
   const dispatch = useAppDispatch();
   const drivers = useAppSelector(selectAllDrivers);
-  const driversStatus = useAppSelector((state: RootState) => state.drivers.status);
+  const driversStatus = useAppSelector(
+    (state: RootState) => state.drivers.status,
+  );
   const { data: races, isLoading } = useGetRacesYearQuery(year) as {
     data?: RacesListResponse;
     isLoading: boolean;
@@ -86,7 +88,6 @@ export default function Schedule() {
   const nextRaceFirst = racesNext?.race?.[0];
   const racesList = races?.races;
 
-
   const isStoreLoading =
     driversStatus === "idle" || driversStatus === "loading";
 
@@ -120,7 +121,7 @@ export default function Schedule() {
   };
 
   return (
-    <div className="container px-4 sm:px-0 mx-auto pb-6">
+    <div className="container px-4 sm:px-0 mx-auto pt-4 pb-6">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -133,13 +134,24 @@ export default function Schedule() {
           </SelectTrigger>
 
           <SelectContent>
-            <SelectItem value="2026">2026</SelectItem>
-            <SelectItem value={currentYear.toString()}>{currentYear}</SelectItem>
-            <SelectItem value="2024">2024</SelectItem>
-            <SelectItem value="2023">2023</SelectItem>
-            <SelectItem value="2022">2022</SelectItem>
-            <SelectItem value="2021">2021</SelectItem>
-            <SelectItem value="2020">2020</SelectItem>
+            <SelectItem value={currentYear.toString()}>
+              {currentYear}
+            </SelectItem>
+            <SelectItem value={(currentYear - 1).toString()}>
+              {currentYear - 1}
+            </SelectItem>
+            <SelectItem value={(currentYear - 2).toString()}>
+              {currentYear - 2}
+            </SelectItem>
+            <SelectItem value={(currentYear - 3).toString()}>
+              {currentYear - 3}
+            </SelectItem>
+            <SelectItem value={(currentYear - 4).toString()}>
+              {currentYear - 4}
+            </SelectItem>
+            <SelectItem value={(currentYear - 5).toString()}>
+              {currentYear - 5}
+            </SelectItem>
           </SelectContent>
         </Select>
       </motion.div>
@@ -210,7 +222,7 @@ export default function Schedule() {
                     <p>
                       {formatRaceDates(
                         race?.schedule?.fp1?.date,
-                        race?.schedule?.race?.date
+                        race?.schedule?.race?.date,
                       )}
                     </p>
                   ) : (
@@ -253,7 +265,7 @@ export default function Schedule() {
                   <p className="mt-auto uppercase text-lg font-bold">
                     {formatRaceDates(
                       race?.schedule?.fp1?.date,
-                      race?.schedule?.race?.date
+                      race?.schedule?.race?.date,
                     )}
                   </p>
                 ) : null}
