@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Trophy, Save, Trash2, Target } from "lucide-react";
+import { Trophy, Save, Trash2, Target, UserCircle2 } from "lucide-react";
 import {
   useGetRacesNextQuery,
   useGetRacesLastQuery,
@@ -47,20 +48,22 @@ interface Prediction {
   actual?: { p1: string; p2: string; p3: string };
 }
 
-const STORAGE_KEY = "f1kz_predictions_v1";
+function storageKey(userId: number) {
+  return `f1kz_predictions_v1_${userId}`;
+}
 
-function loadPredictions(): Record<string, Prediction> {
+function loadPredictions(userId: number): Record<string, Prediction> {
   if (typeof window === "undefined") return {};
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}");
+    return JSON.parse(localStorage.getItem(storageKey(userId)) ?? "{}");
   } catch {
     return {};
   }
 }
 
-function savePredictions(data: Record<string, Prediction>) {
+function savePredictions(userId: number, data: Record<string, Prediction>) {
   if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  localStorage.setItem(storageKey(userId), JSON.stringify(data));
 }
 
 function scorePrediction(p: Prediction, actual: { p1: string; p2: string; p3: string }) {
@@ -85,6 +88,7 @@ function teamVarById(teamId?: string) {
 
 export default function PredictionsPage() {
   const dispatch = useAppDispatch();
+  const user = useAppSelector((s: RootState) => s.auth.user);
   const driversMeta = useAppSelector(selectAllDrivers);
   const driversStatus = useAppSelector((s: RootState) => s.drivers.status);
 
@@ -96,8 +100,8 @@ export default function PredictionsPage() {
 
   useEffect(() => {
     if (driversStatus === "idle") dispatch(fetchDrivers());
-    setPredictions(loadPredictions());
-  }, [dispatch, driversStatus]);
+    if (user) setPredictions(loadPredictions(user.id));
+  }, [dispatch, driversStatus, user]);
 
   const { data: nextData } = useGetRacesNextQuery() as {
     data?: LastNextRacesResponse;
@@ -139,8 +143,8 @@ export default function PredictionsPage() {
       [lastRaceId]: { ...existing, score, actual },
     };
     setPredictions(updated);
-    savePredictions(updated);
-  }, [lastResults, lastMeta, predictions]);
+    if (user) savePredictions(user.id, updated);
+  }, [lastResults, lastMeta, predictions, user]);
 
   // Prefill from existing prediction
   useEffect(() => {
@@ -163,7 +167,7 @@ export default function PredictionsPage() {
   }
 
   function handleSave() {
-    if (!p1 || !p2 || !p3 || !nextRace) return;
+    if (!p1 || !p2 || !p3 || !nextRace || !user) return;
     const pred: Prediction = {
       raceId: nextRaceId,
       round: nextData?.round ?? "",
@@ -174,15 +178,15 @@ export default function PredictionsPage() {
     };
     const updated = { ...predictions, [nextRaceId]: pred };
     setPredictions(updated);
-    savePredictions(updated);
+    savePredictions(user.id, updated);
     setSavedFlash(true);
     setTimeout(() => setSavedFlash(false), 1500);
   }
 
   function handleClear() {
-    if (!confirm("Delete all predictions?")) return;
+    if (!user || !confirm("Delete all predictions?")) return;
     setPredictions({});
-    savePredictions({});
+    savePredictions(user.id, {});
     setP1("");
     setP2("");
     setP3("");
@@ -198,6 +202,21 @@ export default function PredictionsPage() {
     scoredCount > 0 ? Math.round((totalScore / (scoredCount * 15)) * 100) : 0;
 
   const allValid = p1 && p2 && p3 && p1 !== p2 && p2 !== p3 && p1 !== p3;
+
+  if (!user) {
+    return (
+      <div className="container px-4 sm:px-0 mx-auto flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <UserCircle2 className="w-16 h-16 text-muted-foreground" />
+        <p className="text-xl font-semibold">Sign in to make predictions</p>
+        <p className="text-sm text-muted-foreground text-center">
+          Your predictions are saved to your account and tracked across sessions.
+        </p>
+        <Link href="/login">
+          <Button>Sign In</Button>
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="container px-4 sm:px-0 mx-auto pb-10">

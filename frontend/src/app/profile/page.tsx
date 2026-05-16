@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Settings, LogOut, UserCircle2 } from "lucide-react";
+import { Settings, LogOut, UserCircle2, Target, Trophy } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
 import { logout, logoutUser } from "@/entities/auth/model/authSlice";
@@ -24,6 +24,31 @@ import type { RootState } from "@/shared/store";
 import { Button } from "@/shared/ui/button";
 import { cn } from "@/shared/lib/utils";
 import { grapeNuts } from "@/app/fonts";
+
+interface Prediction {
+  raceId: string;
+  round: string | number;
+  raceName: string;
+  p1: string;
+  p2: string;
+  p3: string;
+  score?: number;
+  actual?: { p1: string; p2: string; p3: string };
+}
+
+function loadUserPredictions(userId: number): Prediction[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const data = JSON.parse(
+      localStorage.getItem(`f1kz_predictions_v1_${userId}`) ?? "{}"
+    ) as Record<string, Prediction>;
+    return Object.values(data).sort(
+      (a, b) => Number(b.round) - Number(a.round)
+    );
+  } catch {
+    return [];
+  }
+}
 
 function teamVar(teamId?: string) {
   if (!teamId) return undefined;
@@ -81,6 +106,12 @@ export default function ProfilePage() {
       </div>
     );
   }
+
+  const predictions = useMemo(
+    () => (user ? loadUserPredictions(user.id) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user?.id]
+  );
 
   const favDriverIds: string[] = user.favoriteDriversIds ?? [];
   const favTeamIds: string[] = user.favoriteTeamsIds ?? [];
@@ -282,6 +313,94 @@ export default function ProfilePage() {
                 </Link>
               );
             })}
+          </div>
+        </motion.section>
+      )}
+
+      {/* My Predictions */}
+      {predictions.length > 0 && (
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="mb-10"
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <Target className="w-5 h-5 text-red-500" />
+            <h2 className="text-xl font-bold">My Predictions</h2>
+            <Link
+              href="/predictions"
+              className="ml-auto text-xs text-muted-foreground hover:text-foreground transition"
+            >
+              View all →
+            </Link>
+          </div>
+
+          {/* Summary stats */}
+          {(() => {
+            const scored = predictions.filter((p) => p.score !== undefined);
+            const total = scored.reduce((s, p) => s + (p.score ?? 0), 0);
+            const accuracy =
+              scored.length > 0
+                ? Math.round((total / (scored.length * 15)) * 100)
+                : 0;
+            return (
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="bg-white/5 backdrop-blur rounded-xl p-3 text-center">
+                  <p className="text-2xl font-extrabold text-red-500 tabular-nums">
+                    {total}
+                  </p>
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground mt-0.5">
+                    Total pts
+                  </p>
+                </div>
+                <div className="bg-white/5 backdrop-blur rounded-xl p-3 text-center">
+                  <p className="text-2xl font-extrabold tabular-nums">
+                    {scored.length}
+                  </p>
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground mt-0.5">
+                    Scored
+                  </p>
+                </div>
+                <div className="bg-white/5 backdrop-blur rounded-xl p-3 text-center">
+                  <p className="text-2xl font-extrabold tabular-nums">
+                    {accuracy}%
+                  </p>
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground mt-0.5">
+                    Accuracy
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Last 5 predictions */}
+          <div className="space-y-2">
+            {predictions.slice(0, 5).map((p) => (
+              <div
+                key={p.raceId}
+                className="bg-white/5 backdrop-blur rounded-xl px-4 py-3 flex items-center justify-between"
+              >
+                <div>
+                  <p className="text-sm font-semibold">{p.raceName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Round {p.round}
+                  </p>
+                </div>
+                {p.score !== undefined ? (
+                  <div className="flex items-center gap-1.5 bg-red-500/10 text-red-400 px-3 py-1 rounded-full">
+                    <Trophy className="w-3 h-3" />
+                    <span className="text-sm font-bold tabular-nums">
+                      {p.score} pts
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-xs text-muted-foreground italic">
+                    Pending
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
         </motion.section>
       )}
