@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Card, CardHeader, CardTitle } from "@/shared/ui/card";
 import { NextRaceCountdown } from "@/features/countdown/ui/NextRaceCountdown";
+import { LastRaceWidget } from "@/features/last-race/ui/LastRaceWidget";
 export default function Home() {
   const currentYear = new Date().getFullYear();
   const links = [
@@ -11,12 +12,14 @@ export default function Home() {
     { name: "Schedule", href: "/schedule" },
     { name: "Results", href: `/results/${currentYear}/1/race` },
     { name: "Standings", href: "/standings" },
+    { name: "Predictions", href: "/predictions" },
     { name: "Drivers", href: "/drivers" },
     { name: "Teams", href: "/teams" },
+    { name: "Compare", href: "/compare" },
   ];
 
   return (
-    <main className="pt-6 sm:pt-0 h-full sm:h-[calc(100vh-4rem)] bg-[url('/bg-home-white.jpg')]  dark:bg-[url('/bg-home.jpg')] bg-cover bg-center flex flex-col items-center justify-center px-6">
+    <main className="min-h-[calc(100vh-4rem)] bg-[url('/bg-home-white.jpg')] dark:bg-[url('/bg-home.jpg')] bg-cover bg-center bg-fixed flex flex-col items-center justify-center px-6 py-10 gap-4">
       <motion.h1
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -27,6 +30,8 @@ export default function Home() {
       </motion.h1>
 
       <NextRaceCountdown />
+
+      <LastRaceWidget />
 
       <motion.div
         initial={{ opacity: 0, y: 40 }}
