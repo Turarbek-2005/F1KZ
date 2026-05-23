@@ -18,6 +18,9 @@ import type {
   RacesListResponse,
   RaceEntry,
 } from "@/entities/f1api/f1api.interfaces";
+import { useAppSelector } from "@/shared/lib/hooks";
+import { selectAllDrivers } from "@/entities/f1/model/driversSlice";
+import { selectAllTeams } from "@/entities/f1/model/teamsSlice";
 
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
@@ -34,6 +37,9 @@ export function GlobalSearch() {
   const { data: racesData } = useGetRacesYearQuery(currentYear) as {
     data?: RacesListResponse;
   };
+
+  const storeDrivers = useAppSelector(selectAllDrivers);
+  const storeTeams = useAppSelector(selectAllTeams);
 
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 50);
@@ -65,7 +71,11 @@ export function GlobalSearch() {
 
   const { drivers, teams, races } = useMemo(() => {
     if (q.length < 1) {
-      return { drivers: [] as ApiDriver[], teams: [] as ApiTeam[], races: [] as RaceEntry[] };
+      return {
+        drivers: [] as ApiDriver[],
+        teams: [] as ApiTeam[],
+        races: [] as RaceEntry[],
+      };
     }
     const allDrivers = driversData?.drivers ?? [];
     const allTeams = teamsData?.teams ?? [];
@@ -88,7 +98,7 @@ export function GlobalSearch() {
       .filter(
         (t) =>
           (t.teamName ?? "").toLowerCase().includes(q) ||
-          (t.teamId ?? "").toLowerCase().includes(q)
+          (t.teamId ?? "").toLowerCase().includes(q),
       )
       .slice(0, 5);
 
@@ -98,7 +108,7 @@ export function GlobalSearch() {
           (r.raceName ?? "").toLowerCase().includes(q) ||
           (r.circuit?.country ?? "").toLowerCase().includes(q) ||
           (r.circuit?.city ?? "").toLowerCase().includes(q) ||
-          (r.circuit?.name ?? "").toLowerCase().includes(q)
+          (r.circuit?.name ?? "").toLowerCase().includes(q),
       )
       .slice(0, 5);
 
@@ -173,38 +183,51 @@ export function GlobalSearch() {
                           <p className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground px-4 py-1.5">
                             <User className="w-3 h-3" /> Drivers
                           </p>
-                          {drivers.map((d) => (
-                            <button
-                              key={d.driverId}
-                              onClick={() => go(`/drivers/${d.driverId}`)}
-                              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition text-left"
-                            >
-                              {d.imgUrl ? (
-                                <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-white/10">
-                                  <Image
-                                    src={d.imgUrl}
-                                    alt={d.driverId}
-                                    width={32}
-                                    height={32}
-                                    className="object-cover object-top w-full h-full"
-                                  />
-                                </div>
-                              ) : (
-                                <div className="w-8 h-8 rounded-full bg-white/10 shrink-0" />
-                              )}
-                              <div className="min-w-0">
-                                <p className="text-sm font-semibold truncate">
-                                  {d.name} {d.surname}
-                                </p>
-                                {d.teamId && (
-                                  <p className="text-xs text-muted-foreground capitalize truncate">
-                                    {d.teamId.replace("_", " ")}
-                                    {d.number ? ` · #${d.number}` : ""}
-                                  </p>
+                          {drivers.map((d) => {
+                            const imgUrl =
+                              storeDrivers.find(
+                                (s) => s.driverId === d.driverId,
+                              )?.imgUrl ?? d.imgUrl;
+                            return (
+                              <button
+                                key={d.driverId}
+                                onClick={() => go(`/drivers/${d.driverId}`)}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition text-left"
+                              >
+                                {imgUrl ? (
+                                  <div
+                                    className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-muted"
+                                    style={{
+                                      background: `var(--team-${(d.teamId ?? "")
+                                        .toLowerCase()
+                                        .replace(" ", "_")})`,
+                                    }}
+                                  >
+                                    <Image
+                                      src={imgUrl}
+                                      alt={d.driverId}
+                                      width={32}
+                                      height={32}
+                                      className="object-cover object-top w-full h-full"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="w-8 h-8 rounded-full bg-muted shrink-0" />
                                 )}
-                              </div>
-                            </button>
-                          ))}
+                                <div className="min-w-0">
+                                  <p className="text-sm font-semibold truncate">
+                                    {d.name} {d.surname}
+                                  </p>
+                                  {d.teamId && (
+                                    <p className="text-xs text-muted-foreground capitalize truncate">
+                                      {d.teamId.replace("_", " ")}
+                                      {d.number ? ` · #${d.number}` : ""}
+                                    </p>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })}
                         </div>
                       )}
 
@@ -213,30 +236,42 @@ export function GlobalSearch() {
                           <p className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground px-4 py-1.5 mt-1">
                             <Users className="w-3 h-3" /> Teams
                           </p>
-                          {teams.map((t) => (
-                            <button
-                              key={t.teamId}
-                              onClick={() => go(`/teams/${t.teamId}`)}
-                              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition text-left"
-                            >
-                              {t.teamImgUrl ? (
-                                <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-white/10 flex items-center justify-center">
-                                  <Image
-                                    src={t.teamImgUrl}
-                                    alt={t.teamId}
-                                    width={28}
-                                    height={28}
-                                    className="object-contain w-6 h-6"
-                                  />
-                                </div>
-                              ) : (
-                                <div className="w-8 h-8 rounded-full bg-white/10 shrink-0" />
-                              )}
-                              <p className="text-sm font-semibold truncate">
-                                {t.teamName ?? t.teamId}
-                              </p>
-                            </button>
-                          ))}
+                          {teams.map((t) => {
+                            const teamImgUrl =
+                              storeTeams.find((s) => s.teamId === t.teamId)
+                                ?.teamImgUrl ?? t.teamImgUrl;
+                            return (
+                              <button
+                                key={t.teamId}
+                                onClick={() => go(`/teams/${t.teamId}`)}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition text-left"
+                              >
+                                {teamImgUrl ? (
+                                  <div
+                                    className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-muted flex items-center justify-center"
+                                    style={{
+                                      background: `var(--team-${(t.teamId ?? "")
+                                        .toLowerCase()
+                                        .replace(" ", "_")})`,
+                                    }}
+                                  >
+                                    <Image
+                                      src={teamImgUrl}
+                                      alt={t.teamId}
+                                      width={28}
+                                      height={28}
+                                      className="object-contain w-6 h-6"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="w-8 h-8 rounded-full bg-muted shrink-0" />
+                                )}
+                                <p className="text-sm font-semibold truncate">
+                                  {t.teamName ?? t.teamId}
+                                </p>
+                              </button>
+                            );
+                          })}
                         </div>
                       )}
 
@@ -262,7 +297,8 @@ export function GlobalSearch() {
                                 </p>
                                 <p className="text-xs text-muted-foreground truncate">
                                   {r.circuit?.country}
-                                  {r.circuit?.city && r.circuit.city !== r.circuit.country
+                                  {r.circuit?.city &&
+                                  r.circuit.city !== r.circuit.country
                                     ? ` · ${r.circuit.city}`
                                     : ""}
                                 </p>

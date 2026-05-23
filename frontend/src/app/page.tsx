@@ -24,7 +24,7 @@ export default function Home() {
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="text-5xl md:text-6xl font-extrabold tracking-tight mb-12 text-neutral-600 dark:text-white text-center dark:drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
+        className="text-5xl md:text-6xl font-extrabold tracking-tight mb-4 text-neutral-600 dark:text-white text-center dark:drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
       >
         Welcome to <span className="text-red-500">F1KZ</span>
       </motion.h1>
