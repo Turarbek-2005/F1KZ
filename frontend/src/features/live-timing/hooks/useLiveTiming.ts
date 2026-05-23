@@ -35,8 +35,9 @@ export function useLiveTiming() {
   const esRef = useRef<EventSource | null>(null);
   const stateRef = useRef<LiveTimingState>({});
 
-  const apiBase =
-    process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000';
+  const apiBase = (
+    process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000'
+  ).replace(/\/$/, '');
 
   const connect = useCallback(() => {
     if (esRef.current) {
