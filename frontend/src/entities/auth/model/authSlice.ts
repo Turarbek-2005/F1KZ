@@ -98,6 +98,7 @@ const initialState: AuthState = {
   status: "idle",
   error: null,
   lastUpdated: null,
+  initialized: false,
 };
 
 const authSlice = createSlice({
@@ -161,9 +162,11 @@ const authSlice = createSlice({
       .addCase(fetchMe.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.user = action.payload.user;
+        state.initialized = true;
       })
       .addCase(fetchMe.rejected, (state, action) => {
         const message = action.payload ?? action.error.message ?? "Fetch user failed";
+        state.initialized = true;
         if (
           typeof message === "string" &&
           (message.toLowerCase().includes("unauthorized") || message.toLowerCase().includes("no auth token"))

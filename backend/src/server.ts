@@ -10,6 +10,8 @@ import authRouter from "./routes/auth.routes";
 import userRouter from "./routes/user.routes";
 import f1Router from "./routes/f1.routes";
 import aiRouter from "./routes/ai.routes";
+import liveRouter from "./routes/live.routes";
+import { f1TimingService } from "./services/f1timing.service";
 import { prisma } from "./prisma";
 
 dotenv.config();
@@ -46,7 +48,15 @@ app.use(
 );
 
 app.use(helmet());
-app.use(compression());
+app.use(
+  compression({
+    // SSE streams must not be gzip-buffered
+    filter: (req, res) => {
+      if (req.path.startsWith('/api/live')) return false;
+      return compression.filter(req, res);
+    },
+  })
+);
 app.use(express.json());
 
 app.use("/api/f1api", f1apiRouter);
@@ -54,6 +64,7 @@ app.use("/api/f1", f1Router);
 app.use("/api/auth", authRouter);
 app.use("/api/user", authMiddleware, userRouter);
 app.use("/api/ai", aiRouter);
+app.use("/api/live", liveRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Not found" });
@@ -72,10 +83,14 @@ const PORT = process.env.PORT;
 
 const server = app.listen(PORT, () => {
   logger.info(`Server is running on port ${PORT}`);
+  f1TimingService.connect().catch((err) =>
+    logger.error(`[F1Timing] Initial connect error: ${err.message}`)
+  );
 });
 
 process.on("SIGINT", async () => {
   logger.info("Shutting down...");
+  f1TimingService.disconnect();
   await prisma.$disconnect();
   server.close(() => process.exit(0));
 });

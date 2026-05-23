@@ -64,10 +64,11 @@ export function LastRaceWidget() {
     isLoading: boolean;
   };
 
-  const { data: resultsData, isLoading: resultsLoading } = useGetLastRaceQuery() as {
-    data?: { races?: { results?: RaceResultRow[] } };
-    isLoading: boolean;
-  };
+  const { data: resultsData, isLoading: resultsLoading } =
+    useGetLastRaceQuery() as {
+      data?: { races?: { results?: RaceResultRow[] } };
+      isLoading: boolean;
+    };
 
   if (metaLoading || resultsLoading) return <PodiumSkeleton />;
 
@@ -85,9 +86,9 @@ export function LastRaceWidget() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.8, duration: 0.6 }}
+      initial={{ opacity: 0, y: 0 }}
+      animate={{ opacity: 1, y: 20 }}
+      transition={{ delay: 0.2, duration: 0.3 }}
       className="w-full max-w-4xl"
     >
       <Link
@@ -106,13 +107,16 @@ export function LastRaceWidget() {
 
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {top3.map((r, i) => {
-              const meta = driversList.find((d) => d.driverId === r.driver.driverId);
+              const meta = driversList.find(
+                (d) => d.driverId === r.driver.driverId,
+              );
               return (
                 <div
                   key={r.driver.driverId}
                   className="relative rounded-xl overflow-hidden h-24 sm:h-28 flex items-end p-3"
                   style={{
-                    background: teamVar(r.team.teamId) ?? "rgba(255,255,255,0.05)",
+                    background:
+                      teamVar(r.team.teamId) ?? "rgba(255,255,255,0.05)",
                   }}
                 >
                   <span

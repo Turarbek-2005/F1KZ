@@ -22,10 +22,12 @@ import {
   SheetTrigger,
 } from "@/shared/ui/sheet";
 import { GlobalSearch } from "@/features/search/ui/GlobalSearch";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 export function Header() {
   const currentYear = new Date().getFullYear();
   const links = [
+    { href: "/live", label: "Live" },
     { href: "/news", label: "News" },
     { href: "/schedule", label: "Schedule" },
     { href: `/results/${currentYear}/1/race`, label: "Results" },
@@ -64,7 +66,7 @@ export function Header() {
           />
         </Link>
         <Navbar />
-        <div className="hidden md:flex gap-3 items-center">
+        <div className="hidden lg:flex gap-3 items-center">
           <GlobalSearch />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -86,7 +88,9 @@ export function Header() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          {auth.user ? (
+          {!auth.initialized ? (
+            <Skeleton className="h-9 w-9 rounded-md" />
+          ) : auth.user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon">
@@ -94,7 +98,9 @@ export function Header() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="center">
-                <DropdownMenuItem onClick={() => router.push("/profile")}>Profile</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/profile")}>
+                  Profile
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push("/settings")}>
                   Settings
                 </DropdownMenuItem>
@@ -105,84 +111,85 @@ export function Header() {
             </DropdownMenu>
           ) : (
             <Link href="/login">
-              <Button variant="outline">Sing In</Button>
+              <Button variant="outline">Sign In</Button>
             </Link>
           )}
         </div>
-        <div className="md:hidden flex items-center gap-2">
+        <div className="lg:hidden flex items-center gap-2">
           <GlobalSearch />
-  <Sheet>
-    <SheetTrigger asChild>
-      <button className="h-6 w-6">
-        <TextAlignJustify />
-      </button>
-    </SheetTrigger>
-
-    <SheetContent className="w-screen h-screen p-10 pb-20 flex flex-col">
-      <SheetTitle className="sr-only">Navigation</SheetTitle>
-
-      <div className="flex items-center justify-between">
-        <span className="text-lg font-semibold">Menu</span>
-      </div>
-
-      <nav className="mt-12 flex flex-col gap-6 text-3xl font-semibold mb-auto">
-        {links.map((link) => (
-          <SheetClose asChild key={link.href}>
-            <Link
-              href={link.href}
-              className="transition-colors hover:text-primary"
-            >
-              {link.label}
-            </Link>
-          </SheetClose>
-        ))}
-      </nav>
-
-      {/* <div className="flex-1" /> */}
-
-      <div className="flex flex-col gap-4">
-        <Button
-          variant="outline"
-          size="icon"
-          className="self-center"
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        >
-          <Sun className="dark:hidden" />
-          <Moon className="hidden dark:block" />
-        </Button>
-
-        {auth.user ? (
-          <div className="flex flex-col gap-3 text-center">
-            <SheetClose asChild>
-              <button
-                onClick={() => router.push("/settings")}
-                className="text-muted-foreground hover:text-foreground transition"
-              >
-                Settings
+          <Sheet>
+            <SheetTrigger asChild>
+              <button className="h-6 w-6">
+                <TextAlignJustify />
               </button>
-            </SheetClose>
+            </SheetTrigger>
 
-            <SheetClose asChild>
-              <button
-                onClick={handleLogout}
-                className="text-red-500 hover:text-red-600 transition"
-              >
-                Logout
-              </button>
-            </SheetClose>
-          </div>
-        ) : (
-          <SheetClose asChild>
-            <Link href="/login">
-              <Button className="w-full">Sign In</Button>
-            </Link>
-          </SheetClose>
-        )}
-      </div>
-    </SheetContent>
-  </Sheet>
+            <SheetContent className="w-screen h-screen p-10 pb-20 flex flex-col">
+              <SheetTitle className="sr-only">Navigation</SheetTitle>
+
+              <div className="flex items-center justify-between">
+                <span className="text-lg font-semibold">Menu</span>
+              </div>
+
+              <nav className="mt-12 flex flex-col gap-6 text-3xl font-semibold mb-auto">
+                {links.map((link) => (
+                  <SheetClose asChild key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="transition-colors hover:text-primary"
+                    >
+                      {link.label}
+                    </Link>
+                  </SheetClose>
+                ))}
+              </nav>
+
+              {/* <div className="flex-1" /> */}
+
+              <div className="flex flex-col gap-4">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="self-center"
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                >
+                  <Sun className="dark:hidden" />
+                  <Moon className="hidden dark:block" />
+                </Button>
+
+                {!auth.initialized ? (
+                  <Skeleton className="h-10 w-full rounded-md" />
+                ) : auth.user ? (
+                  <div className="flex flex-col gap-3 text-center">
+                    <SheetClose asChild>
+                      <button
+                        onClick={() => router.push("/settings")}
+                        className="text-muted-foreground hover:text-foreground transition"
+                      >
+                        Settings
+                      </button>
+                    </SheetClose>
+
+                    <SheetClose asChild>
+                      <button
+                        onClick={handleLogout}
+                        className="text-red-500 hover:text-red-600 transition"
+                      >
+                        Logout
+                      </button>
+                    </SheetClose>
+                  </div>
+                ) : (
+                  <SheetClose asChild>
+                    <Link href="/login">
+                      <Button className="w-full">Sign In</Button>
+                    </Link>
+                  </SheetClose>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
-
       </div>
     </header>
   );

@@ -12,4 +12,5 @@ export type AuthState = {
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
   lastUpdated: string | null;
+  initialized: boolean;
 };
