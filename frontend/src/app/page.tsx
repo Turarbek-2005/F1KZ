@@ -30,21 +30,6 @@ export default function Home() {
         Welcome to <span className="text-red-500">F1KZ</span>
       </motion.h1>
       <HomeLiveWidget />
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.15, duration: 0.4 }}
-      >
-        <Link href="/live">
-          <div className="flex items-center gap-3 px-6 py-3 rounded-full bg-red-600/90 hover:bg-red-600 border border-red-400/40 text-white font-semibold text-sm shadow-lg backdrop-blur-sm transition-all duration-200 hover:scale-105">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-            </span>
-            Live Timing
-          </div>
-        </Link>
-      </motion.div>
       <NextRaceCountdown />
 
       <LastRaceWidget />
