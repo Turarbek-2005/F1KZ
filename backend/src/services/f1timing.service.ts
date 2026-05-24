@@ -52,9 +52,39 @@ export class F1TimingService extends EventEmitter {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private isConnecting = false;
   private msgId = 0;
+  private hasReceivedSnapshot = false;
+  private snapshotWaiters: Array<() => void> = [];
+
+  // Returns a promise that resolves once the initial snapshot arrives,
+  // or after `timeoutMs` even if nothing arrived. Triggers a connect if
+  // the service isn't already connected. Required for Vercel serverless,
+  // where there is no long-running process to call connect() at boot.
+  async ensureConnected(timeoutMs = 4000): Promise<void> {
+    if (this.hasReceivedSnapshot) return;
+    if (!this.ws && !this.isConnecting) {
+      this.connect().catch((err) =>
+        logger.error(`[F1Timing] ensureConnected: ${err.message}`)
+      );
+    }
+    await new Promise<void>((resolve) => {
+      const timer = setTimeout(() => {
+        this.snapshotWaiters = this.snapshotWaiters.filter((w) => w !== done);
+        resolve();
+      }, timeoutMs);
+      const done = () => {
+        clearTimeout(timer);
+        resolve();
+      };
+      this.snapshotWaiters.push(done);
+    });
+  }
+
+  isReady(): boolean {
+    return this.hasReceivedSnapshot;
+  }
 
   async connect(): Promise<void> {
-    if (this.isConnecting) return;
+    if (this.isConnecting || this.ws) return;
     this.isConnecting = true;
 
     try {
@@ -144,6 +174,10 @@ export class F1TimingService extends EventEmitter {
         this.state[topic] = data;
       }
       logger.info('[F1Timing] Got initial snapshot');
+      this.hasReceivedSnapshot = true;
+      const waiters = this.snapshotWaiters;
+      this.snapshotWaiters = [];
+      waiters.forEach((w) => w());
       this.emit('snapshot', this.state);
     }
 

@@ -114,6 +114,8 @@ export function TimingTower({ timingData, timingAppData, driverList }: Props) {
           {rows.map(({ racingNumber, line, driver, stint }, idx) => {
             const teamColor = driver?.TeamColour ? `#${driver.TeamColour}` : undefined;
             const isRetired = line.Retired;
+            const isStopped = line.Stopped;
+            const isOut = isRetired || isStopped;
             const isInPit = line.InPit;
             const isPitOut = line.PitOut;
 
@@ -123,14 +125,20 @@ export function TimingTower({ timingData, timingAppData, driverList }: Props) {
                 className={cn(
                   'border-b last:border-0 transition-colors',
                   idx % 2 === 0 ? 'bg-transparent' : 'bg-muted/20',
-                  isRetired && 'opacity-40'
+                  isOut && 'opacity-50'
                 )}
               >
                 {/* Position */}
                 <td className="py-2 px-3">
-                  <span className="font-bold text-base tabular-nums">
-                    {line.Line ?? line.Position ?? '—'}
-                  </span>
+                  {isOut ? (
+                    <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 text-[10px] font-black tracking-wider">
+                      OUT
+                    </span>
+                  ) : (
+                    <span className="font-bold text-base tabular-nums">
+                      {line.Line ?? line.Position ?? '—'}
+                    </span>
+                  )}
                 </td>
 
                 {/* Driver */}
@@ -154,7 +162,11 @@ export function TimingTower({ timingData, timingAppData, driverList }: Props) {
                           #{racingNumber}
                         </span>
                       </div>
-                      {(isInPit || isPitOut) && (
+                      {isOut ? (
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-red-400">
+                          {isStopped ? 'Stopped' : 'Retired'}
+                        </span>
+                      ) : (isInPit || isPitOut) ? (
                         <span
                           className={cn(
                             'text-[9px] font-semibold uppercase tracking-wider',
@@ -163,7 +175,7 @@ export function TimingTower({ timingData, timingAppData, driverList }: Props) {
                         >
                           {isPitOut ? 'Pit Out' : 'In Pit'}
                         </span>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 </td>

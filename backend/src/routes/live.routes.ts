@@ -12,7 +12,7 @@ function sseWrite(res: Response, event: string, data: unknown) {
 }
 
 // SSE stream — each connected client receives live F1 timing updates
-router.get('/stream', (req: Request, res: Response) => {
+router.get('/stream', async (req: Request, res: Response) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
@@ -22,6 +22,10 @@ router.get('/stream', (req: Request, res: Response) => {
   // Always send a "connected" event so the client knows the channel is open,
   // even when there is no live F1 session and the state cache is empty.
   sseWrite(res, 'connected', { ok: true });
+
+  // On Vercel serverless there is no boot-time connect(); make sure the
+  // upstream WebSocket is alive before we start streaming.
+  await f1TimingService.ensureConnected(4000);
 
   // Send current cached state immediately so the client doesn't start blank
   const currentState = f1TimingService.getState();
