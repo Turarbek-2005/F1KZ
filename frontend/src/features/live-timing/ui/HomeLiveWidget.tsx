@@ -1,24 +1,33 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useLiveTiming } from '../hooks/useLiveTiming';
-import type { Stint } from '../types/timing.types';
+import Link from "next/link";
+import { useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useLiveTiming } from "../hooks/useLiveTiming";
+import type { Stint } from "../types/timing.types";
 
-type TimingAppLine = import('../types/timing.types').TimingAppLine;
+type TimingAppLine = import("../types/timing.types").TimingAppLine;
 
 const COMPOUND_SHORT: Record<string, string> = {
-  SOFT: 'S', MEDIUM: 'M', HARD: 'H', INTERMEDIATE: 'I', WET: 'W',
+  SOFT: "S",
+  MEDIUM: "M",
+  HARD: "H",
+  INTERMEDIATE: "I",
+  WET: "W",
 };
 const COMPOUND_COLORS: Record<string, string> = {
-  SOFT: '#ef4444', MEDIUM: '#facc15', HARD: '#ffffff',
-  INTERMEDIATE: '#4ade80', WET: '#60a5fa',
+  SOFT: "#ef4444",
+  MEDIUM: "#facc15",
+  HARD: "#ffffff",
+  INTERMEDIATE: "#4ade80",
+  WET: "#60a5fa",
 };
 
 function getCurrentStint(appLine?: TimingAppLine): Stint | undefined {
   if (!appLine?.Stints) return undefined;
-  const keys = Object.keys(appLine.Stints).map(Number).sort((a, b) => b - a);
+  const keys = Object.keys(appLine.Stints)
+    .map(Number)
+    .sort((a, b) => b - a);
   return keys.length > 0 ? appLine.Stints[String(keys[0])] : undefined;
 }
 
@@ -26,8 +35,8 @@ export function HomeLiveWidget() {
   const { state, status } = useLiveTiming();
 
   const sessionActive =
-    state.SessionStatus?.Status === 'Started' ||
-    state.SessionStatus?.Status === 'Ends';
+    state.SessionStatus?.Status === "Started" ||
+    state.SessionStatus?.Status === "Finished";
 
   const rows = useMemo(() => {
     if (!state.TimingData?.Lines) return [];
@@ -43,10 +52,11 @@ export function HomeLiveWidget() {
   }, [state.TimingData, state.DriverList, state.TimingAppData]);
 
   // Don't render anything while connecting or when no active session
-  if (status === 'connecting' || !sessionActive || rows.length === 0) return null;
+  if (status === "connecting" || !sessionActive || rows.length === 0)
+    return null;
 
-  const sessionName = state.SessionInfo?.Name ?? 'Session';
-  const meeting = state.SessionInfo?.Meeting?.Name ?? '';
+  const sessionName = state.SessionInfo?.Name ?? "Session";
+  const meeting = state.SessionInfo?.Meeting?.Name ?? "";
   const lap = state.LapCount;
 
   return (
@@ -67,11 +77,16 @@ export function HomeLiveWidget() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
                 </span>
-                <span className="text-xs font-bold uppercase tracking-widest text-red-500">Live</span>
+                <span className="text-xs font-bold uppercase tracking-widest text-red-500">
+                  Live
+                </span>
                 <span className="text-xs text-white/50 ml-1">
                   {meeting} · {sessionName}
                   {lap?.CurrentLap != null && lap.TotalLaps != null && (
-                    <> · Lap {lap.CurrentLap}/{lap.TotalLaps}</>
+                    <>
+                      {" "}
+                      · Lap {lap.CurrentLap}/{lap.TotalLaps}
+                    </>
                   )}
                 </span>
               </div>
@@ -83,7 +98,9 @@ export function HomeLiveWidget() {
             {/* Top-5 rows */}
             <div className="space-y-1.5">
               {rows.map(({ num, line, driver, stint }) => {
-                const teamColor = driver?.TeamColour ? `#${driver.TeamColour}` : '#666';
+                const teamColor = driver?.TeamColour
+                  ? `#${driver.TeamColour}`
+                  : "#666";
                 const compound = stint?.Compound;
                 const isLeader = line.Line === 1;
 
@@ -116,19 +133,22 @@ export function HomeLiveWidget() {
                       <span
                         className="text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center shrink-0"
                         style={{
-                          backgroundColor: COMPOUND_COLORS[compound] ?? '#888',
-                          color: compound === 'MEDIUM' || compound === 'HARD' ? '#000' : '#fff',
+                          backgroundColor: COMPOUND_COLORS[compound] ?? "#888",
+                          color:
+                            compound === "MEDIUM" || compound === "HARD"
+                              ? "#000"
+                              : "#fff",
                         }}
                       >
-                        {COMPOUND_SHORT[compound] ?? '?'}
+                        {COMPOUND_SHORT[compound] ?? "?"}
                       </span>
                     )}
 
                     {/* Gap / Last lap */}
                     <span className="font-mono tabular-nums text-xs text-white/60 w-20 text-right shrink-0">
                       {isLeader
-                        ? (line.LastLapTime?.Value ?? '—')
-                        : (line.GapToLeader ?? '—')}
+                        ? (line.LastLapTime?.Value ?? "—")
+                        : (line.GapToLeader ?? "—")}
                     </span>
                   </div>
                 );

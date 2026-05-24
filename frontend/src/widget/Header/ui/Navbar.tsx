@@ -5,9 +5,11 @@ import { usePathname } from "next/navigation";
 import DriversDropdownMenu from "./DriversDropdownMenu";
 import TeamsDropdownMenu from "./TeamsDropdownMenu";
 import { cn } from "@/shared/lib/utils";
+import { useLiveTiming } from "@/features/live-timing/hooks/useLiveTiming";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { state } = useLiveTiming();
 
   const currentYear = new Date().getFullYear();
 
@@ -32,17 +34,17 @@ export default function Navbar() {
             pathname === link.href && "text-red-500",
           )}
         >
-          {link.href === "/live" && (
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
-            </span>
-          )}
+          {link.href === "/live" &&
+            state.SessionStatus?.Status === "Started" && (
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
+              </span>
+            )}
           {link.label}
         </Link>
       ))}
 
-      {/* dropdown menus */}
       <DriversDropdownMenu />
       <TeamsDropdownMenu />
     </nav>

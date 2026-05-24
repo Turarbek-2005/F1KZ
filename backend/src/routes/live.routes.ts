@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { f1TimingService } from '../services/f1timing.service';
+import { f1TimingService, fetchF1Snapshot } from '../services/f1timing.service';
 
 const router = Router();
 
@@ -53,9 +53,20 @@ router.get('/stream', (req: Request, res: Response) => {
   });
 });
 
-// Snapshot REST endpoint (for initial page load without SSE)
-router.get('/state', (_req: Request, res: Response) => {
-  res.json(f1TimingService.getState());
+// Snapshot REST endpoint polled by the frontend every 5 s.
+// On a traditional server the persistent singleton already holds state.
+// On Vercel serverless every invocation is fresh — in that case we open a
+// one-shot SignalR connection, wait for the initial snapshot, and return it.
+router.get('/state', async (_req: Request, res: Response) => {
+  const cached = f1TimingService.getState();
+
+  if (Object.keys(cached).length > 0) {
+    return res.json(cached);
+  }
+
+  // No persistent state — do a one-shot fetch (serverless / cold start)
+  const state = await fetchF1Snapshot(12000);
+  return res.json(state);
 });
 
 export default router;

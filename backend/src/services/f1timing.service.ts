@@ -45,7 +45,7 @@ function deepMerge(target: any, source: any): any {
   return result;
 }
 
-class F1TimingService extends EventEmitter {
+export class F1TimingService extends EventEmitter {
   private ws: WebSocket | null = null;
   private state: Record<string, any> = {};
   private connectionToken = '';
@@ -138,7 +138,7 @@ class F1TimingService extends EventEmitter {
   }
 
   private handleMessage(msg: any) {
-    // SignalR initial snapshot comes in msg.R after Subscribe
+    // SignalR initial snapshot — arrives as msg.R after Subscribe
     if (msg.R && typeof msg.R === 'object') {
       for (const [topic, data] of Object.entries(msg.R)) {
         this.state[topic] = data;
@@ -152,10 +152,7 @@ class F1TimingService extends EventEmitter {
       for (const m of msg.M) {
         if (m.H === HUB && m.M === 'feed' && Array.isArray(m.A) && m.A.length >= 2) {
           const [topic, data, timestamp] = m.A as [string, any, string];
-
-          // Deep-merge incremental update into cached state
           this.state[topic] = deepMerge(this.state[topic] ?? {}, data);
-
           this.emit('update', { topic, data, timestamp });
         }
       }
@@ -163,12 +160,23 @@ class F1TimingService extends EventEmitter {
   }
 
   private scheduleReconnect() {
+    // Only auto-reconnect for the persistent singleton, not one-shot instances
     if (this.reconnectTimer) return;
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
       logger.info('[F1Timing] Reconnecting...');
       this.connect();
     }, 5000);
+  }
+
+  disableReconnect() {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    // Replace scheduleReconnect with a no-op so the closed-socket handler
+    // doesn't start retrying after a deliberate one-shot disconnect.
+    (this as any).scheduleReconnect = () => {};
   }
 
   getState(): Record<string, any> {
@@ -185,4 +193,37 @@ class F1TimingService extends EventEmitter {
   }
 }
 
+// Singleton used by the persistent server process (local / traditional hosting)
 export const f1TimingService = new F1TimingService();
+
+/**
+ * One-shot fetch for serverless environments (Vercel).
+ * Opens a SignalR connection, waits for the initial snapshot, then closes.
+ * The snapshot usually arrives within 1-3 s after subscribing.
+ */
+export async function fetchF1Snapshot(
+  timeoutMs = 12000
+): Promise<Record<string, any>> {
+  return new Promise((resolve) => {
+    const svc = new F1TimingService();
+    svc.disableReconnect();
+
+    const done = (state: Record<string, any>) => {
+      clearTimeout(timer);
+      svc.disconnect();
+      resolve(state);
+    };
+
+    const timer = setTimeout(() => {
+      logger.warn('[F1Timing] One-shot snapshot timed out');
+      done({});
+    }, timeoutMs);
+
+    svc.once('snapshot', (state) => done(state));
+
+    svc.connect().catch((err) => {
+      logger.error(`[F1Timing] One-shot connect failed: ${err.message}`);
+      done({});
+    });
+  });
+}
