@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
@@ -60,8 +61,16 @@ function StatusBanner({
 }
 
 export default function SettingsPage() {
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector((s) => s.auth.user) as UserShape | undefined;
+  const initialized = useAppSelector((s) => s.auth.initialized);
+
+  useEffect(() => {
+    if (initialized && !user) {
+      router.replace("/login");
+    }
+  }, [initialized, user, router]);
 
   const [username, setUsername] = useState(user?.username ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
@@ -165,6 +174,10 @@ export default function SettingsPage() {
     setFavoriteTeamsIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
+  }
+
+  if (!initialized || !user) {
+    return null;
   }
 
   if (isDriversLoading || isTeamsLoading) {

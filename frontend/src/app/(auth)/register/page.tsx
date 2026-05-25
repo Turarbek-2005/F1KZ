@@ -81,7 +81,7 @@ export default function RegisterPage() {
           favoriteTeamsIds: favoriteTeamsIds.length
             ? favoriteTeamsIds
             : undefined,
-        })
+        }),
       ).unwrap();
 
       setSuccess("Registration successful! Redirecting to login...");
@@ -112,7 +112,7 @@ export default function RegisterPage() {
         transition={{ duration: 0.5 }}
         className="flex flex-col md:flex-row bg-white/80 dark:bg-gray-900/60 backdrop-blur-lg rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700"
       >
-        <div className="hidden md:flex bg-gradient-to-tr from-indigo-600 to-blue-700 w-100 relative">
+        <div className="hidden md:flex bg-gradient-to-tr from-indigo-600 to-red-700 w-100 relative">
           <motion.div
             initial={{ opacity: 0, scale: 1.1 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -137,7 +137,7 @@ export default function RegisterPage() {
             id="register-heading"
             className="text-2xl font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2"
           >
-            <UserPlus className="w-6 h-6 text-blue-600" /> Create Account
+            <UserPlus className="w-6 h-6 text-red-600" /> Create Account
           </h2>
 
           <label
@@ -154,7 +154,7 @@ export default function RegisterPage() {
               setUsername(e.target.value)
             }
             placeholder="Your username"
-            className="focus:ring-2 focus:ring-blue-500"
+            className="focus:ring-2 focus:ring-red-500"
             autoComplete="username"
             required
           />
@@ -174,7 +174,7 @@ export default function RegisterPage() {
             }
             placeholder="you@example.com"
             type="email"
-            className="focus:ring-2 focus:ring-blue-500"
+            className="focus:ring-2 focus:ring-red-500"
             autoComplete="email"
             required
           />
@@ -194,7 +194,7 @@ export default function RegisterPage() {
             }
             placeholder="At least 6 characters"
             type="password"
-            className="focus:ring-2 focus:ring-blue-500"
+            className="focus:ring-2 focus:ring-red-500"
             autoComplete="new-password"
             minLength={6}
             required
@@ -215,7 +215,7 @@ export default function RegisterPage() {
             }
             placeholder="Repeat your password"
             type="password"
-            className="focus:ring-2 focus:ring-blue-500"
+            className="focus:ring-2 focus:ring-red-500"
             autoComplete="new-password"
             minLength={6}
             required
@@ -236,10 +236,10 @@ export default function RegisterPage() {
                     setFavoriteDriversIds((prev) =>
                       e.target.checked
                         ? [...prev, id]
-                        : prev.filter((x) => x !== id)
+                        : prev.filter((x) => x !== id),
                     );
                   }}
-                  className="accent-blue-600"
+                  className="accent-red-600"
                 />
                 <span>
                   {driver.name} {driver.surname}
@@ -263,10 +263,10 @@ export default function RegisterPage() {
                     setFavoriteTeamsIds((prev) =>
                       e.target.checked
                         ? [...prev, id]
-                        : prev.filter((x) => x !== id)
+                        : prev.filter((x) => x !== id),
                     );
                   }}
-                  className="accent-blue-600"
+                  className="accent-red-600"
                 />
                 <span>{team.teamName}</span>
               </label>
@@ -288,14 +288,14 @@ export default function RegisterPage() {
             type="submit"
             disabled={loading}
             aria-disabled={loading}
-            className="w-full bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+            className="w-full bg-red-600 text-white hover:bg-red-700 transition-colors"
           >
             {loading ? "Loading..." : "Register"}
           </Button>
 
           <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-2">
             Already have an account?{" "}
-            <Link href="/login" className="text-blue-600 hover:underline">
+            <Link href="/login" className="text-red-600 hover:underline">
               Sign in
             </Link>
           </p>

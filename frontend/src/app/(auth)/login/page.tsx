@@ -27,7 +27,7 @@ export default function Login() {
     if (user) {
       router.push("/");
     }
-  }, [user, router]); 
+  }, [user, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,13 +39,14 @@ export default function Login() {
     }
 
     const res = await dispatch(
-      loginUser({ usernameOrEmail: usernameOrEmail.trim(), password })
+      loginUser({ usernameOrEmail: usernameOrEmail.trim(), password }),
     );
 
     if (loginUser.fulfilled.match(res)) {
       router.push("/");
     } else {
-      const msg = (res.payload as string) || res.error?.message || "Login failed";
+      const msg =
+        (res.payload as string) || res.error?.message || "Login failed";
       setLocalError(String(msg));
     }
   };
@@ -58,7 +59,7 @@ export default function Login() {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="flex flex-col md:flex-row min-h-80 md:min-h-100 bg-white/80 dark:bg-gray-900/60 backdrop-blur-lg rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700"
       >
-        <div className="hidden md:flex bg-linear-to-tr from-indigo-500 to-blue-600 w-80 relative">
+        <div className="hidden md:flex bg-linear-to-tr from-indigo-500 to-red-600 w-80 relative">
           <motion.div
             initial={{ opacity: 0, scale: 1.05 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -83,7 +84,7 @@ export default function Login() {
             id="login-heading"
             className="text-2xl font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2"
           >
-            <LogIn className="w-6 h-6 text-blue-600" /> Login
+            <LogIn className="w-6 h-6 text-red-600" /> Login
           </h3>
 
           <Input
@@ -91,7 +92,7 @@ export default function Login() {
             onChange={(e) => setUsernameOrEmail(e.target.value)}
             type="text"
             placeholder="Username or Email"
-            className="focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="focus:ring-2 focus:ring-red-500 focus:outline-none"
             autoComplete="username"
             required
           />
@@ -101,7 +102,7 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
             type="password"
             placeholder="Password"
-            className="focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="focus:ring-2 focus:ring-red-500 focus:outline-none"
             autoComplete="current-password"
             required
           />
@@ -115,7 +116,7 @@ export default function Login() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+            className="w-full text-white bg-red-600 hover:bg-red-700 transition-colors"
             aria-disabled={loading}
           >
             {loading ? "Loading..." : "Login"}
@@ -123,7 +124,7 @@ export default function Login() {
 
           <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-2">
             Don&apos;t have an account yet?{" "}
-            <Link href="/register" className="text-blue-600 hover:underline">
+            <Link href="/register" className="text-red-600 hover:underline">
               Register
             </Link>
           </p>
