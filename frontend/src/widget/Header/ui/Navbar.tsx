@@ -9,7 +9,8 @@ import { useLiveTiming } from "@/features/live-timing/hooks/useLiveTiming";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { state } = useLiveTiming();
+  const liveEnabled = pathname === "/" || pathname === "/live";
+  const { state } = useLiveTiming({ enabled: liveEnabled });
 
   const currentYear = new Date().getFullYear();
 

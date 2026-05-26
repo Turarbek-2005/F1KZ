@@ -163,6 +163,14 @@ export function Header() {
                   <div className="flex flex-col gap-3 text-center">
                     <SheetClose asChild>
                       <button
+                        onClick={() => router.push("/profile")}
+                        className="text-muted-foreground hover:text-foreground transition"
+                      >
+                        Profile
+                      </button>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <button
                         onClick={() => router.push("/settings")}
                         className="text-muted-foreground hover:text-foreground transition"
                       >
