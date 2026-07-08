@@ -3,10 +3,12 @@ import bcrypt from "bcryptjs";
 import { prisma } from "../prisma";
 import { withRetry } from "../utils/retry";
 import { logger } from "../utils/log";
+import type { AuthRequest } from "../types/auth";
 
 export async function getMe(req: Request, res: Response) {
   try {
-    const userId = req.user?.id;
+    const authReq = req as AuthRequest;
+    const userId = authReq.user?.id;
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -40,7 +42,8 @@ export async function getMe(req: Request, res: Response) {
 
 export async function updateUser(req: Request, res: Response) {
   try {
-    const userId = req.user?.id;
+    const authReq = req as AuthRequest;
+    const userId = authReq.user?.id;
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }

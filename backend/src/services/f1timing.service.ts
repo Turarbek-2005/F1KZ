@@ -2,6 +2,7 @@ import WebSocket from 'ws';
 import axios from 'axios';
 import { EventEmitter } from 'events';
 import { logger } from '../utils/log';
+import { redis } from '../redis';
 
 const SIGNALR_BASE = 'https://livetiming.formula1.com/signalr';
 const HUB = 'streaming';
@@ -54,6 +55,7 @@ export class F1TimingService extends EventEmitter {
   private msgId = 0;
   private hasReceivedSnapshot = false;
   private snapshotWaiters: Array<() => void> = [];
+  private isBlocked = false;
 
   // Returns a promise that resolves once the initial snapshot arrives,
   // or after `timeoutMs` even if nothing arrived. Triggers a connect if
@@ -83,8 +85,22 @@ export class F1TimingService extends EventEmitter {
     return this.hasReceivedSnapshot;
   }
 
+  private getErrorStatus(err: any): number | null {
+    if (typeof err?.response?.status === 'number') return err.response.status;
+    if (typeof err?.status === 'number') return err.status;
+
+    const match = String(err?.message ?? '').match(/status code (\d{3})/i);
+    if (match) return Number(match[1]);
+    return null;
+  }
+
   async connect(): Promise<void> {
     if (this.isConnecting || this.ws) return;
+    if (this.isBlocked) {
+      logger.warn('[F1Timing] Connection is blocked after a previous auth failure.');
+      return;
+    }
+
     this.isConnecting = true;
 
     try {
@@ -124,17 +140,22 @@ export class F1TimingService extends EventEmitter {
       });
 
       this.ws.on('open', () => {
-        logger.info('[F1Timing] WebSocket connected, subscribing to topics...');
+        logger.info('[F1Timing] WebSocket connected, subscribing to topics...', {
+          topicsCount: TOPICS.length,
+          topics: TOPICS,
+        });
         this.isConnecting = false;
 
-        this.ws!.send(
-          JSON.stringify({
-            H: HUB,
-            M: 'Subscribe',
-            A: [TOPICS],
-            I: ++this.msgId,
-          })
-        );
+        const subscribeMsg = {
+          H: HUB,
+          M: 'Subscribe',
+          A: [TOPICS],
+          I: ++this.msgId,
+        };
+        logger.debug('[F1Timing] Sending subscribe message:', {
+          message: subscribeMsg,
+        });
+        this.ws!.send(JSON.stringify(subscribeMsg));
       });
 
       this.ws.on('message', (raw: Buffer) => {
@@ -161,20 +182,81 @@ export class F1TimingService extends EventEmitter {
         this.scheduleReconnect();
       });
     } catch (err: any) {
-      logger.error(`[F1Timing] Connection failed: ${err.message}`);
+      const statusCode = this.getErrorStatus(err);
+      const authHeader = err?.response?.headers?.['www-authenticate'] || err?.response?.headers?.['WWW-Authenticate'];
+      if (statusCode === 401 || statusCode === 403) {
+        this.isBlocked = true;
+        this.isConnecting = false;
+        logger.warn(`[F1Timing] Live timing endpoint rejected the connection (${statusCode}). Disabling further reconnect attempts.`, {
+          statusCode,
+          url: err?.config?.url,
+          authHeader,
+        });
+        return;
+      }
+
+      logger.error(`[F1Timing] Connection failed: ${err.message}`, {
+        statusCode,
+        url: err?.config?.url,
+        authHeader,
+      });
       this.isConnecting = false;
       this.scheduleReconnect();
     }
   }
 
   private handleMessage(msg: any) {
+    // Debug: логируем все сообщения которые приходят
+    logger.debug('📬 [F1Timing] Raw message received:', {
+      messageKeys: Object.keys(msg),
+      hasR: !!msg.R,
+      hasM: !!msg.M,
+      rType: typeof msg.R,
+      mIsArray: Array.isArray(msg.M),
+      rLength: msg.R ? Object.keys(msg.R).length : 0,
+      mLength: Array.isArray(msg.M) ? msg.M.length : 0,
+    });
+
     // SignalR initial snapshot — arrives as msg.R after Subscribe
     if (msg.R && typeof msg.R === 'object') {
+      const rKeys = Object.keys(msg.R);
+      logger.info('[F1Timing] Got initial snapshot', {
+        topicsReceived: rKeys,
+        topicCount: rKeys.length,
+        isEmpty: rKeys.length === 0,
+        fullSnapshot: JSON.stringify(msg.R).substring(0, 500), // First 500 chars
+      });
+
       for (const [topic, data] of Object.entries(msg.R)) {
         this.state[topic] = data;
+        logger.debug('📥 [F1Timing] Snapshot topic loaded:', {
+          topic,
+          dataType: typeof data,
+          hasData: !!data,
+          dataKeys: typeof data === 'object' && data !== null ? Object.keys(data).length : 'N/A',
+          dataPreview: JSON.stringify(data).substring(0, 200),
+        });
       }
       logger.info('[F1Timing] Got initial snapshot');
       this.hasReceivedSnapshot = true;
+      
+      // Кэшируем snapshot в Redis на 1 час
+      const snapshotJson = JSON.stringify(this.state);
+      const snapshotSize = Buffer.byteLength(snapshotJson, 'utf-8');
+      redis.setex('f1:timing:snapshot', 3600, snapshotJson)
+        .then(() => {
+          logger.info('📥 [F1Timing] Cached snapshot to Redis', {
+            key: 'f1:timing:snapshot',
+            size: `${(snapshotSize / 1024).toFixed(2)} KB`,
+            ttl: '1 hour',
+            topicCount: Object.keys(this.state).length,
+          });
+        })
+        .catch((err: any) => logger.error('[F1Timing] Failed to cache snapshot:', {
+          error: err instanceof Error ? err.message : String(err),
+          key: 'f1:timing:snapshot',
+        }));
+      
       const waiters = this.snapshotWaiters;
       this.snapshotWaiters = [];
       waiters.forEach((w) => w());
@@ -183,10 +265,41 @@ export class F1TimingService extends EventEmitter {
 
     // Incremental feed messages
     if (Array.isArray(msg.M)) {
+      logger.debug('📬 [F1Timing] Feed messages batch received', {
+        messageCount: msg.M.length,
+      });
+
       for (const m of msg.M) {
         if (m.H === HUB && m.M === 'feed' && Array.isArray(m.A) && m.A.length >= 2) {
           const [topic, data, timestamp] = m.A as [string, any, string];
+          logger.debug('📥 [F1Timing] Feed update received:', {
+            topic,
+            timestamp,
+            dataType: typeof data,
+            dataKeys: typeof data === 'object' ? Object.keys(data).length : 'N/A',
+          });
+
           this.state[topic] = deepMerge(this.state[topic] ?? {}, data);
+          
+          // Кэшируем отдельные topic обновления для быстрого доступа
+          const topicJson = JSON.stringify(this.state[topic]);
+          const topicSize = Buffer.byteLength(topicJson, 'utf-8');
+          const topicKey = `f1:timing:topic:${topic}`;
+          
+          redis.setex(topicKey, 300, topicJson)
+            .then(() => {
+              logger.debug('📥 [F1Timing] Cached topic update to Redis', {
+                key: topicKey,
+                size: `${(topicSize / 1024).toFixed(2)} KB`,
+                ttl: '5 min',
+                timestamp,
+              });
+            })
+            .catch((err: any) => logger.error(`[F1Timing] Failed to cache topic ${topic}:`, {
+              error: err instanceof Error ? err.message : String(err),
+              key: topicKey,
+            }));
+          
           this.emit('update', { topic, data, timestamp });
         }
       }
@@ -217,6 +330,56 @@ export class F1TimingService extends EventEmitter {
     return this.state;
   }
 
+  async getCachedState(): Promise<Record<string, any> | null> {
+    try {
+      const cached = await redis.get('f1:timing:snapshot');
+      if (cached) {
+        const state = JSON.parse(cached);
+        const size = Buffer.byteLength(cached, 'utf-8');
+        logger.debug('📤 [F1Timing] Retrieved snapshot from Redis cache', {
+          key: 'f1:timing:snapshot',
+          size: `${(size / 1024).toFixed(2)} KB`,
+          topicCount: Object.keys(state).length,
+        });
+        return state;
+      } else {
+        logger.debug('⚠️ [F1Timing] Snapshot not found in Redis cache');
+        return null;
+      }
+    } catch (err) {
+      logger.error('[F1Timing] Failed to get cached state:', {
+        error: err instanceof Error ? err.message : String(err),
+        key: 'f1:timing:snapshot',
+      });
+      return null;
+    }
+  }
+
+  async getCachedTopic(topic: string): Promise<any | null> {
+    try {
+      const key = `f1:timing:topic:${topic}`;
+      const cached = await redis.get(key);
+      if (cached) {
+        const data = JSON.parse(cached);
+        const size = Buffer.byteLength(cached, 'utf-8');
+        logger.debug('📤 [F1Timing] Retrieved topic from Redis cache', {
+          key,
+          size: `${(size / 1024).toFixed(2)} KB`,
+        });
+        return data;
+      } else {
+        logger.debug('⚠️ [F1Timing] Topic not found in Redis cache', { key });
+        return null;
+      }
+    } catch (err) {
+      logger.error(`[F1Timing] Failed to get cached topic ${topic}:`, {
+        error: err instanceof Error ? err.message : String(err),
+        key: `f1:timing:topic:${topic}`,
+      });
+      return null;
+    }
+  }
+
   disconnect() {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
@@ -242,22 +405,33 @@ export async function fetchF1Snapshot(
     const svc = new F1TimingService();
     svc.disableReconnect();
 
-    const done = (state: Record<string, any>) => {
+    const done = async (state: Record<string, any>) => {
       clearTimeout(timer);
+
+      if (Object.keys(state).length === 0) {
+        const cached = await svc.getCachedState();
+        if (cached && Object.keys(cached).length > 0) {
+          logger.info('[F1Timing] Returning cached snapshot for one-shot fetch');
+          state = cached;
+        }
+      }
+
       svc.disconnect();
       resolve(state);
     };
 
     const timer = setTimeout(() => {
       logger.warn('[F1Timing] One-shot snapshot timed out');
-      done({});
+      void done({});
     }, timeoutMs);
 
-    svc.once('snapshot', (state) => done(state));
+    svc.once('snapshot', (state) => {
+      void done(state);
+    });
 
     svc.connect().catch((err) => {
       logger.error(`[F1Timing] One-shot connect failed: ${err.message}`);
-      done({});
+      void done({});
     });
   });
 }

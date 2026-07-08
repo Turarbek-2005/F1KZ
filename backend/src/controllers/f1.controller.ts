@@ -65,7 +65,7 @@ export async function getDriverById(req: Request, res: Response) {
   const { driverId } = req.params;
   try {
     const driver = await withRetry(
-      () => prisma.driver.findUnique({ where: { driverId } }),
+      () => prisma.driver.findUnique({ where: { driverId: String(driverId) } }),
       { maxAttempts: 3, delayMs: 100 }
     );
     if (!driver) return res.status(404).json({ message: "Driver not found" });
@@ -79,7 +79,7 @@ export async function getTeamById(req: Request, res: Response) {
   const { teamId } = req.params;
   try {
     const team = await withRetry(
-      () => prisma.team.findUnique({ where: { teamId } }),
+      () => prisma.team.findUnique({ where: { teamId: String(teamId) } }),
       { maxAttempts: 3, delayMs: 100 }
     );
     if (!team) return res.status(404).json({ message: "Team not found" });

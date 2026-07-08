@@ -4,6 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import compression from "compression";
 import { authMiddleware } from "./middlewares/auth.middleware";
+import { rateLimiters } from "./middlewares/rateLimit.middleware";
 import { logger } from "./utils/log";
 import f1apiRouter from "./routes/f1api.routes";
 import authRouter from "./routes/auth.routes";
@@ -13,6 +14,8 @@ import aiRouter from "./routes/ai.routes";
 import liveRouter from "./routes/live.routes";
 import { f1TimingService } from "./services/f1timing.service";
 import { prisma } from "./prisma";
+import { disconnectQueues } from "./services/queue.service";
+import { disconnectRedis } from "./redis";
 
 dotenv.config();
 
@@ -59,6 +62,11 @@ app.use(
 );
 app.use(express.json());
 
+// Rate limiting по API endpoint'ам
+app.use("/api/auth", rateLimiters.auth);
+app.use("/api/ai", rateLimiters.ai);
+app.use("/api/f1", rateLimiters.api);
+
 app.use("/api/f1api", f1apiRouter);
 app.use("/api/f1", f1Router);
 app.use("/api/auth", authRouter);
@@ -91,6 +99,8 @@ const server = app.listen(PORT, () => {
 process.on("SIGINT", async () => {
   logger.info("Shutting down...");
   f1TimingService.disconnect();
+  await disconnectQueues();
+  await disconnectRedis();
   await prisma.$disconnect();
   server.close(() => process.exit(0));
 });

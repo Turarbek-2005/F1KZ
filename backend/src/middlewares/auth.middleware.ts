@@ -2,6 +2,7 @@ import { logger } from "../utils/log";
 import "dotenv/config";
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import type { AuthRequest } from "../types/auth";
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret";
 
@@ -34,7 +35,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
 
   try {
     const payload = jwt.verify(token, JWT_SECRET) as AuthPayload;
-    req.user = { id: payload.userId, username: payload.username };
+    (req as AuthRequest).user = { id: payload.userId, username: payload.username };
     next();
   } catch (error) {
     logger.error("Token verification failed:", error);

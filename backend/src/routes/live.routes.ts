@@ -70,7 +70,14 @@ router.get('/state', async (_req: Request, res: Response) => {
 
   // No persistent state — do a one-shot fetch (serverless / cold start)
   const state = await fetchF1Snapshot(12000);
-  return res.json(state);
+  if (Object.keys(state).length > 0) {
+    return res.json(state);
+  }
+
+  return res.status(503).json({
+    error: 'live_timing_unavailable',
+    message: 'F1 live timing is currently unavailable. The upstream negotiate endpoint is rejecting requests with 401/403.',
+  });
 });
 
 export default router;
