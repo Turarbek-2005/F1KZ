@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { f1TimingService, fetchF1Snapshot } from '../services/f1timing.service';
+import { openF1LiveService, fetchOpenF1Snapshot } from '../services/openf1live.service';
 
 const router = Router();
 
@@ -23,12 +23,12 @@ router.get('/stream', async (req: Request, res: Response) => {
   // even when there is no live F1 session and the state cache is empty.
   sseWrite(res, 'connected', { ok: true });
 
-  // On Vercel serverless there is no boot-time connect(); make sure the
-  // upstream WebSocket is alive before we start streaming.
-  await f1TimingService.ensureConnected(4000);
+  // On Vercel serverless there is no boot-time connect(); make sure at least
+  // one OpenF1 snapshot has been built before we start streaming.
+  await openF1LiveService.ensureConnected(8000);
 
   // Send current cached state immediately so the client doesn't start blank
-  const currentState = f1TimingService.getState();
+  const currentState = openF1LiveService.getState();
   if (Object.keys(currentState).length > 0) {
     sseWrite(res, 'snapshot', currentState);
   }
@@ -41,8 +41,8 @@ router.get('/stream', async (req: Request, res: Response) => {
     sseWrite(res, 'update', msg);
   };
 
-  f1TimingService.on('snapshot', onSnapshot);
-  f1TimingService.on('update', onUpdate);
+  openF1LiveService.on('snapshot', onSnapshot);
+  openF1LiveService.on('update', onUpdate);
 
   // Keep-alive comment every 25 s so proxies don't close the idle connection
   const ping = setInterval(() => {
@@ -52,8 +52,8 @@ router.get('/stream', async (req: Request, res: Response) => {
 
   req.on('close', () => {
     clearInterval(ping);
-    f1TimingService.off('snapshot', onSnapshot);
-    f1TimingService.off('update', onUpdate);
+    openF1LiveService.off('snapshot', onSnapshot);
+    openF1LiveService.off('update', onUpdate);
   });
 });
 
@@ -62,21 +62,21 @@ router.get('/stream', async (req: Request, res: Response) => {
 // On Vercel serverless every invocation is fresh — in that case we open a
 // one-shot SignalR connection, wait for the initial snapshot, and return it.
 router.get('/state', async (_req: Request, res: Response) => {
-  const cached = f1TimingService.getState();
+  const cached = openF1LiveService.getState();
 
   if (Object.keys(cached).length > 0) {
     return res.json(cached);
   }
 
   // No persistent state — do a one-shot fetch (serverless / cold start)
-  const state = await fetchF1Snapshot(12000);
+  const state = await fetchOpenF1Snapshot();
   if (Object.keys(state).length > 0) {
     return res.json(state);
   }
 
   return res.status(503).json({
     error: 'live_timing_unavailable',
-    message: 'F1 live timing is currently unavailable. The upstream negotiate endpoint is rejecting requests with 401/403.',
+    message: 'F1 live timing is currently unavailable. The OpenF1 API returned no data.',
   });
 });
 

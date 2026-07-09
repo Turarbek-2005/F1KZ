@@ -12,7 +12,7 @@ import userRouter from "./routes/user.routes";
 import f1Router from "./routes/f1.routes";
 import aiRouter from "./routes/ai.routes";
 import liveRouter from "./routes/live.routes";
-import { f1TimingService } from "./services/f1timing.service";
+import { openF1LiveService } from "./services/openf1live.service";
 import { prisma } from "./prisma";
 import { disconnectQueues } from "./services/queue.service";
 import { disconnectRedis } from "./redis";
@@ -91,14 +91,12 @@ const PORT = process.env.PORT;
 
 const server = app.listen(PORT, () => {
   logger.info(`Server is running on port ${PORT}`);
-  f1TimingService.connect().catch((err) =>
-    logger.error(`[F1Timing] Initial connect error: ${err.message}`)
-  );
+  openF1LiveService.connect();
 });
 
 process.on("SIGINT", async () => {
   logger.info("Shutting down...");
-  f1TimingService.disconnect();
+  openF1LiveService.disconnect();
   await disconnectQueues();
   await disconnectRedis();
   await prisma.$disconnect();

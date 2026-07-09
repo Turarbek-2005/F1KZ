@@ -43,7 +43,7 @@ function NoSessionScreen() {
         </p>
       </div>
       <p className="text-xs text-muted-foreground/60">
-        Data sourced from livetiming.formula1.com
+        Data sourced from OpenF1 (api.openf1.org)
       </p>
     </div>
   );
