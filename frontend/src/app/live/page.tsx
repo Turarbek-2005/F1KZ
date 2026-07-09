@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { RefreshCw, WifiOff, Radio } from 'lucide-react';
+import { RefreshCw, WifiOff, Radio, History } from 'lucide-react';
 import { useLiveTiming } from '@/features/live-timing/hooks/useLiveTiming';
 import { SessionInfoBar } from '@/features/live-timing/ui/SessionInfoBar';
 import { TrackStatusBanner } from '@/features/live-timing/ui/TrackStatusBanner';
@@ -29,6 +29,18 @@ function ConnectionBadge({ status }: { status: string }) {
   );
 }
 
+function LastRaceBanner({ sessionName }: { sessionName?: string }) {
+  return (
+    <div className="flex items-center gap-2 px-4 py-2 bg-muted/40 border rounded-xl text-sm text-muted-foreground">
+      <History className="w-4 h-4 shrink-0" />
+      <span>
+        No live session right now — showing data from the last race
+        {sessionName ? ` (${sessionName})` : ''}.
+      </span>
+    </div>
+  );
+}
+
 function NoSessionScreen() {
   return (
     <div className="flex flex-col items-center justify-center py-24 gap-6 text-center">
@@ -52,9 +64,12 @@ function NoSessionScreen() {
 export default function LivePage() {
   const { state, status, lastUpdate } = useLiveTiming();
 
-  const sessionStatus = state.SessionStatus?.Status;
-  const hasData = Object.keys(state).length > 0;
-  const isInactive = !hasData || sessionStatus === 'Inactive';
+  // Show whatever data we receive — even when the session isn't live, we still
+  // render the latest session's timing. Only fall back to the empty screen when
+  // there are genuinely no rows to display.
+  const hasTimingData =
+    Object.keys(state.TimingData?.Lines ?? {}).length > 0;
+  const isLive = state.SessionStatus?.Status === 'Started';
 
   return (
     <div className="container px-4 sm:px-0 mx-auto pb-10">
@@ -88,8 +103,13 @@ export default function LivePage() {
         {/* Track status banner (only when not green) */}
         <TrackStatusBanner trackStatus={state.TrackStatus} />
 
+        {/* Last-race notice when there's data but no live session */}
+        {hasTimingData && !isLive && (
+          <LastRaceBanner sessionName={state.SessionInfo?.Name} />
+        )}
+
         {/* Main content */}
-        {isInactive && status !== 'connecting' ? (
+        {!hasTimingData && status !== 'connecting' ? (
           <NoSessionScreen />
         ) : (
           <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-4">
