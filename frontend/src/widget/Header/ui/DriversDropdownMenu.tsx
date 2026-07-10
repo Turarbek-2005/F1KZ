@@ -16,7 +16,7 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { useGetDriversQuery } from "@/entities/f1api/f1api";
 import type { ApiDriver as DriverApi, DriversResponse } from "@/entities/f1api/f1api.interfaces";
-import { cn } from "@/shared/lib/utils";
+import { navItemClass, activePill } from "./navItem";
 export default function DriversDropdownMenu() {
   const pathname = usePathname();
 
@@ -48,9 +48,9 @@ export default function DriversDropdownMenu() {
     return (
       <div className="flex items-center gap-2">
         <Link
-          className={cn(
-            "transition hover:text-red-500",
-            pathname === "/drivers" && "text-red-500"
+          className={navItemClass(
+            pathname === "/drivers",
+            pathname === "/drivers" ? activePill : undefined
           )}
           href="/drivers"
         >
@@ -62,12 +62,12 @@ export default function DriversDropdownMenu() {
   }
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
       <DropdownMenuTrigger asChild onMouseEnter={() => setOpen(true)}>
         <Link
-          className={cn(
-            "transition hover:text-red-500",
-            pathname === "/drivers" && "text-red-500"
+          className={navItemClass(
+            pathname === "/drivers",
+            pathname === "/drivers" ? activePill : undefined
           )}
           href="/drivers"
         >

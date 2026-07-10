@@ -14,7 +14,7 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { useGetTeamsQuery } from "@/entities/f1api/f1api";
 import type { ApiTeam as TeamApi, TeamsResponse } from "@/entities/f1api/f1api.interfaces";
-import { cn } from "@/shared/lib/utils";
+import { navItemClass, activePill } from "./navItem";
 import { Loader2 } from "lucide-react";
 
 export default function TeamsDropdownMenu() {
@@ -43,9 +43,9 @@ export default function TeamsDropdownMenu() {
     return (
       <div className="flex items-center gap-2">
         <Link
-          className={cn(
-            "transition hover:text-red-500",
-            pathname === "/teams" && "text-red-500"
+          className={navItemClass(
+            pathname === "/teams",
+            pathname === "/teams" ? activePill : undefined
           )}
           href="/teams"
         >
@@ -57,12 +57,12 @@ export default function TeamsDropdownMenu() {
   }
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
       <DropdownMenuTrigger asChild onMouseEnter={() => setOpen(true)}>
         <Link
-          className={cn(
-            "transition hover:text-red-500",
-            pathname === "/teams" && "text-red-500"
+          className={navItemClass(
+            pathname === "/teams",
+            pathname === "/teams" ? activePill : undefined
           )}
           href="/teams"
         >

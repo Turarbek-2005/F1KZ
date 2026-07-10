@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Trophy, Save, Trash2, Target, UserCircle2 } from "lucide-react";
+import { Trophy, Save, Trash2, Target, UserCircle2, Loader2 } from "lucide-react";
 import {
   useGetRacesNextQuery,
   useGetRacesLastQuery,
@@ -103,8 +103,9 @@ export default function PredictionsPage() {
     if (user) setPredictions(loadPredictions(user.id));
   }, [dispatch, driversStatus, user]);
 
-  const { data: nextData } = useGetRacesNextQuery() as {
+  const { data: nextData, isLoading: nextRaceLoading } = useGetRacesNextQuery() as {
     data?: LastNextRacesResponse;
+    isLoading: boolean;
   };
   const { data: lastMeta } = useGetRacesLastQuery() as {
     data?: LastNextRacesResponse;
@@ -329,6 +330,11 @@ export default function PredictionsPage() {
             </p>
           </div>
         </motion.div>
+      ) : nextRaceLoading ? (
+        <div className="bg-white/5 backdrop-blur rounded-2xl p-6 mb-8 flex items-center justify-center gap-2 text-muted-foreground">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Loading next race...
+        </div>
       ) : (
         <div className="bg-white/5 backdrop-blur rounded-2xl p-6 mb-8 text-center text-muted-foreground">
           Season is over — no upcoming race

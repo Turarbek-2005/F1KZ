@@ -8,9 +8,31 @@
   outline: none;
 }
 
-html,
-body {
+html {
+  /* Make <html> the single scroll container and always keep the vertical
+     scrollbar present. Without this the scrollbar appears/disappears when
+     navigating between a tall and a short page, and the centered content
+     (mx-auto) re-centers by the scrollbar width — shifting left under the
+     fixed header. `overflow-y: scroll` reserves it permanently; the stable
+     gutter is a modern reinforcement.
+
+     Note: `overflow-x: hidden` MUST live here, not on <body>. On <body> it
+     turns <body> itself into the scroll container, which moves the scrollbar
+     off <html> and defeats everything above. */
   overflow-x: hidden;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
+/* Radix modal popups (Select, Dialog, ...) lock scrolling via
+   react-remove-scroll, which stamps body[data-scroll-locked] and adds
+   margin-right = scrollbar width to <body>, expecting its overflow:hidden to
+   remove the scrollbar. Our scrollbar lives on <html> and never disappears
+   (see above), so that margin only shoves the page left — cancel it. The
+   `html body` prefix out-specifies their injected !important rule. */
+html body[data-scroll-locked] {
+  margin-right: 0 !important;
+  padding-right: 0 !important;
 }
 
 @media (prefers-color-scheme: dark) {
