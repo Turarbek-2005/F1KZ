@@ -20,6 +20,7 @@ import type {
 } from "@/entities/f1api/f1api.interfaces";
 import type { RootState } from "@/shared/store";
 import { Button } from "@/shared/ui/button";
+import { UserAvatar } from "@/shared/ui/UserAvatar";
 import { cn } from "@/shared/lib/utils";
 import { grapeNuts } from "@/app/fonts";
 
@@ -51,19 +52,6 @@ function loadUserPredictions(userId: number): Prediction[] {
 function teamVar(teamId?: string) {
   if (!teamId) return undefined;
   return `var(--team-${teamId.toLowerCase().replace(" ", "_")})`;
-}
-
-function Initials({ name }: { name: string }) {
-  const letters = name
-    .split(" ")
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("")
-    .slice(0, 2);
-  return (
-    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-red-600 flex items-center justify-center text-white text-3xl font-extrabold select-none shrink-0">
-      {letters}
-    </div>
-  );
 }
 
 export default function ProfilePage() {
@@ -139,7 +127,11 @@ export default function ProfilePage() {
         transition={{ duration: 0.5 }}
         className="mt-6 mb-8 flex flex-col sm:flex-row items-center sm:items-end gap-5 pb-6 border-b border-border"
       >
-        <Initials name={user.username} />
+        <UserAvatar
+          src={user.avatarUrl}
+          name={user.username}
+          className="w-20 h-20 sm:w-24 sm:h-24 text-3xl"
+        />
 
         <div className="flex-1 text-center sm:text-left">
           <h1 className="text-3xl sm:text-4xl font-extrabold">

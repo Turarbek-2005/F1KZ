@@ -41,6 +41,7 @@ import {
 } from "@/shared/ui/sheet";
 import { GlobalSearch } from "@/features/search/ui/GlobalSearch";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { UserAvatar } from "@/shared/ui/UserAvatar";
 
 export function Header() {
   const currentYear = new Date().getFullYear();
@@ -113,9 +114,16 @@ export function Header() {
           ) : auth.user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <User className="h-[1.2rem] w-[1.2rem]" />
-                </Button>
+                <button
+                  className="rounded-full outline-none ring-1 ring-border transition hover:ring-red-500/50 focus-visible:ring-2 focus-visible:ring-red-500/50"
+                  aria-label="Account menu"
+                >
+                  <UserAvatar
+                    src={auth.user.avatarUrl}
+                    name={auth.user.username}
+                    className="h-9 w-9 text-xs"
+                  />
+                </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="center">
                 <DropdownMenuItem onClick={() => router.push("/profile")}>

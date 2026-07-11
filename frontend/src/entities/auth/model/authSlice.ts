@@ -79,6 +79,7 @@ export const updateUser = createAsyncThunk<
     username?: string;
     email?: string;
     password?: string;
+    avatarUrl?: string | null;
     favoriteDriversIds?: string[];
     favoriteTeamsIds?: string[];
   },

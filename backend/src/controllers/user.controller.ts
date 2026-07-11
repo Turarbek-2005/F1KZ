@@ -21,6 +21,7 @@ export async function getMe(req: Request, res: Response) {
             id: true,
             email: true,
             username: true,
+            avatarUrl: true,
             favoriteDriversIds: true,
             favoriteTeamsIds: true,
             createdAt: true,
@@ -48,7 +49,23 @@ export async function updateUser(req: Request, res: Response) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { email, username, favoriteDriversIds, favoriteTeamsIds, password } = req.body;
+    const { email, username, favoriteDriversIds, favoriteTeamsIds, password, avatarUrl } = req.body;
+
+    // Avatar is a small compressed data URL (or null to remove it). Guard the
+    // size so an oversized payload can't bloat the row / response.
+    if (avatarUrl !== undefined && avatarUrl !== null) {
+      if (typeof avatarUrl !== "string") {
+        return res.status(400).json({ message: "avatarUrl must be a string or null" });
+      }
+      const isValid =
+        avatarUrl.startsWith("data:image/") || /^https?:\/\//.test(avatarUrl);
+      if (!isValid) {
+        return res.status(400).json({ message: "avatarUrl must be an image data URL or http(s) URL" });
+      }
+      if (avatarUrl.length > 1_500_000) {
+        return res.status(413).json({ message: "Avatar image is too large" });
+      }
+    }
 
     if (email) {
       const existingEmail = await withRetry(
@@ -73,6 +90,7 @@ export async function updateUser(req: Request, res: Response) {
     const data: any = {};
     if (email !== undefined) data.email = email;
     if (username !== undefined) data.username = username;
+    if (avatarUrl !== undefined) data.avatarUrl = avatarUrl;
     if (favoriteDriversIds !== undefined) data.favoriteDriversIds = favoriteDriversIds;
     if (favoriteTeamsIds !== undefined) data.favoriteTeamsIds = favoriteTeamsIds;
     if (password !== undefined) {
@@ -89,6 +107,7 @@ export async function updateUser(req: Request, res: Response) {
             id: true,
             email: true,
             username: true,
+            avatarUrl: true,
             favoriteDriversIds: true,
             favoriteTeamsIds: true,
             createdAt: true,

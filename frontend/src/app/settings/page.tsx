@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
+import { UserAvatar } from "@/shared/ui/UserAvatar";
+import { fileToAvatarDataUrl } from "@/shared/lib/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { updateUser } from "@/entities/auth/model/authSlice";
@@ -18,6 +20,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Check,
+  ImagePlus,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import type {
@@ -30,6 +34,7 @@ import type {
 type UserShape = {
   username?: string;
   email?: string;
+  avatarUrl?: string | null;
   favoriteDriversIds?: string[];
   favoriteDriverIds?: string[];
   favoriteTeamsIds?: string[];
@@ -76,6 +81,25 @@ export default function SettingsPage() {
   const [email, setEmail] = useState(user?.email ?? "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [avatar, setAvatar] = useState<string | null>(user?.avatarUrl ?? null);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setAvatarError("Please choose an image file.");
+      return;
+    }
+    setAvatarError(null);
+    try {
+      setAvatar(await fileToAvatarDataUrl(file));
+    } catch {
+      setAvatarError("Could not process that image.");
+    }
+  }
 
   const getFavDrivers = (u: UserShape | undefined): string[] =>
     Array.isArray(u?.favoriteDriversIds)
@@ -121,6 +145,7 @@ export default function SettingsPage() {
   useEffect(() => {
     setUsername(user?.username ?? "");
     setEmail(user?.email ?? "");
+    setAvatar(user?.avatarUrl ?? null);
     setFavoriteDriversIds(getFavDrivers(user));
     setFavoriteTeamsIds(getFavTeams(user));
   }, [user]);
@@ -142,11 +167,13 @@ export default function SettingsPage() {
         username: string;
         email: string;
         password?: string;
+        avatarUrl: string | null;
         favoriteDriversIds: string[];
         favoriteTeamsIds: string[];
       } = {
         username: username.trim(),
         email: email.trim(),
+        avatarUrl: avatar,
         favoriteDriversIds,
         favoriteTeamsIds,
       };
@@ -230,6 +257,54 @@ export default function SettingsPage() {
                 <CardTitle className="text-base">Profile Info</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-5">
+                {/* Avatar */}
+                <div className="flex items-center gap-4">
+                  <UserAvatar
+                    src={avatar}
+                    name={username || user?.username}
+                    className="w-20 h-20 text-2xl"
+                  />
+                  <div className="flex flex-col gap-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      onChange={handleAvatarChange}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <ImagePlus className="w-4 h-4" />
+                        {avatar ? "Change photo" : "Upload photo"}
+                      </Button>
+                      {avatar && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="gap-2 text-red-500 hover:text-red-600"
+                          onClick={() => setAvatar(null)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Square image works best. Applied when you save settings.
+                    </p>
+                    {avatarError && (
+                      <p className="text-xs text-red-500">{avatarError}</p>
+                    )}
+                  </div>
+                </div>
+
                 <label className="flex flex-col gap-1.5">
                   <span className="text-sm font-medium">Username</span>
                   <Input

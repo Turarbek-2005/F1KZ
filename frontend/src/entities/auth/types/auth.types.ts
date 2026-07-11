@@ -2,6 +2,7 @@ export type UserInfo = {
   id: number;
   username: string;
   email: string;
+  avatarUrl?: string | null;
   favoriteDriversIds?: string[];
   favoriteTeamsIds?: string[];
 };
