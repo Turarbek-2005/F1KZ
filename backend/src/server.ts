@@ -10,6 +10,8 @@ import f1apiRouter from "./routes/f1api.routes";
 import authRouter from "./routes/auth.routes";
 import userRouter from "./routes/user.routes";
 import f1Router from "./routes/f1.routes";
+import predictionRouter from "./routes/prediction.routes";
+import publicUserRouter from "./routes/publicUser.routes";
 import aiRouter from "./routes/ai.routes";
 import liveRouter from "./routes/live.routes";
 import { openF1LiveService } from "./services/openf1live.service";
@@ -72,6 +74,8 @@ app.use("/api/f1api", f1apiRouter);
 app.use("/api/f1", f1Router);
 app.use("/api/auth", authRouter);
 app.use("/api/user", authMiddleware, userRouter);
+app.use("/api/predictions", rateLimiters.api, predictionRouter);
+app.use("/api/users", rateLimiters.api, publicUserRouter);
 app.use("/api/ai", aiRouter);
 app.use("/api/live", liveRouter);
 

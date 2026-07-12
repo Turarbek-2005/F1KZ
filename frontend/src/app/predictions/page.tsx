@@ -1,20 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { motion } from "framer-motion";
-import { Trophy, Save, Trash2, Target, UserCircle2, Loader2 } from "lucide-react";
 import {
-  useGetRacesNextQuery,
-  useGetRacesLastQuery,
-  useGetLastRaceQuery,
-  useGetDriversQuery,
-} from "@/entities/f1api/f1api";
+  Trophy,
+  Save,
+  Trash2,
+  Target,
+  UserCircle2,
+  Loader2,
+} from "lucide-react";
+import { useGetRacesNextQuery, useGetDriversQuery } from "@/entities/f1api/f1api";
 import {
   fetchDrivers,
-  selectAllDrivers,
 } from "@/entities/f1/model/driversSlice";
+import {
+  useGetMyPredictionsQuery,
+  useSavePredictionMutation,
+  useClearMyPredictionsMutation,
+} from "@/entities/predictions/predictionsApi";
+import { PredictionCard } from "@/features/predictions/ui/PredictionCard";
+import { PredictionsLeaderboard } from "@/features/predictions/ui/Leaderboard";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
 import type { RootState } from "@/shared/store";
 import type {
@@ -29,172 +36,81 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import { Button } from "@/shared/ui/button";
-import { cn } from "@/shared/lib/utils";
-
-type RaceResultRow = {
-  driver: { driverId: string; name: string; surname: string };
-  team: { teamId: string; teamName: string };
-  position: number;
-};
-
-interface Prediction {
-  raceId: string;
-  round: string | number;
-  raceName: string;
-  p1: string;
-  p2: string;
-  p3: string;
-  score?: number;
-  actual?: { p1: string; p2: string; p3: string };
-}
-
-function storageKey(userId: number) {
-  return `f1kz_predictions_v1_${userId}`;
-}
-
-function loadPredictions(userId: number): Record<string, Prediction> {
-  if (typeof window === "undefined") return {};
-  try {
-    return JSON.parse(localStorage.getItem(storageKey(userId)) ?? "{}");
-  } catch {
-    return {};
-  }
-}
-
-function savePredictions(userId: number, data: Record<string, Prediction>) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(storageKey(userId), JSON.stringify(data));
-}
-
-function scorePrediction(p: Prediction, actual: { p1: string; p2: string; p3: string }) {
-  let pts = 0;
-  // 5 points for exact position match
-  if (p.p1 === actual.p1) pts += 5;
-  if (p.p2 === actual.p2) pts += 5;
-  if (p.p3 === actual.p3) pts += 5;
-  // 1 point bonus if guessed driver is on podium (any position)
-  const guessed = [p.p1, p.p2, p.p3];
-  const podium = [actual.p1, actual.p2, actual.p3];
-  guessed.forEach((g, i) => {
-    if (g && podium.includes(g) && podium[i] !== g) pts += 1;
-  });
-  return pts;
-}
-
-function teamVarById(teamId?: string) {
-  if (!teamId) return undefined;
-  return `var(--team-${teamId.toLowerCase().replace(" ", "_")})`;
-}
 
 export default function PredictionsPage() {
   const dispatch = useAppDispatch();
   const user = useAppSelector((s: RootState) => s.auth.user);
-  const driversMeta = useAppSelector(selectAllDrivers);
   const driversStatus = useAppSelector((s: RootState) => s.drivers.status);
 
-  const [predictions, setPredictions] = useState<Record<string, Prediction>>({});
   const [p1, setP1] = useState("");
   const [p2, setP2] = useState("");
   const [p3, setP3] = useState("");
   const [savedFlash, setSavedFlash] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (driversStatus === "idle") dispatch(fetchDrivers());
-    if (user) setPredictions(loadPredictions(user.id));
-  }, [dispatch, driversStatus, user]);
+  }, [dispatch, driversStatus]);
 
   const { data: nextData, isLoading: nextRaceLoading } = useGetRacesNextQuery() as {
     data?: LastNextRacesResponse;
     isLoading: boolean;
   };
-  const { data: lastMeta } = useGetRacesLastQuery() as {
-    data?: LastNextRacesResponse;
-  };
-  const { data: lastResults } = useGetLastRaceQuery() as {
-    data?: { races?: { results?: RaceResultRow[] } };
-  };
   const { data: driversApi } = useGetDriversQuery() as {
     data?: DriversResponse;
   };
+
+  const { data: myPredictions = [], isLoading: predictionsLoading } =
+    useGetMyPredictionsQuery(undefined, { skip: !user });
+  const [savePrediction, { isLoading: isSaving }] = useSavePredictionMutation();
+  const [clearPredictions] = useClearMyPredictionsMutation();
 
   const nextRace = nextData?.race?.[0];
   const nextRaceId = nextRace?.raceId ?? `${nextData?.round ?? "next"}`;
   const allDrivers = driversApi?.drivers ?? [];
 
-  // Score predictions when results arrive
-  useEffect(() => {
-    const lastRaceId = lastMeta?.race?.[0]?.raceId;
-    const results = lastResults?.races?.results ?? [];
-    if (!lastRaceId || results.length < 3) return;
-
-    const existing = predictions[lastRaceId];
-    if (!existing || existing.score !== undefined) return;
-
-    const sorted = results
-      .slice()
-      .sort((a, b) => (a.position ?? 99) - (b.position ?? 99));
-    const actual = {
-      p1: sorted[0].driver.driverId,
-      p2: sorted[1].driver.driverId,
-      p3: sorted[2].driver.driverId,
-    };
-    const score = scorePrediction(existing, actual);
-    const updated = {
-      ...predictions,
-      [lastRaceId]: { ...existing, score, actual },
-    };
-    setPredictions(updated);
-    if (user) savePredictions(user.id, updated);
-  }, [lastResults, lastMeta, predictions, user]);
+  const existingForNext = useMemo(
+    () => myPredictions.find((p) => p.raceId === nextRaceId),
+    [myPredictions, nextRaceId]
+  );
 
   // Prefill from existing prediction
   useEffect(() => {
-    const existing = predictions[nextRaceId];
-    if (existing) {
-      setP1(existing.p1);
-      setP2(existing.p2);
-      setP3(existing.p3);
+    if (existingForNext) {
+      setP1(existingForNext.p1);
+      setP2(existingForNext.p2);
+      setP3(existingForNext.p3);
     }
-  }, [nextRaceId, predictions]);
+  }, [existingForNext]);
 
-  function driverLabel(id: string) {
-    const apiD = allDrivers.find((d) => d.driverId === id);
-    if (apiD) return `${apiD.name ?? ""} ${apiD.surname ?? ""}`.trim();
-    return id;
-  }
-
-  function driverMeta(id: string) {
-    return driversMeta.find((d) => d.driverId === id);
-  }
-
-  function handleSave() {
+  async function handleSave() {
     if (!p1 || !p2 || !p3 || !nextRace || !user) return;
-    const pred: Prediction = {
-      raceId: nextRaceId,
-      round: nextData?.round ?? "",
-      raceName: nextRace.raceName ?? "",
-      p1,
-      p2,
-      p3,
-    };
-    const updated = { ...predictions, [nextRaceId]: pred };
-    setPredictions(updated);
-    savePredictions(user.id, updated);
-    setSavedFlash(true);
-    setTimeout(() => setSavedFlash(false), 1500);
+    setSaveError(null);
+    try {
+      await savePrediction({ p1, p2, p3 }).unwrap();
+      setSavedFlash(true);
+      setTimeout(() => setSavedFlash(false), 1500);
+    } catch (err: unknown) {
+      const e = err as { data?: { message?: string } };
+      setSaveError(e?.data?.message ?? "Failed to save prediction");
+    }
   }
 
-  function handleClear() {
+  async function handleClear() {
     if (!user || !confirm("Delete all predictions?")) return;
-    setPredictions({});
-    savePredictions(user.id, {});
-    setP1("");
-    setP2("");
-    setP3("");
+    try {
+      await clearPredictions().unwrap();
+      setP1("");
+      setP2("");
+      setP3("");
+    } catch {
+      // keep current state; the list simply stays
+    }
   }
 
-  const history = Object.values(predictions)
+  const history = myPredictions
     .filter((p) => p.raceId !== nextRaceId)
+    .slice()
     .sort((a, b) => Number(b.round) - Number(a.round));
 
   const totalScore = history.reduce((sum, p) => sum + (p.score ?? 0), 0);
@@ -307,14 +223,18 @@ export default function PredictionsPage() {
             ))}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <Button
               onClick={handleSave}
-              disabled={!allValid}
+              disabled={!allValid || isSaving}
               className="gap-2"
             >
-              <Save className="w-4 h-4" />
-              {predictions[nextRaceId] ? "Update" : "Save"} prediction
+              {isSaving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
+              {existingForNext ? "Update" : "Save"} prediction
             </Button>
             {savedFlash && (
               <motion.p
@@ -325,6 +245,7 @@ export default function PredictionsPage() {
                 ✓ Saved
               </motion.p>
             )}
+            {saveError && <p className="text-sm text-red-400">{saveError}</p>}
             <p className="text-xs text-muted-foreground ml-auto">
               5 pts exact pos · 1 pt podium
             </p>
@@ -341,6 +262,20 @@ export default function PredictionsPage() {
         </div>
       )}
 
+      {/* Leaderboard */}
+      <motion.section
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.25 }}
+        className="mb-8"
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <Trophy className="w-5 h-5 text-red-500" />
+          <h3 className="text-xl font-bold">Leaderboard</h3>
+        </div>
+        <PredictionsLeaderboard currentUserId={user.id} />
+      </motion.section>
+
       {/* History */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-bold">History</h3>
@@ -354,88 +289,18 @@ export default function PredictionsPage() {
         )}
       </div>
 
-      {history.length === 0 ? (
+      {predictionsLoading ? (
+        <div className="flex justify-center py-8">
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : history.length === 0 ? (
         <p className="text-center text-muted-foreground text-sm py-8">
           No past predictions yet
         </p>
       ) : (
         <div className="space-y-3">
           {history.map((p) => (
-            <div
-              key={p.raceId}
-              className="bg-white/5 backdrop-blur rounded-xl p-4"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className="text-sm font-bold">{p.raceName}</p>
-                  <p className="text-xs text-muted-foreground">Round {p.round}</p>
-                </div>
-                {p.score !== undefined ? (
-                  <div className="flex items-center gap-1.5 bg-red-500/10 text-red-400 px-3 py-1 rounded-full">
-                    <Trophy className="w-3 h-3" />
-                    <span className="text-sm font-bold tabular-nums">
-                      {p.score} pts
-                    </span>
-                  </div>
-                ) : (
-                  <span className="text-xs text-muted-foreground italic">
-                    Pending
-                  </span>
-                )}
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                {(["p1", "p2", "p3"] as const).map((key, idx) => {
-                  const id = p[key];
-                  const meta = driverMeta(id);
-                  const correct = p.actual && p.actual[key] === id;
-                  const inPodium =
-                    p.actual && Object.values(p.actual).includes(id) && !correct;
-
-                  return (
-                    <div
-                      key={key}
-                      className={cn(
-                        "rounded-lg p-2 text-center border",
-                        correct && "border-green-500/60 bg-green-500/10",
-                        inPodium && "border-yellow-500/40 bg-yellow-500/10",
-                        !p.actual && "border-white/10",
-                        p.actual && !correct && !inPodium && "border-red-500/30 bg-red-500/5"
-                      )}
-                    >
-                      <p className="text-[10px] uppercase text-muted-foreground mb-1">
-                        {["1st", "2nd", "3rd"][idx]}
-                      </p>
-                      <div
-                        className="w-10 h-10 mx-auto rounded-full overflow-hidden mb-1"
-                        style={{
-                          background:
-                            teamVarById(meta?.teamId) ?? "rgba(255,255,255,0.1)",
-                        }}
-                      >
-                        {meta?.imgUrl && (
-                          <Image
-                            src={meta.imgUrl}
-                            alt={id}
-                            width={40}
-                            height={40}
-                            className="object-cover object-top w-full h-full"
-                          />
-                        )}
-                      </div>
-                      <p className="text-xs font-semibold truncate">
-                        {driverLabel(id)}
-                      </p>
-                      {p.actual && (
-                        <p className="text-[10px] text-muted-foreground mt-0.5">
-                          Actual: {driverLabel(p.actual[key]).split(" ").slice(-1)[0]}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <PredictionCard key={p.raceId} prediction={p} />
           ))}
         </div>
       )}

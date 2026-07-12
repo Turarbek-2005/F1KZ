@@ -262,6 +262,7 @@ export default function SettingsPage() {
                   <UserAvatar
                     src={avatar}
                     name={username || user?.username}
+                    viewable
                     className="w-20 h-20 text-2xl"
                   />
                   <div className="flex flex-col gap-2">
