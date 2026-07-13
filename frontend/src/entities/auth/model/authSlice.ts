@@ -2,6 +2,11 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import type { AxiosError } from "axios";
 import { AuthState, UserInfo } from "../types/auth.types";
 import { axiosAuthClient } from "@/shared/api/axios";
+import {
+  clearStoredToken,
+  getStoredToken,
+  storeToken,
+} from "@/shared/lib/token";
 
 function extractAxiosErrorMessage(error: unknown): string {
   if (!error) return "Unknown error";
@@ -38,13 +43,19 @@ export const registerUser = createAsyncThunk<
 });
 
 export const loginUser = createAsyncThunk<
-  { user: UserInfo },
+  { user: UserInfo; token: string | null },
   { usernameOrEmail: string; password: string },
   { rejectValue: string }
 >("auth/login", async (payload, { rejectWithValue }) => {
   try {
-    const res = await axiosAuthClient.post<{ user: UserInfo }>("/auth/login", payload);
-    return res.data;
+    const res = await axiosAuthClient.post<{ user: UserInfo; token?: string }>(
+      "/auth/login",
+      payload
+    );
+    // Persist the token so the session survives a reload even when the browser
+    // refuses the cross-site auth cookie.
+    if (res.data.token) storeToken(res.data.token);
+    return { user: res.data.user, token: res.data.token ?? null };
   } catch (err: unknown) {
     return rejectWithValue(extractAxiosErrorMessage(err));
   }
@@ -57,6 +68,8 @@ export const logoutUser = createAsyncThunk<void, void, { rejectValue: string }>(
       await axiosAuthClient.post("/auth/logout");
     } catch (err: unknown) {
       return rejectWithValue(extractAxiosErrorMessage(err));
+    } finally {
+      clearStoredToken();
     }
   }
 );
@@ -110,7 +123,13 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.error = null;
     },
+    // Pulls the persisted token into state on boot. Runs client-side only, so
+    // the initial (server-rendered) state stays tokenless and hydration matches.
+    hydrateToken(state) {
+      state.token = getStoredToken();
+    },
     logout(state) {
+      clearStoredToken();
       state.token = null;
       state.user = null;
       state.status = "idle";
@@ -137,6 +156,8 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.user = action.payload.user;
+        state.token = action.payload.token;
+        state.initialized = true;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.status = "failed";
@@ -149,11 +170,13 @@ const authSlice = createSlice({
       .addCase(logoutUser.fulfilled, (state) => {
         state.status = "idle";
         state.user = null;
+        state.token = null;
         state.error = null;
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.status = "failed";
         state.user = null;
+        state.token = null;
         state.error = action.payload ?? action.error.message ?? "Logout failed";
       })
       .addCase(fetchMe.pending, (state) => {
@@ -163,14 +186,18 @@ const authSlice = createSlice({
       .addCase(fetchMe.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.user = action.payload.user;
+        state.token = getStoredToken();
         state.initialized = true;
       })
       .addCase(fetchMe.rejected, (state, action) => {
         const message = action.payload ?? action.error.message ?? "Fetch user failed";
         state.initialized = true;
+        state.token = null;
         if (
           typeof message === "string" &&
-          (message.toLowerCase().includes("unauthorized") || message.toLowerCase().includes("no auth token"))
+          (message.toLowerCase().includes("unauthorized") ||
+            message.toLowerCase().includes("no auth token") ||
+            message.toLowerCase().includes("invalid token"))
         ) {
           state.status = "idle";
           state.error = null;
@@ -199,5 +226,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, logout } = authSlice.actions;
+export const { setUser, hydrateToken, logout } = authSlice.actions;
 export default authSlice.reducer;
