@@ -10,6 +10,7 @@ import {
   Target,
   UserCircle2,
   Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import { useGetRacesNextQuery, useGetDriversQuery } from "@/entities/f1api/f1api";
 import {
@@ -236,7 +237,7 @@ export default function PredictionsPage() {
               )}
               {existingForNext ? "Update" : "Save"} prediction
             </Button>
-            {savedFlash && (
+            {savedFlash ? (
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -244,6 +245,15 @@ export default function PredictionsPage() {
               >
                 ✓ Saved
               </motion.p>
+            ) : (
+              // Persistent, unlike the flash — so the pick is visibly stored
+              // even after a reload.
+              existingForNext && (
+                <p className="flex items-center gap-1.5 text-sm text-green-400">
+                  <CheckCircle2 className="w-4 h-4" />
+                  Prediction saved
+                </p>
+              )
             )}
             {saveError && <p className="text-sm text-red-400">{saveError}</p>}
             <p className="text-xs text-muted-foreground ml-auto">
@@ -260,6 +270,26 @@ export default function PredictionsPage() {
         <div className="bg-white/5 backdrop-blur rounded-2xl p-6 mb-8 text-center text-muted-foreground">
           Season is over — no upcoming race
         </div>
+      )}
+
+      {/* Current pick — otherwise a saved prediction for the upcoming race is
+          invisible: it is excluded from History and has no score yet. */}
+      {existingForNext && (
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.22 }}
+          className="mb-8"
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <CheckCircle2 className="w-5 h-5 text-green-500" />
+            <h3 className="text-xl font-bold">Your pick for this race</h3>
+            <span className="text-xs text-muted-foreground ml-auto">
+              Scored automatically after the race
+            </span>
+          </div>
+          <PredictionCard prediction={existingForNext} />
+        </motion.section>
       )}
 
       {/* Leaderboard */}
