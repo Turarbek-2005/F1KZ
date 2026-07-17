@@ -68,14 +68,15 @@ export function AvatarViewer({ src, name, onClose }: Props) {
 
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-[min(80vw,480px)] aspect-square rounded-2xl overflow-hidden bg-black/40 shadow-2xl"
+        className="relative rounded-2xl overflow-hidden bg-black/40 shadow-2xl"
       >
         <Image
           src={src}
           alt={name ?? "avatar"}
-          fill
-          sizes="480px"
-          className="object-contain"
+          width={0}
+          height={0}
+          sizes="80vw"
+          className="w-auto h-auto max-w-[min(80vw,480px)] max-h-[70vh] object-contain"
           unoptimized
         />
       </div>
