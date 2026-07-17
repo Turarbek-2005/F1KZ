@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Crown, Loader2, Medal } from "lucide-react";
+import { Crown, Medal } from "lucide-react";
 import { useGetLeaderboardQuery } from "@/entities/predictions/predictionsApi";
 import { UserAvatar } from "@/shared/ui/UserAvatar";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { cn } from "@/shared/lib/utils";
 
 const MAX_PTS_PER_RACE = 15;
@@ -31,9 +32,15 @@ export function PredictionsLeaderboard({
 
   if (isLoading) {
     return (
-      <div className="bg-white/5 backdrop-blur rounded-2xl p-6 flex items-center justify-center gap-2 text-muted-foreground">
-        <Loader2 className="w-4 h-4 animate-spin" />
-        Loading leaderboard...
+      <div className="bg-white/5 backdrop-blur rounded-2xl overflow-hidden divide-y divide-white/10">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-3 px-4 py-3">
+            <Skeleton className="h-4 w-4 shrink-0" />
+            <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+            <Skeleton className="h-4 flex-1 max-w-40" />
+            <Skeleton className="h-4 w-10" />
+          </div>
+        ))}
       </div>
     );
   }

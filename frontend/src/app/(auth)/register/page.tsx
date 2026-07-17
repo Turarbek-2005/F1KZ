@@ -6,7 +6,8 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
-import { Loader2, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { useAppDispatch } from "@/shared/lib/hooks";
 import { registerUser } from "@/entities/auth/model/authSlice";
 import { useGetTeamsQuery } from "@/entities/f1api/f1api";
@@ -98,8 +99,18 @@ export default function RegisterPage() {
 
   if (isDriversLoading || isTeamsLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader2 className="animate-spin h-16 w-16" />
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="flex flex-col md:flex-row bg-white/80 dark:bg-gray-900/60 backdrop-blur-lg rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+          <Skeleton className="hidden md:block w-100 rounded-none" />
+          <div className="w-90 sm:w-110 md:w-96 p-8 flex flex-col gap-4">
+            <Skeleton className="h-8 w-40 mx-auto" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full mt-2" />
+          </div>
+        </div>
       </div>
     );
   }

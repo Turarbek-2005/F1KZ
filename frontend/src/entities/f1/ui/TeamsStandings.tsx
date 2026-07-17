@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { TableSkeleton } from "@/shared/ui/skeletons";
 import { fetchTeams, selectAllTeams } from "@/entities/f1/model/teamsSlice";
 import { useGetStandingsTeamsQuery } from "@/entities/f1api/f1api";
 import type {
@@ -74,11 +74,7 @@ export default function TeamsStandings() {
   const isStoreLoading = teamsStatus === "idle" || teamsStatus === "loading";
 
   if (isLoading || isStoreLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader2 className="animate-spin h-16 w-16" />
-      </div>
-    );
+    return <TableSkeleton rows={10} cols={4} className="mt-4" />;
   }
 
   return (

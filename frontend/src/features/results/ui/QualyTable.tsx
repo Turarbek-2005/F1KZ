@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import { TableSkeleton } from "@/shared/ui/skeletons";
 import { skipToken } from "@reduxjs/toolkit/query";
 import {
   Table,
@@ -53,9 +53,7 @@ export default function QualyTable({ year, round }: Props) {
   
   if (isLoading || isFetching) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader2 className="animate-spin h-16 w-16" />
-      </div>
+      <TableSkeleton rows={12} cols={5} />
     );
   }
 

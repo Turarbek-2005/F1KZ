@@ -8,6 +8,7 @@ import { Button } from "@/shared/ui/button";
 import { UserAvatar } from "@/shared/ui/UserAvatar";
 import { fileToAvatarDataUrl } from "@/shared/lib/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { updateUser } from "@/entities/auth/model/authSlice";
 import { useGetDriversQuery, useGetTeamsQuery } from "@/entities/f1api/f1api";
@@ -211,8 +212,21 @@ export default function SettingsPage() {
 
   if (isDriversLoading || isTeamsLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <Loader2 className="animate-spin h-10 w-10 text-red-500" />
+      <div className="container px-4 sm:px-6 mx-auto py-10 max-w-3xl">
+        <div className="flex items-center gap-3 mb-8">
+          <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-4 w-56" />
+          </div>
+        </div>
+        <Skeleton className="h-10 w-full sm:w-72 mb-6" />
+        <div className="rounded-xl border border-border p-6 space-y-5">
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-40" />
+        </div>
       </div>
     );
   }

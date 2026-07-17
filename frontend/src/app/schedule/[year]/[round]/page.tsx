@@ -12,7 +12,6 @@ import { Button } from "@/shared/ui/button";
 import {
   Calendar,
   Clock,
-  Loader2,
   ArrowLeft,
   MapPin,
   Flag,
@@ -23,6 +22,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/shared/lib/utils";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 function toSingleString(v: string | string[] | undefined): string | undefined {
   if (v === undefined) return undefined;
@@ -249,8 +249,21 @@ export default function ScheduleYearRoundPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <Loader2 className="animate-spin h-10 w-10 text-red-500" />
+      <div className="min-h-screen">
+        <div className="border-b border-border">
+          <div className="container px-4 sm:px-6 mx-auto pt-10 pb-12 space-y-3">
+            <Skeleton className="h-5 w-32 mb-8" />
+            <Skeleton className="h-6 w-40 rounded-full" />
+            <Skeleton className="h-12 w-80 max-w-full" />
+            <Skeleton className="h-4 w-64" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+        </div>
+        <div className="container px-4 sm:px-6 mx-auto py-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full rounded-xl" />
+          ))}
+        </div>
       </div>
     );
   }

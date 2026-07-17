@@ -5,7 +5,8 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { CalendarDays, Loader2, Target, UserX } from "lucide-react";
+import { CalendarDays, Target, UserX } from "lucide-react";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
 import {
   fetchDrivers,
@@ -53,8 +54,32 @@ export default function PublicProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <Loader2 className="animate-spin h-10 w-10 text-red-500" />
+      <div className="container px-4 sm:px-0 mx-auto pb-10">
+        <div className="mt-6 mb-8 flex flex-col sm:flex-row items-center sm:items-end gap-5 pb-6 border-b border-border">
+          <Skeleton className="w-20 h-20 sm:w-24 sm:h-24 rounded-full shrink-0" />
+          <div className="flex-1 w-full flex flex-col items-center sm:items-start gap-2">
+            <Skeleton className="h-9 w-48" />
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-3 w-56" />
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-3 mb-10">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div
+              key={i}
+              className="bg-white/5 backdrop-blur rounded-xl p-4 flex flex-col items-center gap-2"
+            >
+              <Skeleton className="h-8 w-14" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+          ))}
+        </div>
+        <Skeleton className="h-6 w-40 mb-4" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full rounded-xl" />
+          ))}
+        </div>
       </div>
     );
   }

@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
-import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 export default function Schedule() {
   const currentYear = new Date().getFullYear();
@@ -93,8 +93,18 @@ export default function Schedule() {
 
   if (isLoading || isLoadingLast || isLoadingNext || isStoreLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader2 className="animate-spin h-16 w-16" />
+      <div className="container px-4 sm:px-0 mx-auto pt-4 pb-6">
+        <Skeleton className="h-10 w-full max-w-xs mb-4" />
+        <Skeleton className="h-8 w-96 max-w-full mb-6" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-10">
+          <Skeleton className="h-32 w-full rounded-2xl" />
+          <Skeleton className="h-32 w-full rounded-2xl" />
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <Skeleton key={i} className="h-44 w-full rounded" />
+          ))}
+        </div>
       </div>
     );
   }

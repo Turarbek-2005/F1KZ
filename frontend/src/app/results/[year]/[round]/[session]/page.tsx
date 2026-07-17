@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import { skipToken } from "@reduxjs/toolkit/query";
 import {
   Select,
@@ -28,6 +27,8 @@ import QualyTable from "@/features/results/ui/QualyTable";
 import RaceTable from "@/features/results/ui/RaceTable";
 import SprintQualyTable from "@/features/results/ui/SprintQualyTable";
 import SprintRaceTable from "@/features/results/ui/SprintRaceTable";
+import { Skeleton } from "@/shared/ui/skeleton";
+import { TableSkeleton } from "@/shared/ui/skeletons";
 
 function toSingleString(v: string | string[] | undefined): string | undefined {
   if (v === undefined) return undefined;
@@ -75,8 +76,13 @@ export default function ResultsYearRoundSessionPage() {
 
   if (isLoading || isLoadingRace || isFetching || isFetchingRace) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader2 className="animate-spin h-16 w-16" />
+      <div className="container px-4 sm:px-0 mx-auto pt-4 pb-6">
+        <div className="mb-4 flex items-center gap-3">
+          <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <TableSkeleton rows={12} cols={5} />
       </div>
     );
   }

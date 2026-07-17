@@ -21,7 +21,7 @@ import type {
   DriversResponse,
   TeamsResponse,
 } from "@/entities/f1api/f1api.interfaces";
-import { Loader2 } from "lucide-react";
+import { PageTitleSkeleton, GridCardsSkeleton } from "@/shared/ui/skeletons";
 
 export default function Teams() {
   const router = useRouter();
@@ -97,8 +97,9 @@ export default function Teams() {
 
   if (isLoadingDrivers || isLoadingTeams || isStoreLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader2 className="animate-spin h-16 w-16" />
+      <div className="container px-4 sm:px-0 mx-auto pb-6">
+        <PageTitleSkeleton />
+        <GridCardsSkeleton count={6} className="grid md:grid-cols-2 gap-5" />
       </div>
     );
   }

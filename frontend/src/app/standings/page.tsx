@@ -15,6 +15,7 @@ import {
   DriverStandingsChart,
   TeamStandingsChart,
 } from "@/features/charts/ui/StandingsChart";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 export default function Standings() {
   const { data: driversData } = useGetStandingsDriversQuery() as {
@@ -65,7 +66,7 @@ export default function Standings() {
                   standings={driversData.drivers_championship}
                 />
               ) : (
-                <p className="text-muted-foreground text-sm">Loading...</p>
+                <Skeleton className="h-72 w-full rounded-lg" />
               )}
             </div>
 
@@ -78,7 +79,7 @@ export default function Standings() {
                   standings={teamsData.constructors_championship}
                 />
               ) : (
-                <p className="text-muted-foreground text-sm">Loading...</p>
+                <Skeleton className="h-72 w-full rounded-lg" />
               )}
             </div>
           </motion.div>

@@ -21,7 +21,7 @@ import type {
 } from "@/entities/f1api/f1api.interfaces";
 import { cn } from "@/shared/lib/utils";
 import { grapeNuts } from "../fonts";
-import { Loader2 } from "lucide-react";
+import { PageTitleSkeleton, GridCardsSkeleton } from "@/shared/ui/skeletons";
 
 export default function Drivers() {
   const user = useAppSelector((state) => state.auth.user);
@@ -64,8 +64,12 @@ export default function Drivers() {
 
   if (driversLoading || teamsLoading || isStoreLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader2 className="animate-spin h-16 w-16" />
+      <div className="container px-4 sm:px-0 mx-auto pb-6">
+        <PageTitleSkeleton />
+        <GridCardsSkeleton
+          count={8}
+          className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-5"
+        />
       </div>
     );
   }

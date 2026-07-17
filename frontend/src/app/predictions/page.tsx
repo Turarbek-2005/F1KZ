@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import { Button } from "@/shared/ui/button";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 export default function PredictionsPage() {
   const dispatch = useAppDispatch();
@@ -262,9 +263,14 @@ export default function PredictionsPage() {
           </div>
         </motion.div>
       ) : nextRaceLoading ? (
-        <div className="bg-white/5 backdrop-blur rounded-2xl p-6 mb-8 flex items-center justify-center gap-2 text-muted-foreground">
-          <Loader2 className="w-4 h-4 animate-spin" />
-          Loading next race...
+        <div className="bg-white/5 backdrop-blur rounded-2xl p-6 mb-8 space-y-4">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-64" />
+          <div className="grid grid-cols-3 gap-3">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
         </div>
       ) : (
         <div className="bg-white/5 backdrop-blur rounded-2xl p-6 mb-8 text-center text-muted-foreground">
@@ -320,8 +326,10 @@ export default function PredictionsPage() {
       </div>
 
       {predictionsLoading ? (
-        <div className="flex justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+          ))}
         </div>
       ) : history.length === 0 ? (
         <p className="text-center text-muted-foreground text-sm py-8">

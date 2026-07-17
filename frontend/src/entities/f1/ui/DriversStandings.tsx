@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { TableSkeleton } from "@/shared/ui/skeletons";
 
 import {
   fetchDrivers,
@@ -97,11 +97,7 @@ export default function DriversStandings() {
     teamsStatus === "loading";
 
   if (isLoading || isStoreLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader2 className="animate-spin h-16 w-16" />
-      </div>
-    );
+    return <TableSkeleton rows={20} cols={5} className="mt-4" />;
   }
 
   return (

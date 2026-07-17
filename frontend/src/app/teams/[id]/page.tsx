@@ -5,7 +5,8 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { useParams } from "next/navigation";
 import { skipToken } from "@reduxjs/toolkit/query/react";
-import { Loader2, MoveLeft } from "lucide-react";
+import { MoveLeft } from "lucide-react";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { useAppDispatch, useAppSelector } from "@/shared/lib/hooks";
 import type { RootState } from "@/shared/store";
 import {
@@ -110,8 +111,20 @@ export default function Team() {
 
   if (teamApiLoading || teamDriversApiLoading || isStoreLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader2 className="animate-spin h-16 w-16" />
+      <div className="pb-6">
+        <div className="container px-4 sm:px-0 mx-auto mb-2">
+          <Skeleton className="h-5 w-32" />
+        </div>
+        <div className="w-full h-140 bg-muted/60 flex flex-col items-center justify-center gap-5 mb-14">
+          <Skeleton className="h-45 w-full max-w-3xl bg-foreground/10" />
+          <Skeleton className="h-12 w-72 bg-foreground/10" />
+          <Skeleton className="h-6 w-40 bg-foreground/10" />
+        </div>
+        <div className="container px-4 sm:px-0 mx-auto grid grid-cols-1 md:grid-cols-2 gap-5">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <Skeleton key={i} className="h-40 w-full rounded-lg" />
+          ))}
+        </div>
       </div>
     );
   }
