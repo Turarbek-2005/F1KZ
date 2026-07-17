@@ -62,8 +62,9 @@ app.use(
     },
   })
 );
-// Raised from the 100kb default so base64 avatar data URLs fit comfortably.
-app.use(express.json({ limit: "2mb" }));
+// Raised from the 100kb default so base64 avatar data URLs (up to 8MB
+// originals, ~33% larger once base64-encoded) fit comfortably.
+app.use(express.json({ limit: "12mb" }));
 
 // Rate limiting по API endpoint'ам
 app.use("/api/auth", rateLimiters.auth);

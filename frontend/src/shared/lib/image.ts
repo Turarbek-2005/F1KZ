@@ -1,26 +1,18 @@
-// Turn a user-selected image File into a small, square, compressed JPEG data
-// URL suitable for storing inline (in the DB) and sending over the JSON API.
-// Cover-crops to a centered square so avatars are never distorted.
-export async function fileToAvatarDataUrl(
-  file: File,
-  size = 256,
-  quality = 0.85,
-): Promise<string> {
-  const bitmap = await createImageBitmap(file);
-  try {
-    const canvas = document.createElement("canvas");
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("Canvas not supported");
+// Turn a user-selected image File into a data URL suitable for storing
+// inline (in the DB) and sending over the JSON API. The image is kept at
+// its original resolution and quality — square cropping for display is
+// handled purely with the `object-cover` Tailwind class on the <img>.
+const MAX_AVATAR_FILE_BYTES = 8 * 1024 * 1024; // 8MB
 
-    const scale = Math.max(size / bitmap.width, size / bitmap.height);
-    const w = bitmap.width * scale;
-    const h = bitmap.height * scale;
-    ctx.drawImage(bitmap, (size - w) / 2, (size - h) / 2, w, h);
-
-    return canvas.toDataURL("image/jpeg", quality);
-  } finally {
-    bitmap.close();
+export async function fileToAvatarDataUrl(file: File): Promise<string> {
+  if (file.size > MAX_AVATAR_FILE_BYTES) {
+    throw new Error("Image is too large (max 8MB).");
   }
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error ?? new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
 }

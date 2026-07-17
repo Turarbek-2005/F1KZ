@@ -96,8 +96,10 @@ export default function SettingsPage() {
     setAvatarError(null);
     try {
       setAvatar(await fileToAvatarDataUrl(file));
-    } catch {
-      setAvatarError("Could not process that image.");
+    } catch (err) {
+      setAvatarError(
+        err instanceof Error ? err.message : "Could not process that image."
+      );
     }
   }
 

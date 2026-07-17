@@ -51,8 +51,11 @@ export async function updateUser(req: Request, res: Response) {
 
     const { email, username, favoriteDriversIds, favoriteTeamsIds, password, avatarUrl } = req.body;
 
-    // Avatar is a small compressed data URL (or null to remove it). Guard the
-    // size so an oversized payload can't bloat the row / response.
+    // Avatar is stored as the original image data URL (or null to remove
+    // it) — no server-side resizing, cropping is purely visual (Tailwind
+    // object-cover). Guard the size so an oversized payload can't bloat the
+    // row / response; 11MB comfortably covers an 8MB original file
+    // base64-encoded (~33% larger).
     if (avatarUrl !== undefined && avatarUrl !== null) {
       if (typeof avatarUrl !== "string") {
         return res.status(400).json({ message: "avatarUrl must be a string or null" });
@@ -62,7 +65,7 @@ export async function updateUser(req: Request, res: Response) {
       if (!isValid) {
         return res.status(400).json({ message: "avatarUrl must be an image data URL or http(s) URL" });
       }
-      if (avatarUrl.length > 1_500_000) {
+      if (avatarUrl.length > 11_000_000) {
         return res.status(413).json({ message: "Avatar image is too large" });
       }
     }
